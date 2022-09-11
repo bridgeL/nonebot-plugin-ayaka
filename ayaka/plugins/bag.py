@@ -3,7 +3,7 @@
 '''
 from ayaka.lazy import *
 from ayaka.plugins.utils import get_name, get_uid_name
-logger.success(f"成功导入{__name__}")
+logger.success(f"Succeeded to import \"<y>{__name__}</y>\"")
 
 app = AyakaApp('背包', only_group=True)
 app.help = "[#bag]"

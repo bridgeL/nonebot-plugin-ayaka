@@ -124,8 +124,5 @@ class Storage:
 class Cache:
     '''临时数据'''
 
-    def __init__(self) -> None:
-        self._root = {}
-
     def __setattr__(self, name, value):
         self.__dict__[name] = value

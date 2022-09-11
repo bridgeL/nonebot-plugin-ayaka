@@ -4,7 +4,7 @@ from typing import List
 from ayaka.lazy import *
 from ayaka.plugins.bag import add_money
 from ayaka.plugins.utils import get_name, force_arg_be_int, get_time_s
-logger.success(f"成功导入{__name__}")
+logger.success(f"Succeeded to import \"<y>{__name__}</y>\"")
 
 class BetUser:
     '''一个简单的封装'''
