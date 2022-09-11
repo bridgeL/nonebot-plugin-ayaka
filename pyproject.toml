@@ -5,6 +5,11 @@ description = "a useful plugin providing convinient tools for the development of
 authors = ["Su <wxlxy316@163.com>"]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/bridgeL/nonebot-plugin-ayaka"
+packages = [
+    { include = "ayaka" },
+]
+
 
 [tool.poetry.dependencies]
 python = "^3.8"
