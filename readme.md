@@ -42,6 +42,10 @@ ayaka提供的参数[如下](#上下文切换)
 
 自带[缓存与固存](#缓存与固存)，无需安装额外插件
 
+### 无需担心插件导入顺序，无需使用require
+
+因为ayaka接管了文字游戏插件与nb2间的交互，而ayaka的上下文机制并没有借用nb2的matcher来实现，也因此不会有nonebot2因为魔改import而产生的困扰
+
 ### 不止于文字游戏
 
 如果其他插件想要利用ayaka实现缓存、固存、状态机管理、命令隔离，只需遵循ayaka插件的编写规范即可使用
@@ -161,6 +165,7 @@ async def hi():
 
 名称|类型|功能
 -|-|-
+app.state| `str` | 应用当前的状态
 app.abot | `AyakaBot` | 保存了当前机器人的所有设备
 app.bot | `OneBot` | 用于发送各种命令和消息
 app.device | `AyakaDevice` | 保存了当前设备的所有应用

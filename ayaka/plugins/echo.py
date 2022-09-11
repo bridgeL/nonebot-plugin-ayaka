@@ -1,4 +1,5 @@
 from ayaka.lazy import *
+logger.success(f"成功导入{__name__}")
 
 app = AyakaApp("echo")
 app.help = "复读只因"

@@ -1,5 +1,6 @@
 from ayaka.lazy import *
 from ayaka.model.plugin import prototype_apps as apps
+logger.success(f"成功导入{__name__}")
 
 
 app = AyakaApp('帮助', no_storage=True)

@@ -4,7 +4,7 @@
 from ayaka.lazy import *
 from ayaka.plugins.bag import add_money
 from ayaka.plugins.utils import get_name, get_time_s
-
+logger.success(f"成功导入{__name__}")
 
 app = AyakaApp('签到', only_group=True)
 app.help = "[#checkin]"
