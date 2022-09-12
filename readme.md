@@ -13,11 +13,9 @@
 通过ayaka插件，二次封装nonebot2提供的api，提供专用api，便于其他文字游戏插件的编写
 
 ```python
-# ayaka.lazy
-'''快捷导入'''
-from .model import AyakaBot, AyakaDevice, AyakaApp, Storage, Cache, Trigger, create_path, create_file, beauty_save
+# ayaka.lazy 提供的类和方法
+from .model import AyakaBot, AyakaDevice, AyakaApp, Storage, Cache, Trigger, create_path, create_file, beauty_save, logger
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent, Message, MessageSegment
-from nonebot import logger
 ```
 
 ## ayaka的优势
