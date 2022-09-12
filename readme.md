@@ -113,6 +113,8 @@ async def hi():
         await app.send(app.message)
 ```
 
+<img src="./doc/chat.png">
+
 ## 注册命令监听
 `@app.on_command(cmds, states=None, super=False)`
 
