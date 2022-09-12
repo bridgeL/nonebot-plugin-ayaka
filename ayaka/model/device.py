@@ -21,12 +21,6 @@ class AyakaDevice:
             if (app.group and group) or (app.private and not group):
                 self.apps[app.name] = app.clone(self, abot)
 
-        # 剥离desktop_app和super_app
-        self.super_triggers: List[Trigger] = []
-        self.desktop_triggers: List[Trigger] = []
-        for app in self.apps.values():
-            self.super_triggers.extend(app.super_triggers)
-            self.desktop_triggers.extend(app.desktop_triggers)
 
     def add_listener(self, device_id: int):
         self.listeners.add(device_id)
@@ -39,6 +33,9 @@ class AyakaDevice:
         '''返回提示信息，state为进入app后的初始状态'''
         if self.running_app_name:
             return False, f"设备{self.device_id} 正被应用[{self.running_app_name}]占用"
+
+        if not self.apps[app_name].valid:
+            return False, f"该设备[{self.device_id}]已禁用此应用[{app_name}]，请联系管理员开启"
 
         self.running_app_name = app_name
         self.apps[app_name].state = state
@@ -53,3 +50,6 @@ class AyakaDevice:
 
     def get_app(self, app_name: str):
         return self.apps.get(app_name, None)
+
+    def get_running_app(self):
+        return self.get_app(self.running_app_name)

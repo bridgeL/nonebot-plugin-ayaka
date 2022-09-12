@@ -1,7 +1,7 @@
 '''
 请修改nonebot导入顺序，确保该插件的导入时间早于依赖它的插件
 '''
-from . import help
+from . import plugins
 
 import shlex
 from html import unescape
@@ -47,8 +47,16 @@ async def deal(bot: Bot, event: MessageEvent):
 
 
 async def deal_device(event: MessageEvent, device: AyakaDevice):
+    # 剥离super和desktop
+    super_triggers: List[Trigger] = []
+    desktop_triggers: List[Trigger] = []
+    apps = [app for app in device.apps.values() if app.valid]
+    for app in apps:
+        super_triggers.extend(app.super_triggers)
+        desktop_triggers.extend(app.desktop_triggers)
+
     # 超级应用
-    if await deal_triggers(event, device.super_triggers, device=device):
+    if await deal_triggers(event, super_triggers, device=device):
         return
 
     # 状态应用
@@ -60,7 +68,7 @@ async def deal_device(event: MessageEvent, device: AyakaDevice):
         return
 
     # 桌面应用
-    await deal_triggers(event, device.desktop_triggers, device=device)
+    await deal_triggers(event, desktop_triggers, device=device)
 
 
 async def deal_triggers(event: MessageEvent, triggers: List[Trigger], device: AyakaDevice = None, app: AyakaApp = None):

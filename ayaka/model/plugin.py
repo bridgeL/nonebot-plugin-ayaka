@@ -18,12 +18,12 @@ workspace_path = Path(".").resolve()
 
 
 class AyakaApp:
-    def __init__(self, name, only_group=False, only_private=False, hide=False, no_storage=False, clone=False) -> None:
+    def __init__(self, name, only_group=False, only_private=False, no_storage=False, clone=False) -> None:
         '''
-        name 插件名
-        only_desktop 无状态插件
-        only_group 仅群聊可用 
-        only_private 仅私聊可用 
+        - name 插件名
+        - only_group 仅群聊可用 
+        - only_private 仅私聊可用 
+        - no_storage 不使用默认的storage
         '''
         self.module = None
 
@@ -31,7 +31,6 @@ class AyakaApp:
             prototype_apps.append(self)
 
         self.name = name
-        self.hide = hide
         self.group = not only_private
         self.private = not only_group
         self.no_storage = no_storage
@@ -41,6 +40,7 @@ class AyakaApp:
         self.desktop_triggers: List[Trigger] = []
 
         # 等待具体运行时才会有值
+        self.valid = True
         self.state = None
         self.event: MessageEvent = None
         self.message: Message = None
@@ -60,7 +60,7 @@ class AyakaApp:
         app = AyakaApp(self.name, clone=True)
         app.module = self.module
         app.name = self.name
-        app.hide = self.hide
+        app.valid = self.valid
         app.group = self.group
         app.private = self.private
         app.no_storage = self.no_storage

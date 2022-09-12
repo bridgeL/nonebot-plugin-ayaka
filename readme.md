@@ -212,15 +212,16 @@ def get_money(_app: AyakaApp, uid: int) -> int:
 |名称|类型|功能|
 |-|-|-|
 | app.state   | `str`          | 应用当前的状态 |
+| app.valid   | `bool`         | 应用是否在当前设备启用 |
 | app.abot    | `AyakaBot`     | 保存了当前机器人的所有设备 |
-| app.bot     | `OneBot` | 用于发送各种命令和消息 |
+| app.bot     | `Bot` | 用于发送各种命令和消息，来自于`nonebot.adapters.onebot.v11` |
 | app.device  | `AyakaDevice`  | 保存了当前设备的所有应用 |
 | app.event   | `MessageEvent` | 当前消息事件 |
 | app.message | `Message`      | 删除了命令后剩下的消息部分，例如 "#exit你好" => "你好" |
 | app.args    | `List[str]`    | 删除了命令后剩下的消息部分按照shell分割规则得到的参数列表 |
 | app.cmd     | `str`          | 对于注册了多个命令的回调，告知该回调，本次响应是针对哪个命令 |
-| app.cache   | `Cache`        | 为本应用提供的缓存，使用app.cache.\<name>即可存取数据 |
-| app.storage | `Storage`      | 为本应用提供的本地存取，使用app.storage.accessor创建一个访问器，随后get、set即可，保存地址为 data/storage/<bot_id>/<device_id>/<app_name>.json |
+| app.cache   | `Cache`        | 为本应用提供的缓存，使用`app.cache.\<name>`即可存取数据 |
+| app.storage | `Storage`      | 为本应用提供的本地存取，使用`app.storage.accessor`创建一个访问器，随后`get`、`set`即可，保存地址为 `data/storage/<bot_id>/<device_id>/<app_name>.json` |
 
 得益于上下文机制，发送消息时，如下两种发送方式都是允许的
 
@@ -228,7 +229,7 @@ def get_money(_app: AyakaApp, uid: int) -> int:
 - `await app.send("你给我下来")`
 
 # 缓存与固存
-使用`app.cache`和`app.storage`实现，各个机器人各个设备各个应用间的存储是相互隔离的
+使用`app.cache`和`app.storage`实现，各个`机器人`各个`设备`各个`应用`间的存储是相互隔离的
 
 ## 缓存读写
 

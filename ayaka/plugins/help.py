@@ -1,6 +1,5 @@
 from ayaka.lazy import *
-from ayaka.model.plugin import prototype_apps as apps
-logger.opt(colors=True).success(f"Succeeded to import \"<y>{__name__}</y>\"")
+logger.success(f"Succeeded to import \"<y>{__name__}</y>\"")
 
 
 app = AyakaApp('帮助', no_storage=True)
@@ -37,29 +36,35 @@ async def help():
             app_name = args[0]
             app_state = args[1]
 
-    ans = get_help(app_name, app_state, isinstance(
-        app.event, GroupMessageEvent))
+    ans = get_help(app_name, app_state, app.event, app.device)
     await app.send(ans)
 
 
-def get_help(app_name, app_state, group):
-    # 排除隐藏app
-    # 排除不符合范围的app
-    def check(app: AyakaApp):
-        return not app.hide and ((group and app.group) or (not group and app.private))
-    _apps = [app for app in apps if check(app)]
+def get_help(app_name:str, app_state:str, event:MessageEvent, device:AyakaDevice):
+    group = isinstance(event, GroupMessageEvent)
 
     if not app_name:
-        names = list(f"[{app.name}]" for app in _apps)
+        # 排除不符合范围的app
+        def check(app: AyakaApp):
+            return (group and app.group) or (not group and app.private)
+        apps = [app for app in device.apps.values() if check(app)]
+
+        # 生成列表
+        names = []
+        for app in apps:
+            s = f"[{app.name}]"
+            if not app.valid:
+                s += " [已禁用]"
+            names.append(s)
         names.sort()
         return "已安装Ayaka插件\n" + '\n'.join(names)
 
-    help = [app.help for app in _apps if app.name == app_name]
-    if not help:
-        return "没找到相关帮助"
+    # 查询
+    app = device.get_app(app_name)
+    if not app:
+        return f"没找到应用[{app_name}]"
 
-    help = help[0]
-
+    help = app.help
     if not isinstance(help, dict):
         return f"[{app_name}]\n{help}"
 
