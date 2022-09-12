@@ -83,9 +83,8 @@ async def app_entrance():
     f, info = app.start("run")
 
     # 用户可以为该复读提供一个前缀，例如 "无穷小亮说："
-    args = app.args
-    if args:
-        app.cache.prefix = args[0]
+    if app.args:
+        app.cache.prefix = app.args[0]
 
     await app.send(info)
 
@@ -180,14 +179,13 @@ app.help = "[#bag]"
 async def bag():
     uid = app.event.user_id
     name = app.event.sender.card
-    money = get_money(app.device, uid)
+    money = get_money(app, uid)
 
     ans = f"[{name}] 当前有 {money}金"
     await app.send(ans)
 
 
-def get_money(device: AyakaDevice, uid: int) -> int:
-    _app = device.get_app(app.name)
+def get_money(_app: AyakaApp, uid: int) -> int:
     sa = _app.storage.accessor(uid, "money")
     money = sa.get()
     if money is None:
