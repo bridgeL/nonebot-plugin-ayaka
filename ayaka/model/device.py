@@ -30,21 +30,21 @@ class AyakaDevice:
     def start_app(self, app_name: str, state: str):
         '''返回提示信息，state为进入app后的初始状态'''
         if self.running_app_name:
-            return False, f"设备{self.device_id} 正被应用[{self.running_app_name}]占用"
+            return False, f"设备正被应用[{self.running_app_name}]占用"
 
         if not self.apps[app_name].valid:
-            return False, f"该设备[{self.device_id}]已禁用此应用[{app_name}]，请联系管理员开启"
+            return False, f"设备已禁用此应用[{app_name}]，请联系管理员开启"
 
         self.running_app_name = app_name
         self.apps[app_name].state = state
-        return True, f"设备{self.device_id} 已开启应用[{app_name}]"
+        return True, f"设备已开启应用[{app_name}]"
 
     def close_app(self):
         if not self.running_app_name:
-            return False, f"设备{self.device_id} 当前没有应用在运行"
+            return False, f"设备当前没有应用在运行"
         name = self.running_app_name
         self.running_app_name = ""
-        return True, f"设备{self.device_id} 已关闭应用[{name}]"
+        return True, f"设备已关闭应用[{name}]"
 
     def get_app(self, app_name: str):
         return self.apps.get(app_name, None)

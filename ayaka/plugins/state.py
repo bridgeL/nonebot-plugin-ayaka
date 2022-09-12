@@ -11,7 +11,7 @@ app.help = '''状态查询 [#state]'''
 async def show_state():
     _app = app.device.get_running_app()
     if _app:
-        await app.send(f"设备{app.device.device_id} 正在运行应用[{_app.name} | {_app.state}]")
+        await app.send(f"设备正在运行应用[{_app.name} | {_app.state}]")
     else:
-        await app.send(f"设备{app.device.device_id} 正在处于桌面模式")
+        await app.send(f"设备正在处于桌面模式")
 
