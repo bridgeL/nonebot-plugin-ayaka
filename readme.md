@@ -3,6 +3,8 @@
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
 
+<b>注意：由于更新pypi的readme.md需要占用版本号，因此其readme.md可能不是最新的，强烈建议读者前往[github仓库](https://github.com/bridgeL/nonebot-plugin-ayaka)以获取最新版本的帮助</b>
+
 # 安装
 `pip install nonebot-plugin-ayaka` 
 
@@ -42,8 +44,11 @@ ayaka提供的参数[如下](#上下文切换)
 
 ### 无需关注插件导入顺序，无需使用require
 
+依赖于ayaka的插件，这些插件间如果存在跨插件引用，无需关心插件导入顺序
+
 ### 帮助命令
-只需设置app.help
+
+只需设置app.help，用户便可通过#help命令获取帮助
 
 ### 不止于文字游戏
 
@@ -130,7 +135,7 @@ async def hi():
 
 每一个`AyakaBot`内部保存了该机器人所管理的所有群聊和私聊，并将它们视为设备`AyakaDevice`进行管理
 
-而依附于`ayaka`的文字游戏插件是安装到各个设备上的应用`AyakaApp`
+而依附于`Ayaka`的`文字游戏插件`是安装到各个设备上的应用`AyakaApp`
 
 同一时刻同一设备只能运行一个应用，各个应用的命令相互隔离，同一应用内不同状态时的命令相互隔离
 
@@ -148,7 +153,7 @@ async def hi():
 
 - 计算器（无状态，用户的历史输入对当前的输出没有任何影响）
 
-不过，开发者在编写插件时，使用统一的`AyakaApp`来声明即可，无需特殊关注
+不过，开发者在编写插件时，使用统一的`AyakaApp`来声明即可，通过是否声明states即可区分两种应用
 
 # 桌面模式
 如果没有任何应用在运行，则设备进入桌面模式
@@ -159,7 +164,40 @@ async def hi():
 
 不过，为了满足特殊需要，注册command或text时可设置`super=True`，则该回调可以优先于任何交互式应用执行
 
-例如，背包查询插件 `ayaka/plugins/bag.py`，无论当前是否有交互式应用运行，都不影响该插件的回调正常触发，这样可以便于玩家快速查询背包，而无需中断当前正在进行的游戏
+例如，背包查询插件
+
+```python
+'''
+    背包
+'''
+from ayaka.lazy import *
+
+app = AyakaApp('背包', only_group=True)
+app.help = "[#bag]"
+
+
+@app.on_command(['bag', '背包'], super=True)
+async def bag():
+    uid = app.event.user_id
+    name = app.event.sender.card
+    money = get_money(app.device, uid)
+
+    ans = f"[{name}] 当前有 {money}金"
+    await app.send(ans)
+
+
+def get_money(device: AyakaDevice, uid: int) -> int:
+    _app = device.get_app(app.name)
+    sa = _app.storage.accessor(uid, "money")
+    money = sa.get()
+    if money is None:
+        # 初始100金
+        sa.set(100)
+        return 100
+    return money
+```
+
+无论当前是否有交互式应用运行，都不影响该插件的`bag`回调的命令触发，这样可以便于玩家快速查询背包，而无需中断当前正在进行的游戏
 
 这一特性的具体实现可以查看 `ayaka/device.py:deal_device()`
 
@@ -171,17 +209,17 @@ async def hi():
 
 可以使用的参数有：
 
-| 名称        | 类型           | 功能                                                                                                                                           |
-| ----------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| app.state   | `str`          | 应用当前的状态                                                                                                                                 |
-| app.abot    | `AyakaBot`     | 保存了当前机器人的所有设备                                                                                                                     |
-| app.bot     | `OneBot`       | 用于发送各种命令和消息                                                                                                                         |
-| app.device  | `AyakaDevice`  | 保存了当前设备的所有应用                                                                                                                       |
-| app.event   | `MessageEvent` | 当前消息事件                                                                                                                                   |
-| app.message | `Message`      | 删除了命令后剩下的消息部分，例如 "#exit你好" => "你好"                                                                                         |
-| app.args    | `List[str]`    | 删除了命令后剩下的消息部分按照shell分割规则得到的参数列表                                                                                      |
-| app.cmd     | `str`          | 对于注册了多个命令的回调，告知该回调，本次响应是针对哪个命令                                                                                   |
-| app.cache   | `Cache`        | 为本应用提供的缓存，使用app.cache.\<name>即可存取数据                                                                                          |
+|名称|类型|功能|
+|-|-|-|
+| app.state   | `str`          | 应用当前的状态 |
+| app.abot    | `AyakaBot`     | 保存了当前机器人的所有设备 |
+| app.bot     | `OneBot` | 用于发送各种命令和消息 |
+| app.device  | `AyakaDevice`  | 保存了当前设备的所有应用 |
+| app.event   | `MessageEvent` | 当前消息事件 |
+| app.message | `Message`      | 删除了命令后剩下的消息部分，例如 "#exit你好" => "你好" |
+| app.args    | `List[str]`    | 删除了命令后剩下的消息部分按照shell分割规则得到的参数列表 |
+| app.cmd     | `str`          | 对于注册了多个命令的回调，告知该回调，本次响应是针对哪个命令 |
+| app.cache   | `Cache`        | 为本应用提供的缓存，使用app.cache.\<name>即可存取数据 |
 | app.storage | `Storage`      | 为本应用提供的本地存取，使用app.storage.accessor创建一个访问器，随后get、set即可，保存地址为 data/storage/<bot_id>/<device_id>/<app_name>.json |
 
 得益于上下文机制，发送消息时，如下两种发送方式都是允许的
