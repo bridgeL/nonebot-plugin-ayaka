@@ -1,4 +1,4 @@
-from .logger import logger
+from ayaka.logger import logger
 
 
 class Trigger:

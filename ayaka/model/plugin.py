@@ -1,13 +1,11 @@
 import importlib
 from pathlib import Path
 from typing import Callable, List, TYPE_CHECKING, Union
-
+from nonebot.adapters.onebot.v11 import MessageEvent, Message, MessageSegment
 
 from .trigger import Trigger
 from .storage import Cache, Storage
 
-# 此处本应有依赖倒置，但是懒了
-from nonebot.adapters.onebot.v11 import MessageEvent, Message, MessageSegment
 
 if TYPE_CHECKING:
     from .device import AyakaDevice

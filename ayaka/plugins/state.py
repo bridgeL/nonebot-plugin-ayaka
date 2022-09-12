@@ -2,8 +2,6 @@
 当前状态
 '''
 from ayaka.lazy import *
-logger.success(f"Succeeded to import \"<y>{__name__}</y>\"")
-
 
 app = AyakaApp('状态查询', no_storage=True)
 app.help = '''状态查询 [#state]'''

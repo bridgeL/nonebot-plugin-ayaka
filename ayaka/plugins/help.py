@@ -1,6 +1,4 @@
 from ayaka.lazy import *
-logger.success(f"Succeeded to import \"<y>{__name__}</y>\"")
-
 
 app = AyakaApp('帮助', no_storage=True)
 app.help = '''

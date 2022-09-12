@@ -220,7 +220,7 @@ def get_money(_app: AyakaApp, uid: int) -> int:
 | app.device  | `AyakaDevice`  | 保存了当前设备的所有应用 |
 | app.event   | `MessageEvent` | 当前消息事件 |
 | app.message | `Message`      | 删除了命令后剩下的消息部分，例如 "#exit你好" => "你好" |
-| app.args    | `List[str]`    | 删除了命令后剩下的消息部分按照shell分割规则得到的参数列表 |
+| app.args    | `List[str]`    | `删除了命令后剩下的消息部分` 按照 `shell分割规则` 得到的 `参数列表` |
 | app.cmd     | `str`          | 对于注册了多个命令的回调，告知该回调，本次响应是针对哪个命令 |
 | app.cache   | `Cache`        | 为本应用提供的缓存，使用`app.cache.\<name>`即可存取数据 |
 | app.storage | `Storage`      | 为本应用提供的本地存取，使用`app.storage.accessor`创建一个访问器，随后`get`、`set`即可，保存地址为 `data/storage/<bot_id>/<device_id>/<app_name>.json` |

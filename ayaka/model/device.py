@@ -1,6 +1,4 @@
-from typing import TYPE_CHECKING, Dict, List
-
-from .trigger import Trigger
+from typing import TYPE_CHECKING, Dict
 from .plugin import AyakaApp, prototype_apps
 
 if TYPE_CHECKING:
