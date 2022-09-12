@@ -8,7 +8,7 @@
 # 安装
 `pip install nonebot-plugin-ayaka` 
 
-在 `bot.py` 中 写入 nonebot.load_plugin("ayaka")
+在 `bot.py` 中 写入 `nonebot.load_plugin("ayaka")`
 
 # 快速了解
 
