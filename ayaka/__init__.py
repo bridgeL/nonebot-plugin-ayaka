@@ -1,6 +1,7 @@
 '''
 请修改nonebot导入顺序，确保该插件的导入时间早于依赖它的插件
 '''
+from . import help
 
 import shlex
 from html import unescape

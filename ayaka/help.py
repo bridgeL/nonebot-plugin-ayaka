@@ -1,6 +1,6 @@
 from ayaka.lazy import *
 from ayaka.model.plugin import prototype_apps as apps
-logger.success(f"Succeeded to import \"<y>{__name__}</y>\"")
+logger.opt(colors=True).success(f"Succeeded to import \"<y>{__name__}</y>\"")
 
 
 app = AyakaApp('帮助', no_storage=True)
