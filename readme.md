@@ -214,7 +214,7 @@ def get_money(_app: AyakaApp, uid: int) -> int:
 |名称|类型|功能|
 |-|-|-|
 | app.state   | `str`          | 应用当前的状态 |
-| app.valid   | `bool`         | 应用是否在当前设备启用 |
+| app.valid   | `bool`         | 应用在当前设备 可启用/已禁用 |
 | app.abot    | `AyakaBot`     | 保存了当前机器人的所有设备 |
 | app.bot     | `Bot` | 用于发送各种命令和消息，来自于`nonebot.adapters.onebot.v11` |
 | app.device  | `AyakaDevice`  | 保存了当前设备的所有应用 |
