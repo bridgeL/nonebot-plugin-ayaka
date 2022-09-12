@@ -6,11 +6,11 @@
 # 安装
 `pip install nonebot-plugin-ayaka` 
 
-在 `bot.py` 中 写入 nonebot.load_plugin("nonebot_plugin_ayaka")
+在 `bot.py` 中 写入 nonebot.load_plugin("ayaka")
 
 # 快速了解
 
-通过ayaka插件，二次封装nonebot2提供的api，提供简单的，易用的专用api，便于其他文字游戏插件的编写
+通过ayaka插件，二次封装nonebot2提供的api，提供专用api，便于其他文字游戏插件的编写
 
 ```python
 # ayaka.lazy
@@ -42,9 +42,7 @@ ayaka提供的参数[如下](#上下文切换)
 
 自带[缓存与固存](#缓存与固存)，无需安装额外插件
 
-### 无需担心插件导入顺序，无需使用require
-
-因为ayaka接管了文字游戏插件与nb2间的交互，而ayaka的上下文机制并没有借用nb2的matcher来实现，也因此不会有nonebot2因为魔改import而产生的困扰
+### 无需关注插件导入顺序，无需使用require
 
 ### 不止于文字游戏
 

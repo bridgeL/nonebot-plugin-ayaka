@@ -1,4 +1,4 @@
-from nonebot.log import logger
+from .logger import logger
 
 
 class Trigger:
