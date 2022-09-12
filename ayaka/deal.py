@@ -10,7 +10,7 @@ from .bot import ayaka_bots
 # 看个人喜好
 cmd_prefix = "#"
 
-matcher = on_message(priority=1)
+matcher = on_message(priority=1,block=False)
 
 
 @matcher.handle()
