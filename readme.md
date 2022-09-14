@@ -1,13 +1,15 @@
-# Ayaka 0.2.7
+# Ayaka 0.2.8
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
 
 <b>注意：由于更新pypi的readme.md需要占用版本号，因此其readme.md可能不是最新的，强烈建议读者前往[github仓库](https://github.com/bridgeL/nonebot-plugin-ayaka)以获取最新版本的帮助</b>
 
-0.2.7版本开始，无论是在ayaka框架下书写的插件，还是在ayaka插件下书写的插件，都可以相互通用
+0.2.8版本开始，无论是在ayaka框架下书写的插件，还是在ayaka插件下书写的插件，都可以相互通用
 
-0.2.7版本开始，取消了ayaka.lazy，之后统一使用`from ayaka import *`
+0.2.8版本开始，取消了ayaka.lazy，之后统一使用`from ayaka import *`
+
+0.2.8版本开始，ayaka提供的Bot具有新方法send_group_forward_msg，用于发送合并转发消息
 
 # 安装
 `pip install nonebot-plugin-ayaka` 
