@@ -33,8 +33,14 @@ async def record_send(bot: Bot, api: str, data: dict):
     logger.success(str(data).replace("<", "\<"))
 
     device_id = data['group_id'] if 'group_id' in data else data['user_id']
-    record(bot.self_id, device_id, int(time.time()),
-           "AyakaBot", bot.self_id, str(data))
+    if api == "send_group_forward_msg":
+        data = data["messages"]
+        for d in data:
+            msg = unescape(str(d["data"]["content"]))
+            record(bot.self_id, device_id, int(time.time()), "AyakaBot", bot.self_id, msg)
+    else:
+        data = data["message"]
+        record(bot.self_id, device_id, int(time.time()), "AyakaBot", bot.self_id, str(data))
 
 
 def record(bot_id: str, device_id: int, time_i: int, name: str, uid: int, msg: str):

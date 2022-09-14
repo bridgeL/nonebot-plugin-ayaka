@@ -11,6 +11,8 @@
 
 0.2.8版本开始，ayaka提供的Bot具有新方法send_group_forward_msg，用于发送合并转发消息
 
+0.2.9版本开始，ayaka正确地记录发送消息
+
 # 安装
 `pip install nonebot-plugin-ayaka` 
 
