@@ -23,9 +23,16 @@
 通过ayaka插件，二次封装nonebot2提供的api，提供专用api，便于其他文字游戏插件的编写
 
 ```python
-# ayaka.lazy 提供的类和方法
-from .model import AyakaBot, AyakaDevice, AyakaApp, Storage, Cache, Trigger, create_path, create_file, beauty_save, logger
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent, Message, MessageSegment
+from ayaka import * 包含了
+
+# class 
+AyakaBot, AyakaDevice, AyakaApp, Storage, Cache, Trigger, Bot, GroupMessageEvent, MessageEvent, Message, MessageSegment
+
+# function
+create_path, create_file, beauty_save
+
+# object
+logger, ayaka 
 ```
 
 ## ayaka的优势
@@ -71,7 +78,7 @@ ayaka提供的参数[如下](#上下文切换)
 '''
     具有状态机的复读模块
 '''
-from ayaka.lazy import *
+from ayaka import *
 
 app = AyakaApp("echo")
 
@@ -181,7 +188,7 @@ async def hi():
 '''
     背包
 '''
-from ayaka.lazy import *
+from ayaka import *
 
 app = AyakaApp('背包', only_group=True)
 app.help = "[#bag]"
