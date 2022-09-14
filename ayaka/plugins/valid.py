@@ -3,7 +3,7 @@
 '''
 from .. import *
 
-app = AyakaApp('应用管理', no_storage=True)
+app = AyakaApp('应用管理')
 app.help = '''管理应用 启用/禁用
 [#valid <应用名>] 启用应用
 [#invalid <应用名>] 禁用应用'''
@@ -42,8 +42,13 @@ async def invalid():
     if not app.args:
         await app.send("您没有输入要禁用的应用名")
         return
-        
+    
     app_name = app.args[0]
+
+    if app.name == app_name:
+        await app.send("您无法禁用我")
+        return
+
     _app = app.device.get_app(app_name)
     if not _app:
         await app.send(f"没有找到应用[{app_name}]")

@@ -1,6 +1,6 @@
 from .. import *
 
-app = AyakaApp('帮助', no_storage=True)
+app = AyakaApp('帮助')
 app.help = '''
 >> 当你在桌面状态下调用 <<
 [#help <插件名> <状态>] 查询指定插件在指定状态下的帮助

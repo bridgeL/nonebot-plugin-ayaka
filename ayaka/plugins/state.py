@@ -3,7 +3,7 @@
 '''
 from .. import *
 
-app = AyakaApp('状态查询', no_storage=True)
+app = AyakaApp('状态查询')
 app.help = '''状态查询 [#state]'''
 
 
