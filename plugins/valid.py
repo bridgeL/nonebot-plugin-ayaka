@@ -1,7 +1,7 @@
 '''
 管理应用 启用/禁用
 '''
-from ayaka.lazy import *
+from ..lazy import *
 
 app = AyakaApp('应用管理', no_storage=True)
 app.help = '''管理应用 启用/禁用

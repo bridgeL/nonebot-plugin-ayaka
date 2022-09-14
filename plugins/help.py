@@ -1,4 +1,4 @@
-from ayaka.lazy import *
+from ..lazy import *
 
 app = AyakaApp('帮助', no_storage=True)
 app.help = '''
@@ -11,28 +11,14 @@ app.help = '''
 
 @app.on_command(['help', '帮助'], super=True)
 async def help():
-    app_name = app.device.running_app_name
-    if app_name:
-        app_state = app.device.apps[app_name].state
-    else:
-        app_state = None
-
-    args = app.args
-
-    if app_name:
-        if len(args):
-            app_state = args[0]
+    _app = app.device.running_app
+    if _app:
+        app_name = _app.name
+        app_state = app.args[0] if app.args else _app.state
 
     else:
-        if len(args) == 0:
-            app_name = ""
-            app_state = None
-        elif len(args) == 1:
-            app_name = args[0]
-            app_state = None
-        else:
-            app_name = args[0]
-            app_state = args[1]
+        app_name = app.args[0] if app.args else None
+        app_state = app.args[1] if len(app.args) >= 2 else None
 
     ans = get_help(app_name, app_state, app.event, app.device)
     await app.send(ans)
@@ -41,11 +27,13 @@ async def help():
 def get_help(app_name:str, app_state:str, event:MessageEvent, device:AyakaDevice):
     group = isinstance(event, GroupMessageEvent)
 
+    # 展示所有app
     if not app_name:
         # 排除不符合范围的app
         def check(app: AyakaApp):
             return (group and app.group) or (not group and app.private)
-        apps = [app for app in device.apps.values() if check(app)]
+
+        apps = [app for app in device.apps if check(app)]
 
         # 生成列表
         names = []
@@ -57,7 +45,7 @@ def get_help(app_name:str, app_state:str, event:MessageEvent, device:AyakaDevice
         names.sort()
         return "已安装Ayaka插件\n" + '\n'.join(names)
 
-    # 查询
+    # 查询指定app
     app = device.get_app(app_name)
     if not app:
         return f"没找到应用[{app_name}]"

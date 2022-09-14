@@ -5,9 +5,6 @@
 
 <b>注意：由于更新pypi的readme.md需要占用版本号，因此其readme.md可能不是最新的，强烈建议读者前往[github仓库](https://github.com/bridgeL/nonebot-plugin-ayaka)以获取最新版本的帮助</b>
 
-# 紧急
-
-由于开发者错误地设置了on_message的优先级和block，0.2.4版本前，安装了ayaka插件的nonebot机器人将只响应ayaka插件以及其衍生插件，目前该问题已在0.2.4版本修复，非常抱歉
 
 # 安装
 `pip install nonebot-plugin-ayaka` 

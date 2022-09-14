@@ -62,7 +62,7 @@ def create_file(*path_str, default):
     return path
 
 
-class StorageAccessor:
+class AyakaStorageAccessor:
     def __init__(self, path: Path, keys: List[str]) -> None:
         self.path = path
         self.keys = keys
@@ -110,7 +110,7 @@ class StorageAccessor:
         return data
 
 
-class Storage:
+class AyakaStorage:
     '''持久化数据'''
 
     def __init__(self, *path_str, default="") -> None:
@@ -118,10 +118,10 @@ class Storage:
 
     def accessor(self, *keys):
         keys = [str(k) for k in keys]
-        return StorageAccessor(self.path, keys)
+        return AyakaStorageAccessor(self.path, keys)
 
 
-class Cache:
+class AyakaCache:
     '''临时数据'''
 
     def __getattr__(self, name: str):
