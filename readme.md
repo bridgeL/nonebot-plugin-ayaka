@@ -216,7 +216,7 @@ def get_money(_app: AyakaApp, uid: int) -> int:
 
 无论当前是否有交互式应用运行，都不影响该插件的`bag`回调的命令触发，这样可以便于玩家快速查询背包，而无需中断当前正在进行的游戏
 
-这一特性的具体实现可以查看 `ayaka/deal.py:deal_device()`
+这一特性的具体实现可以查看 `ayaka/core/deal.py:deal_device()`
 
 
 # 上下文切换
