@@ -1,4 +1,4 @@
-from ..lazy import *
+from .. import *
 
 app = AyakaApp('帮助', no_storage=True)
 app.help = '''

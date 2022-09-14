@@ -2,7 +2,7 @@ from html import unescape
 import time
 from pathlib import Path
 
-from ..lazy import *
+from .. import *
 
 
 def get_desc(event, limit: int = 0):

@@ -1,7 +1,7 @@
 '''
 当前状态
 '''
-from ..lazy import *
+from .. import *
 
 app = AyakaApp('状态查询', no_storage=True)
 app.help = '''状态查询 [#state]'''
