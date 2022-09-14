@@ -6,6 +6,7 @@
 <b>注意：由于更新pypi的readme.md需要占用版本号，因此其readme.md可能不是最新的，强烈建议读者前往[github仓库](https://github.com/bridgeL/nonebot-plugin-ayaka)以获取最新版本的帮助</b>
 
 0.2.6版本开始，无论是在ayaka框架下书写的插件，还是在ayaka插件下书写的插件，都可以相互通用
+
 0.2.6版本开始，取消了ayaka.lazy，之后统一使用`from ayaka import *`
 
 # 安装
