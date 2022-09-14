@@ -15,7 +15,7 @@ def get_desc(event, limit: int = 0):
 
 @on_event(MessageEvent, priority=1)
 async def record_recv(bot: Bot, event: MessageEvent):
-    logger.success(get_desc(event))
+    logger.success(get_desc(event)[:1000])
 
     name = event.sender.nickname
     device_id = event.user_id
@@ -30,7 +30,7 @@ async def record_recv(bot: Bot, event: MessageEvent):
 
 @on_send
 async def record_send(bot: Bot, api: str, data: dict):
-    logger.success(str(data).replace("<", "\<"))
+    logger.success(str(data).replace("<", "\<")[:1000])
 
     device_id = data['group_id'] if 'group_id' in data else data['user_id']
     if api == "send_group_forward_msg":

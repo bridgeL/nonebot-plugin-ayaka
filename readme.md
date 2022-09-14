@@ -1,4 +1,4 @@
-# Ayaka 0.2.9
+# Ayaka 0.2.10
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
@@ -9,11 +9,17 @@
 
 [ayaka衍生插件合集](https://github.com/bridgeL/ayaka_games)
 
+# 更新记录
+
+0.2.4版本开始，修复了ayaka优先级过高阻塞其他插件使用的问题
+
 0.2.8版本开始，取消了ayaka.lazy，之后统一使用`from ayaka import *`
 
 0.2.8版本开始，ayaka提供的Bot具有新方法send_group_forward_msg，用于发送合并转发消息
 
 0.2.9版本开始，ayaka正确地记录发送消息
+
+0.2.10版本，修复了发送base64编码图片时，ayaka内置插件record卡死的问题
 
 # 安装
 `pip install nonebot-plugin-ayaka` 
