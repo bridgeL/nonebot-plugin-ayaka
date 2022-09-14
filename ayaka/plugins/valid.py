@@ -31,6 +31,7 @@ async def valid():
         return
 
     _app.valid = True
+    _app.storage.accessor("_permit").set(True)
     await app.send(f"已启用应用[{app_name}]")
 
 @app.on_command(['invalid', '禁用', '关闭'])
@@ -55,5 +56,6 @@ async def invalid():
         return
 
     _app.valid = False
+    _app.storage.accessor("_permit").set(False)
     await app.send(f"已禁用应用[{app_name}]")
 
