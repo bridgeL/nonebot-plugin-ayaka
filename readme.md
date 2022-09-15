@@ -1,4 +1,4 @@
-# Ayaka 0.2.15
+# Ayaka 0.2.16b1
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
