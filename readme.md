@@ -1,4 +1,4 @@
-# Ayaka 0.2.16b1
+# Ayaka 0.2.16
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
@@ -27,6 +27,7 @@
 0.2.14 | 修复了内置插件record有时因为错误截断消息导致颜色标签不闭合的exception
 0.2.15 | 修复了监听私聊时，app.send()发送的默认目标设备错误的问题
 0.2.15 | 新增了内部插件，reboot，强制重启当前设备，用于某些错误情况下的脱离卡死
+0.2.16 | 修复了群聊间错误的上下文切换的bug
 
 
 </details>
