@@ -53,3 +53,13 @@ class AyakaDevice:
         for app in self.apps:
             if app.name == app_name:
                 return app
+
+    def reboot(self):
+        self.running_app = None
+        self.listeners = set()
+        self.apps: List[AyakaApp] = []
+
+        # 从原型生成
+        for app in prototype_apps:
+            if (app.group and self.group) or (app.private and not self.group):
+                self.apps.append(app.clone(self, self.abot))

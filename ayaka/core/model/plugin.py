@@ -122,7 +122,10 @@ class AyakaApp:
         return self.device.close_app()
 
     async def send(self, msg: Union[str, Message, MessageSegment]):
-        await self.bot.send(self.event, msg)
+        if self.device.group:
+            await self.bot.send_group_msg(group_id=self.device.device_id, message=msg)
+        else:
+            await self.bot.send_private_msg(user_id=self.device.device_id, message=msg)
 
     def is_running(self):
         return self.device.running_app == self
