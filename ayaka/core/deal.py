@@ -23,8 +23,7 @@ async def deal_bot(bot: Bot, event: MessageEvent):
     await deal_device(device, event)
 
     # 抄送给监听者
-    for device_id in device.listeners:
-        dev = await abot.get_device(device_id)
+    for dev in device.listeners:
         await deal_device(dev, event)
 
 

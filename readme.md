@@ -1,4 +1,4 @@
-# Ayaka 0.2.12
+# Ayaka 0.2.13b1
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
@@ -23,6 +23,7 @@
 0.2.10 | 修复了发送base64编码图片时，ayaka内置插件record卡死的问题
 0.2.11 | 修复了内置插件valid能够关闭自己的问题，修复了每次重启后需要重新设置应用权限的问题，废弃了创建AyakaApp时的no_storage选项
 0.2.12 | 真正修复了每次重启后需要重新设置应用权限的问题
+0.2.13b1 | 修复了监听私聊失败的bug
 
 
 </details>
