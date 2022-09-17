@@ -1,4 +1,4 @@
-# Ayaka 0.2.18
+# Ayaka 0.2.19
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
@@ -29,6 +29,7 @@
 0.2.15 | 新增了内部插件，reboot，强制重启当前设备，用于某些错误情况下的脱离卡死
 0.2.16 | 修复了群聊间错误的上下文切换的bug
 0.2.18 | 修改了切换上下文的方法，现在，切换app将以回调所在的文件为准
+0.2.19 | app新增方法send_help快速发送当前状态的帮助
 
 
 </details>
