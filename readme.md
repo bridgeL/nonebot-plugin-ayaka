@@ -1,4 +1,4 @@
-# Ayaka 0.2.19
+# Ayaka 0.2.20
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
@@ -30,6 +30,7 @@
 0.2.16 | 修复了群聊间错误的上下文切换的bug
 0.2.18 | 修改了切换上下文的方法，现在，切换app将以回调所在的文件为准
 0.2.19 | app新增方法send_help快速发送当前状态的帮助
+0.2.20 | app新增方法on_interval，注册定时任务
 
 
 </details>
