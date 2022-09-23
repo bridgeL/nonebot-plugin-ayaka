@@ -1,17 +1,18 @@
 from math import ceil
-from typing import Callable, Awaitable, List
+from typing import Callable, Awaitable, List, Union
 from nonebot import logger as base_logger
 from nonebot import get_driver, on
 from nonebot.rule import Rule
 from nonebot.adapters.onebot.v11 import Event, escape
 from nonebot.adapters.onebot.v11 import Bot as BaseBot
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
 
 
 class Bot(BaseBot):
     async def send_group_forward_msg(
         self,
         group_id: int,
-        messages: List[str],
+        messages: List[Union[str, Message, MessageSegment]],
     ) -> None:
         # 自动分割长消息组（不可超过100条）
         n = 80
@@ -26,12 +27,17 @@ class Bot(BaseBot):
         '''
         nodes = []
         for m in items:
+            if isinstance(m, str):
+                content = escape(m, escape_comma=False) 
+            else:
+                content = str(m)
+
             nodes.append({
                 "type": "node",
                 "data": {
                     "name": "Ayaka Bot",
                     "uin": self.self_id,
-                    "content": escape(str(m), escape_comma=False)
+                    "content": content
                 }
             })
         return nodes
