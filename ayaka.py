@@ -28,6 +28,8 @@ app_list: List["AyakaApp"] = []
 group_list: List["AyakaGroup"] = []
 bot_list: List[Bot] = []
 
+INIT_STATE = "init"
+
 _timer_started = False
 
 # 监听私聊
@@ -70,7 +72,7 @@ class AyakaApp:
 
     @property
     def intro(self):
-        return self._help.get("", "没有找到帮助")
+        return self._help.get(INIT_STATE, "没有找到帮助")
 
     @property
     def help(self):
@@ -84,7 +86,7 @@ class AyakaApp:
     def all_help(self):
         info = self.intro
         for k, v in self._help.items():
-            if k:
+            if k != INIT_STATE:
                 info += f"\n[{k}] {v}"
         return info
 
@@ -93,7 +95,11 @@ class AyakaApp:
         if isinstance(help, dict):
             self._help.update(help)
         else:
-            self._help[""] = help
+            self._help[INIT_STATE] = help
+
+    @property
+    def valid(self):
+        return self.group.get_app(self.name)
 
     @property
     def cache(self):
@@ -185,7 +191,7 @@ class AyakaApp:
             return self.group.state
         return "未运行"
 
-    def set_state(self, state: str):
+    def set_state(self, state: str = INIT_STATE):
         return self.group.set_state(self.name, state)
 
     def on_command(self, cmds: Union[List[str], str], super=False):
@@ -206,7 +212,7 @@ class AyakaApp:
             return func
         return decorator
 
-    def on_state_command(self, cmds: Union[List[str], str], states: Union[List[str], str] = ""):
+    def on_state_command(self, cmds: Union[List[str], str], states: Union[List[str], str] = INIT_STATE):
         cmds = ensure_list(cmds)
         states = ensure_list(states)
 
@@ -221,19 +227,15 @@ class AyakaApp:
     def on_text(self, super=False):
         return self.on_command("", super=super)
 
-    def on_state_text(self, states: Union[List[str], str]):
+    def on_state_text(self, states: Union[List[str], str] = INIT_STATE):
         return self.on_state_command("", states)
 
     def on_everyday(self, h: int, m: int, s: int):
-        def decorator(func):
-            t = AyakaEverydayTimer(self.name, h, m, s, func)
-            self.timers.append(t)
-            return func
-        return decorator
+        return self.on_interval(86400, h, m, s)
 
-    def on_interval(self, gap: int):
+    def on_interval(self, gap: int, h: int = -1, m: int = -1, s: int = -1):
         def decorator(func):
-            t = AyakaIntervalTimer(self.name, gap, func)
+            t = AyakaTimer(self.name, gap, h, m, s, func)
             self.timers.append(t)
             return func
         return decorator
@@ -338,14 +340,14 @@ class AyakaGroup:
     def set_running_app(self, name: str):
         if not name:
             self.running_app_name = ""
-            self.state = None
+            self.state = ""
             return True
 
         if not self.running_app_name:
             app = self.get_app(name)
             if app:
                 self.running_app_name = name
-                self.state = ""
+                self.state = INIT_STATE
                 return True
 
     def get_app(self, name: str):
@@ -381,7 +383,7 @@ class AyakaGroup:
             # 禁用正在运行的应用
             if self.running_app_name == app.name:
                 self.running_app_name = ""
-                self.state = None
+                self.state = ""
             # 移除
             self.apps.remove(app)
             # 添加到forbit列表
@@ -442,44 +444,39 @@ class AyakaTrigger:
 
 
 class AyakaTimer:
+    def __init__(self, name: str, gap: int, h: int, m: int, s: int, func) -> None:
+        self.name = name
+        self.h = h
+        self.m = m
+        self.s = s
+        self.gap = gap
+        self.func = func
+
     def start(self):
         asyncio.create_task(self.run_forever())
 
     async def run_forever(self):
-        while True:
-            gap = await self.work()
+        # 有启动时间点要求的
+        time_i = int(datetime.datetime.now().timestamp())
+        if self.h >= 0:
+            _time_i = self.h*3600+self.m*60+self.s
+            # 移除时区偏差
+            time_i -= 57600
+            gap = 86400 - (time_i - _time_i) % 86400
+            await asyncio.sleep(gap)
+        elif self.m >= 0:
+            _time_i = self.m*60+self.s
+            gap = 3600 - (time_i-_time_i) % 3600
+            await asyncio.sleep(gap)
+        elif self.s >= 0:
+            _time_i = self.s
+            gap = 60 - (time_i-_time_i) % 60
             await asyncio.sleep(gap)
 
-    async def work(self):
-        raise NotImplementedError
-
-
-class AyakaEverydayTimer(AyakaTimer):
-    def __init__(self, name: str, h: int, m: int, s: int, func) -> None:
-        self.name = name
-        self.time_i = h*3600+m*60+s
-        self.func = func
-
-    async def work(self):
-        logger.opt(colors=True).success(f"触发每日任务 <y>{self.name}</y>")
-        asyncio.create_task(self.func())
-
-        # 计算下一次时长
-        time_i = int(datetime.datetime.now().timestamp()) - 57600
-        gap = 86400 - (time_i - self.time_i) % 86400
-        return gap
-
-
-class AyakaIntervalTimer(AyakaTimer):
-    def __init__(self, name: str, gap: int, func) -> None:
-        self.name = name
-        self.gap = gap
-        self.func = func
-
-    async def work(self):
-        logger.opt(colors=True).success(f"触发定时任务 <y>{self.name}</y>")
-        asyncio.create_task(self.func())
-        return self.gap
+        while True:
+            logger.opt(colors=True).success(f"触发定时任务 <y>{self.name}</y>")
+            asyncio.create_task(self.func())
+            await asyncio.sleep(self.gap)
 
 
 def get_bot(bot_id: int):
@@ -513,7 +510,7 @@ def ensure_list(items):
 async def deal_event(bot: Bot, event: MessageEvent):
     if exclude_old:
         time_i = int(datetime.datetime.now().timestamp())
-        if event.time < time_i:
+        if event.time < time_i - 60:
             return
 
     _bot.set(bot)
