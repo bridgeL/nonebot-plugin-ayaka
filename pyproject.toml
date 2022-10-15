@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "nonebot_plugin_ayaka"
-version = "0.2.22"
+version = "0.3.0"
 description = "a useful plugin providing convinient tools for the development of textual game on QQ"
 authors = ["Su <wxlxy316@163.com>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/bridgeL/nonebot-plugin-ayaka"
 packages = [
-    { include = "ayaka" },
+    { include = "ayaka.py", from = "." },
 ]
 
 
