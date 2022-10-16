@@ -32,6 +32,7 @@
 通过ayaka插件，二次封装nonebot2提供的api，提供专用api，便于其他文字游戏插件的编写
 
 基于ayaka的衍生插件库 https://github.com/bridgeL/ayaka_plugins
+
 基于ayaka的小游戏合集 https://github.com/bridgeL/nonebot-plugin-ayaka-games
 
 ## 基本特性
