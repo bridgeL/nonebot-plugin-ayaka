@@ -66,11 +66,14 @@ app.help = {
 # 桌面状态下
 @app.on_command("echo")
 async def app_entrance():
+    # 输入参数则复读参数（无状态响应
+    # > #echo hihi
+    # < hihi 
     if app.args:
         await app.send(" ".join(str(arg) for arg in app.args))
         return
 
-    # 没有输入参数则运行该应用
+    # 没有输入参数则运行该应用（状态机响应
     await app.start()
 
 
@@ -164,7 +167,7 @@ async def hit():
 
 @app.on_state_command("hit", "sun")
 async def hit():
-    await app.send("bag bang!")
+    await app.send("big bang!")
 
 
 # 跳转状态
