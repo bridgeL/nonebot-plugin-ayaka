@@ -1,4 +1,4 @@
-# Ayaka 0.3.1
+# Ayaka 0.3.2
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
@@ -15,6 +15,7 @@
 | - | - |
 | 0.3.0 | 借助contextvar内置模块，全部重写了之间的代码，现在它们被合并为一个单文件，并能实现ayaka插件先前提供的所有功能，但不幸的是，其无法兼容0.2.x的ayaka插件，需要代码迁移 |
 | 0.3.1 | 规定了应用启动后的默认初始状态为 init |
+| 0.3.2 | 增加了较为完善的注释 |
 
 
 </details>
@@ -29,6 +30,8 @@
 # 快速了解
 
 通过ayaka插件，二次封装nonebot2提供的api，提供专用api，便于其他文字游戏插件的编写
+
+基于ayaka的衍生插件库 https://github.com/bridgeL/ayaka_games
 
 ## 基本特性
 - 状态机
@@ -45,7 +48,7 @@ from ayaka import AyakaApp
 
 app = AyakaApp("echo")
 
-# ayaka内置帮助插件，用户可通过#help命令展示app.help
+# 结合ayaka_master插件，用户可通过#help命令展示app.help
 app.help = '''复读只因
 特殊命令一览：
 - reverse 开始说反话

@@ -10,7 +10,6 @@ from typing import List, Dict, Union, AsyncIterator
 from playwright.async_api import async_playwright, Browser, Page, Playwright
 from nonebot import logger, get_driver, on_message
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent, escape
-from nonebot.adapters.onebot.v11.exception import ActionFailed, NetworkError, OneBotV11AdapterException
 
 
 _browser: Browser = None
@@ -39,20 +38,17 @@ driver = get_driver()
 
 # 配置
 # 命令抬头
-try:
-    prefix = list(driver.config.command_start)[0]
-except:
-    prefix = "#"
+prefix = getattr(driver.config, "ayaka_prefix", None)
+if prefix is None:
+    ps = list(driver.config.command_start)
+    prefix = ps[0] if len(ps) else "#"
 # 参数分割符
-try:
-    sep = list(driver.config.command_sep)[0]
-except:
-    sep = " "
+sep = getattr(driver.config, "ayaka_separate", None)
+if sep is None:
+    ss = list(driver.config.command_sep)
+    sep = ss[0] if len(ss) else " "
 # 是否排除go-cqhttp缓存的过期消息
-try:
-    exclude_old = driver.config.ayaka_exclude_old
-except:
-    exclude_old = True
+exclude_old = getattr(driver.config, "ayaka_exclude_old", True)
 
 
 class AyakaCache:
@@ -72,10 +68,12 @@ class AyakaApp:
 
     @property
     def intro(self):
+        '''获取介绍，也就是init状态下的帮助'''
         return self._help.get(INIT_STATE, "没有找到帮助")
 
     @property
     def help(self):
+        '''获取当前状态下的帮助，没有找到则返回介绍'''
         if self.group.running_app_name == self.name:
             info = self._help.get(self.group.state)
             if info:
@@ -84,6 +82,7 @@ class AyakaApp:
 
     @property
     def all_help(self):
+        '''获取介绍以及全部状态下的帮助'''
         info = self.intro
         for k, v in self._help.items():
             if k != INIT_STATE:
@@ -92,6 +91,7 @@ class AyakaApp:
 
     @help.setter
     def help(self, help):
+        '''设置帮助，若help为str，则设置为介绍，若help为dict，则设置为对应状态的帮助'''
         if isinstance(help, dict):
             self._help.update(help)
         else:
@@ -99,52 +99,106 @@ class AyakaApp:
 
     @property
     def valid(self):
+        '''*timer触发时不可用*
+
+        当前app是否被当前群组启用
+        '''
         return self.group.get_app(self.name)
 
     @property
     def cache(self):
+        '''*timer触发时不可用*
+
+        当前群组、当前app的独立数据空间
+        '''
         return _cache.get()
 
     @property
     def user_name(self):
+        '''*timer触发时不可用*
+
+        当前消息的发送人的群名片或昵称
+        '''
         s = self.event.sender
         name = s.card or s.nickname
         return name
 
     @property
     def user_id(self):
+        '''*timer触发时不可用*
+
+        当前消息的发送人的uid
+        '''
         return self.event.user_id
 
     @property
     def bot(self):
+        '''*timer触发时不可用*
+
+        当前bot
+        '''
         return _bot.get()
 
     @property
     def event(self):
+        '''*timer触发时不可用*
+
+        当前消息
+        '''
         return _event.get()
 
     @property
     def group_id(self):
+        '''*timer触发时不可用*
+
+        当前群组的id
+
+        注：若群聊A正监听私聊B，当私聊B发送消息触发插件回调时，该属性仍可正确返回群聊A的id
+        '''
         return self.group.group_id
 
     @property
     def bot_id(self):
+        '''*timer触发时不可用*
+
+        当前bot的id
+        '''
         return self.group.bot_id
 
     @property
     def group(self):
+        '''*timer触发时不可用*
+
+        当前群组
+
+        注：若群聊A正监听私聊B，当私聊B发送消息触发插件回调时，该属性仍可正确返回群聊A
+        '''
         return _group.get()
 
     @property
     def args(self):
+        '''*timer触发时不可用*
+
+        当前消息在移除了命令后，剩余部分按照空格分割后的数组
+
+        注：除了文字消息外，其他消息类型将自动分割，例如一串qq表情会被分割为多个元素
+        '''
         return _args.get()
 
     @property
     def cmd(self):
+        '''*timer触发时不可用*
+
+        当前消息的命令头
+        '''
         return _cmd.get()
 
     @property
     def message(self):
+        '''*timer触发时不可用*
+
+        当前消息
+        '''
         return _message.get()
 
     def plugin_storage(self, *names, suffix=".json", default=None):
@@ -158,7 +212,9 @@ class AyakaApp:
         )
 
     def group_storage(self, *names, suffix=".json", default=None):
-        '''以bot_id、group_id、app_name三级划分分割的独立存储空间'''
+        '''*timer触发时不可用*
+
+        以bot_id、group_id、app_name三级划分分割的独立存储空间'''
         return AyakaStorage(
             "groups",
             self.bot_id,
@@ -170,6 +226,9 @@ class AyakaApp:
         )
 
     async def start(self):
+        '''*timer触发时不可用*
+
+        启动应用，并发送提示'''
         f = self.group.set_running_app(self.name)
         if f:
             await self.send(f"已打开应用 [{self.name}]")
@@ -178,6 +237,9 @@ class AyakaApp:
         return f
 
     async def close(self):
+        '''*timer触发时不可用*
+
+        关闭应用，并发送提示'''
         f = self.group.set_running_app("")
         if f:
             await self.send(f"已关闭应用 [{self.name}]")
@@ -187,14 +249,21 @@ class AyakaApp:
 
     @property
     def state(self):
+        '''*timer触发时不可用*
+
+        应用|群组当前状态'''
         if self.name == self.group.running_app_name:
             return self.group.state
         return "未运行"
 
     def set_state(self, state: str = INIT_STATE):
+        '''*timer触发时不可用*
+
+        设置应用|群组当前状态'''
         return self.group.set_state(self.name, state)
 
     def on_command(self, cmds: Union[List[str], str], super=False):
+        '''注册桌面模式下的命令'''
         cmds = ensure_list(cmds)
 
         if super:
@@ -213,6 +282,7 @@ class AyakaApp:
         return decorator
 
     def on_state_command(self, cmds: Union[List[str], str], states: Union[List[str], str] = INIT_STATE):
+        '''注册应用运行时不同状态下的命令'''
         cmds = ensure_list(cmds)
         states = ensure_list(states)
 
@@ -225,15 +295,19 @@ class AyakaApp:
         return decorator
 
     def on_text(self, super=False):
+        '''注册桌面模式下的消息'''
         return self.on_command("", super=super)
 
     def on_state_text(self, states: Union[List[str], str] = INIT_STATE):
+        '''注册应用运行时不同状态下的消息'''
         return self.on_state_command("", states)
 
     def on_everyday(self, h: int, m: int, s: int):
+        '''每日定时触发'''
         return self.on_interval(86400, h, m, s)
 
     def on_interval(self, gap: int, h: int = -1, m: int = -1, s: int = -1):
+        '''在指定的时间点后循环触发'''
         def decorator(func):
             t = AyakaTimer(self.name, gap, h, m, s, func)
             self.timers.append(t)
@@ -258,10 +332,12 @@ class AyakaApp:
             private_listener_dict[user_id].remove(self.group_id)
 
     async def send(self, message):
+        '''发送消息，消息的类型可以是 Message | MessageSegment | str'''
         # 这里不使用event，因为一些event可能来自其他设备的监听传递
         await self.bot.send_group_msg(group_id=self.group_id, message=message)
 
     async def send_many(self, messages):
+        '''发送合并转发消息，消息的类型可以是 List[Message | MessageSegment | str]'''
         length = len(messages)
 
         # 自动分割长消息组（不可超过100条）谨慎起见，使用80作为单元长度
@@ -282,7 +358,9 @@ class AyakaApp:
             return
 
         # 已禁用
-        if not check_app_permit(bot_id, group_id, self.name):
+        group = get_group(bot_id, group_id)
+        app = group.get_app(self.name)
+        if not app:
             return
 
         await bot.send_group_msg(group_id=group_id, message=message)
@@ -309,7 +387,8 @@ class AyakaGroup:
         self.bot_id = bot_id
         self.group_id = group_id
         self.running_app_name = ""
-        self.state = None
+        self.state = ""
+
         self.store_forbid = AyakaStorage(
             "groups",
             self.bot_id,
@@ -319,18 +398,16 @@ class AyakaGroup:
         )
         # 读取forbit列表
         forbid_names = self.store_forbid.load()
+
+        # 添加app，并分配独立数据空间
         self.apps: List["AyakaApp"] = []
         self.cache_dict = {}
         for app in app_list:
             if app.name not in forbid_names:
                 self.apps.append(app)
                 self.cache_dict[app.name] = AyakaCache()
-        group_list.append(self)
 
-    def set_cache(self, name: str):
-        cache = self.cache_dict.get(name)
-        if cache:
-            _cache.set(cache)
+        group_list.append(self)
 
     def get_running_app(self):
         name = self.running_app_name
@@ -351,16 +428,19 @@ class AyakaGroup:
                 return True
 
     def get_app(self, name: str):
+        '''根据app名获取该group所启用的app，不存在则返回None'''
         for app in self.apps:
             if app.name == name:
                 return app
 
     def set_state(self, name: str, state: str):
+        '''设置该group的状态'''
         if self.running_app_name == name:
             self.state = state
             return True
 
     def permit_app(self, name: str):
+        '''启用指定app'''
         if self.get_app(name):
             return True
 
@@ -375,7 +455,8 @@ class AyakaGroup:
                 return True
 
     def forbid_app(self, name: str):
-        if name == "_master":
+        '''禁用指定app'''
+        if name == "ayaka_master":
             return
 
         app = self.get_app(name)
@@ -409,17 +490,23 @@ class AyakaStorage:
         if suffix and default is not None and not self.path.exists():
             self.save(default)
 
-    def load(self):
+    def load(self, _json=True):
         if not self.path.exists():
             return None
 
         with self.path.open("r", encoding="utf8") as f:
-            data = json.load(f)
+            if _json:
+                data = json.load(f)
+            else:
+                data = f.read()
         return data
 
-    def save(self, data):
+    def save(self, data, _json=True):
         with self.path.open("w+", encoding="utf8") as f:
-            json.dump(data, f, ensure_ascii=False)
+            if _json:
+                json.dump(data, f, ensure_ascii=False)
+            else:
+                f.write(data)
 
 
 class AyakaTrigger:
@@ -430,7 +517,12 @@ class AyakaTrigger:
         self.func = func
 
     async def run(self):
-        _group.get().set_cache(self.app_name)
+        # 切换到对应数据空间
+        group = _group.get()
+        cache = group.cache_dict.get(self.app_name)
+        _cache.set(cache)
+
+        # 日志记录
         info = f"已触发应用 <y>{self.app_name}</y> "
         if self.state is not None:
             info += f"[\"<g>{self.state}</g>\"] "
@@ -440,6 +532,8 @@ class AyakaTrigger:
             info += "消息 "
         info += f"执行回调 <c>{self.func.__name__}</c>"
         logger.opt(colors=True).success(info)
+
+        # 运行回调
         await self.func()
 
 
@@ -480,6 +574,7 @@ class AyakaTimer:
 
 
 def get_bot(bot_id: int):
+    '''获取已连接的bot'''
     bot_id = str(bot_id)
     for bot in bot_list:
         if bot.self_id == bot_id:
@@ -487,18 +582,12 @@ def get_bot(bot_id: int):
 
 
 def get_group(bot_id: int, group_id: int):
-    '''自动增加'''
+    '''获取对应的AyakaGroup对象，自动增加'''
     for group in group_list:
         if group.bot_id == bot_id and group.group_id == group_id:
             return group
     else:
         return AyakaGroup(bot_id, group_id)
-
-
-def check_app_permit(bot_id: int, group_id: int, name: str):
-    group = get_group(bot_id, group_id)
-    app = group.get_app(name)
-    return app is not None
 
 
 def ensure_list(items):
@@ -531,6 +620,7 @@ async def deal_event(bot: Bot, event: MessageEvent):
 
 
 async def deal_group(bot_id: int, group_id: int):
+    # 群组
     group = get_group(bot_id, group_id)
     _group.set(group)
 
@@ -601,7 +691,7 @@ def divide_message(message: Message):
     if m.is_text():
         m_str = str(m)
         if m_str.startswith(prefix):
-            cmd = m_str[1:]
+            cmd = m_str[len(prefix):]
             args.pop(0)
 
     return cmd, args
@@ -609,6 +699,15 @@ def divide_message(message: Message):
 
 @asynccontextmanager
 async def get_new_page(size=None, **kwargs) -> AsyncIterator[Page]:
+    ''' 获取playwright Page对象，size接受二元数组输入，设置屏幕大小 size = [宽,高]
+
+        使用示例：
+        ```
+        async with get_new_page(size=[200,100]) as p:
+            await p.goto(...)
+            await p.screenshot(...)
+        ```
+    '''
     if size:
         kwargs["viewport"] = {"width": size[0], "height": size[1]}
     page = await _browser.new_page(**kwargs)
