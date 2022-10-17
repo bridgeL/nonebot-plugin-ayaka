@@ -65,6 +65,17 @@ async def hit():
 @app.on_state_command("hit", "sun")
 async def hit():
     await app.send("big bang!")
+
+
+# 跳转状态
+@app.on_state_command("jump", "*")
+async def jump_to_somewhere():
+    if not app.arg:
+        await app.send("没有参数！")
+    else:
+        next_state = str(app.arg)
+        app.set_state(next_state)
+        await app.send(f"跳转到 [{next_state}]")
 ```
 
 ## app属性一览表
