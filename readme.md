@@ -27,7 +27,15 @@
 
 无需修改`bot.py`，在ayaka衍生插件里引用即可，`from ayaka import AyakaApp`
 
-但是ayaka衍生插件需要nonebot来加载
+**但是ayaka衍生插件需要nonebot来加载**
+
+## 配置
+
+推荐配置（非强制要求）
+```
+COMMAND_START=["#"]
+COMMAND_SEP=[" "]
+```
 
 # 快速了解
 
@@ -114,7 +122,26 @@ async def jump_to_somewhere():
 | add_listener     | 为该群组添加对 指定私聊 的监听            |
 | remove_listener  | 移除该群组对 指定私聊/所有其他私聊 的监听 |
 
+## ayaka 内置插件
+
+ayaka内部已安装一份特殊的综合管理插件，它基于ayaka插件而实现
+
+命令一览：
+- 启用/permit
+- 禁用/forbid
+- 插件/plugin
+- 状态/state
+- 帮助/help
+  
+### 帮助
+所有ayaka衍生插件只需要编写app.help，就可以在用户输入 `#help` 后获取该插件的帮助
+
 # 例程代码
+
+如何使用例程代码？
+
+1. 你可以在nonebot工作目录的src/plugins中新建一个代码文件，手动复制代码进去，nonebot会在读到`bot.py`文件中的`nonebot.load_from_toml(...)`语句后导入该插件
+2. 你也可以前往[ayaka衍生插件库](https://github.com/bridgeL/ayaka_plugins)，下载其中的example文件夹，放到nonebot工作目录下，然后在`bot.py`中添加`nonebot.load_plugin("example")`
 
 ## 插件编写范例 echo
 
@@ -344,6 +371,19 @@ async def _():
     image = MessageSegment.image(path)
     await app.send(image)
 
+```
+
+## 自动分割消息
+
+ayaka插件将会自动根据配置项中的分割符来分割消息，例如`#test a   b c`会在ayaka插件处理后变为
+
+```python
+@app.on_command("test")
+async def _():
+    # 此时app身上的如下属性值应该是：...
+    app.cmd = "test"
+    app.arg = "a   b c"
+    app.args = ["a", "b", "c"]
 ```
 
 # 未来计划
