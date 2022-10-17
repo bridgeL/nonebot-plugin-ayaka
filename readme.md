@@ -375,7 +375,13 @@ async def _():
 
 ## 自动分割消息
 
-ayaka插件将会自动根据配置项中的分割符来分割消息，例如`#test a   b c`会在ayaka插件处理后变为
+ayaka插件将会自动根据配置项中的分割符来分割消息，例如
+
+```
+#test a   b c
+```
+
+会在ayaka插件处理后变为
 
 ```python
 @app.on_command("test")
