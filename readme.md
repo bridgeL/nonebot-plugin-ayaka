@@ -43,6 +43,31 @@
 - 命令隔离
 - 数据隔离
 
+## 代码速看
+
+```python
+# 对世界、月亮和太阳打个招呼
+@app.on_state_command("hi", ["world", "moon", "sun"])
+async def hello():
+    await app.send(f"hello,{app.state}!")
+
+
+# 对世界、月亮和太阳来个大比兜
+@app.on_state_command("hit", "world")
+async def hit():
+    await app.send("earthquake")
+
+
+@app.on_state_command("hit", "moon")
+async def hit():
+    await app.send("moon fall")
+
+
+@app.on_state_command("hit", "sun")
+async def hit():
+    await app.send("big bang!")
+```
+
 ## app属性一览表
 | 名称      | 类型                   | 功能                                           |
 | --------- | ---------------------- | ---------------------------------------------- |
