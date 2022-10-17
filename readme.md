@@ -1,4 +1,4 @@
-# Ayaka 0.3.2
+# Ayaka 0.3.3
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
@@ -11,11 +11,14 @@
 <details>
 <summary>更新记录</summary>
 
-| 版本  | 备注 |
-| - | - |
-| 0.3.0 | 借助contextvar内置模块，全部重写了之间的代码，现在它们被合并为一个单文件，并能实现ayaka插件先前提供的所有功能，但不幸的是，其无法兼容0.2.x的ayaka插件，需要代码迁移 |
-| 0.3.1 | 规定了应用启动后的默认初始状态为 init |
-| 0.3.2 | 增加了较为完善的注释 |
+## 0.3.0 
+借助contextvar内置模块，全部重写了之间的代码，现在它们被合并为一个单文件，并能实现ayaka插件先前提供的所有功能，但不幸的是，其无法兼容0.2.x的ayaka插件，需要代码迁移 
+## 0.3.1 
+规定了应用启动后的默认初始状态为 init 
+## 0.3.2 
+增加了较为完善的注释 
+## 0.3.3 
+在本文档中更新了部分帮助
 
 
 </details>
@@ -39,6 +42,42 @@
 - 状态机
 - 命令隔离
 - 数据隔离
+
+## app属性一览表
+| 名称      | 类型                   | 功能                                           |
+| --------- | ---------------------- | ---------------------------------------------- |
+| intro     | `str`                  | 应用介绍（帮助dict中key为init所对应的value）   |
+| help      | `str`                  | 当前应用在当前状态下的帮助                     |
+| all_help  | `str`                  | 当前应用的所有帮助                             |
+| state     | `bool`                 | 当前应用的状态                                 |
+| valid     | `bool`                 | 应用在当前设备 是否被启用                      |
+| bot       | `Bot`                  | 当前机器人                                     |
+| group     | `AyakaGroup`           | 当前群组                                       |
+| event     | `MessageEvent`         | 当前消息事件                                   |
+| message   | `Message`              | 当前消息                                       |
+| arg       | `Message`              | 删除了命令后剩下的消息部分                     |
+| args      | `List[MessageSegment]` | 删除命令后，依照分隔符分割，并移除空数据       |
+| cmd       | `str`                  | 本次响应是针对哪个命令                         |
+| bot_id    | `int`                  | 当前机器人的qq号                               |
+| group_id  | `int`                  | 当前群聊的群号                                 |
+| user_id   | `int`                  | 当前消息的发送者的qq号                         |
+| user_name | `str`                  | 当前消息的发送者的群名片或昵称（优先为群名片） |
+| cache     | `AyakaCache`           | 为当前群组当前应用提供的独立缓存数据空间       |
+
+## app方法一览表
+| 名称             | 功能                                      |
+| ---------------- | ----------------------------------------- |
+| set_state        | 设置应用状态（在应用运行时可以设置）      |
+| on_command       | 注册桌面模式下的命令回调                  |
+| on_state_command | 注册应用运行时在不同状态下的命令回调      |
+| on_text          | 注册桌面模式下的消息回调                  |
+| on_state_text    | 注册应用运行时在不同状态下的消息回调      |
+| on_everyday      | 每日定时触发回调（东8区）                 |
+| on_interval      | 在指定的时间点后开始循环触发（东8区）     |
+| add_listener     | 为该群组添加对 指定私聊 的监听            |
+| remove_listener  | 移除该群组对 指定私聊/所有其他私聊 的监听 |
+
+# 例程代码
 
 ## 插件编写范例 echo
 
@@ -70,12 +109,12 @@ app.help = {
 async def app_entrance():
     # 输入参数则复读参数（无状态响应
     # > #echo hihi
-    # < hihi 
-    if app.args:
-        await app.send(" ".join(str(arg) for arg in app.args))
+    # < hihi
+    if app.arg:
+        await app.send(app.arg)
         return
 
-    # 没有输入参数则运行该应用（状态机响应
+    # 没有输入参数则运行该应用
     await app.start()
 
 
@@ -113,7 +152,6 @@ async def reverse_echo():
 async def back():
     app.set_state()
     await app.send("话反说止停")
-
 ```
 
 
@@ -175,10 +213,10 @@ async def hit():
 # 跳转状态
 @app.on_state_command("jump", "*")
 async def jump_to_somewhere():
-    if not app.args:
+    if not app.arg:
         await app.send("没有参数！")
     else:
-        next_state = str(app.args[0])
+        next_state = str(app.arg)
         app.set_state(next_state)
         await app.send(f"跳转到 [{next_state}]")
 ```
@@ -196,13 +234,13 @@ app = AyakaApp("a-plus-b")
 
 @app.on_command("set_a")
 async def set_a():
-    app.cache.a = int(str(app.args[0])) if app.args else 0
+    app.cache.a = int(str(app.arg)) if app.arg else 0
     await app.send(app.cache.a)
 
 
 @app.on_command("set_b")
 async def set_b():
-    app.cache.b = int(str(app.args[0])) if app.args else 0
+    app.cache.b = int(str(app.arg)) if app.arg else 0
     await app.send(app.cache.b)
 
 

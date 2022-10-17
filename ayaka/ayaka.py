@@ -18,6 +18,7 @@ _playwright: Playwright = None
 _bot: ContextVar[Bot] = ContextVar("_bot")
 _event: ContextVar[MessageEvent] = ContextVar("_event")
 _group: ContextVar["AyakaGroup"] = ContextVar("_group")
+_arg: ContextVar[Message] = ContextVar("_arg")
 _args: ContextVar[List[MessageSegment]] = ContextVar("_args")
 _message: ContextVar[Message] = ContextVar("_message")
 _cmd: ContextVar[str] = ContextVar("_cmd")
@@ -174,6 +175,14 @@ class AyakaApp:
         注：若群聊A正监听私聊B，当私聊B发送消息触发插件回调时，该属性仍可正确返回群聊A
         '''
         return _group.get()
+
+    @property
+    def arg(self):
+        '''*timer触发时不可用*
+
+        当前消息在移除了命令后的剩余部分
+        '''
+        return _arg.get()
 
     @property
     def args(self):
@@ -481,6 +490,7 @@ class AyakaStorage:
     def __init__(self, *names, suffix=".json", default=None) -> None:
         names = [str(n) for n in names]
         self.path = Path("data", *names)
+        self.suffix = suffix
         if suffix:
             self.path = self.path.with_suffix(suffix)
 
@@ -490,20 +500,24 @@ class AyakaStorage:
         if suffix and default is not None and not self.path.exists():
             self.save(default)
 
-    def load(self, _json=True):
+    @property
+    def is_json(self):
+        return self.suffix == ".json"
+
+    def load(self):
         if not self.path.exists():
             return None
 
         with self.path.open("r", encoding="utf8") as f:
-            if _json:
+            if self.is_json:
                 data = json.load(f)
             else:
                 data = f.read()
         return data
 
-    def save(self, data, _json=True):
+    def save(self, data):
         with self.path.open("w+", encoding="utf8") as f:
-            if _json:
+            if self.is_json:
                 json.dump(data, f, ensure_ascii=False)
             else:
                 f.write(data)
@@ -629,8 +643,9 @@ async def deal_group(bot_id: int, group_id: int):
     _message.set(message)
 
     # 命令、参数
-    cmd, args = divide_message(message)
+    cmd, arg, args = divide_message(message)
     _cmd.set(cmd)
+    _arg.set(arg)
     _args.set(args)
 
     # 让super先来
@@ -677,24 +692,34 @@ async def deal_triggers(triggers: List[AyakaTrigger]):
 
 
 def divide_message(message: Message):
+    cmd = ""
+    arg = message
     args: List[MessageSegment] = []
+
     for m in message:
         if m.is_text():
             ss = str(m).split(sep)
-            args.extend(MessageSegment.text(s) for s in ss)
+            args.extend(MessageSegment.text(s) for s in ss if s)
         else:
             args.append(m)
-
-    cmd = ""
 
     m = args[0]
     if m.is_text():
         m_str = str(m)
         if m_str.startswith(prefix):
             cmd = m_str[len(prefix):]
+
+            left = str(message[0])[len(m_str):]
+            if left.startswith(sep):
+                left = left[len(sep):]
+            if left:
+                left = MessageSegment.text(left)
+                arg = Message([left, *message[1:]])
+            else:
+                arg = Message(message[1:])
             args.pop(0)
 
-    return cmd, args
+    return cmd, arg, args
 
 
 @asynccontextmanager
