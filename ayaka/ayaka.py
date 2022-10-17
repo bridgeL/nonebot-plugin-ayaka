@@ -538,9 +538,11 @@ class AyakaTrigger:
         _cache.set(cache)
 
         # 日志记录
-        info = f"已触发应用 <y>{self.app_name}</y> "
+        info = f"已触发应用 "
         if self.state is not None:
-            info += f"[\"<g>{self.state}</g>\"] "
+            info += f"<y>{self.app_name}</y>|<g>{self.state}</g> "
+        else:
+            info += f"<y>{self.app_name}</y> "
         if self.cmd:
             info += f"命令 <y>{self.cmd}</y> "
         else:
@@ -655,7 +657,9 @@ async def deal_group(bot_id: int, group_id: int):
         for t in app.super_triggers:
             triggers.append(t)
 
-    await deal_triggers(triggers)
+    # 若执行了super命令，则退出
+    if await deal_triggers(triggers):
+        return
 
     # 普通命令继续
     triggers = []
@@ -684,7 +688,7 @@ async def deal_triggers(triggers: List[AyakaTrigger]):
         for t in triggers:
             if t.cmd == cmd:
                 await t.run()
-                return
+                return True
 
     # 命令退化成消息
     for t in triggers:
