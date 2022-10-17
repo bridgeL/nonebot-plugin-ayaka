@@ -1,3 +1,4 @@
+from importlib import import_module
 import json
 import asyncio
 import datetime
@@ -720,6 +721,31 @@ def divide_message(message: Message):
             args.pop(0)
 
     return cmd, arg, args
+
+
+def load_plugins(path: Path, base=""):
+    '''导入指定路径内的全部插件，如果是外部路径，还需要指明前置base'''
+    if not path.is_dir():
+        logger.error(f"{path} 不是路径")
+        return
+
+    if not base:
+        base = ".".join(path.relative_to(Path.cwd()).parts)
+    if base:
+        base += "."
+
+    for p in path.iterdir():
+        name = p.stem
+        if name.startswith("_") or name.startswith("."):
+            continue
+
+        module_name = base + name
+        try:
+            import_module(module_name)
+        except:
+            logger.opt(colors=True).exception(f"{base}<y>{name}</y> 导入失败")
+        else:
+            logger.opt(colors=True).success(f"{base}<y>{name}</y> 导入成功")
 
 
 @asynccontextmanager
