@@ -37,6 +37,8 @@
 
 基于ayaka的小游戏合集 https://github.com/bridgeL/nonebot-plugin-ayaka-games
 
+基于ayaka的谁是卧底小游戏 https://github.com/bridgeL/nonebot-plugin-ayaka-who-is-suspect
+
 ## 基本特性
 - 状态机
 - 命令隔离
