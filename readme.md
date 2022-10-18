@@ -161,17 +161,19 @@ async def jump_to_somewhere():
 | cache     | `AyakaCache`           | 为当前群组当前应用提供的独立缓存数据空间       |
 
 ## app方法一览表
-| 名称             | 功能                                      |
-| ---------------- | ----------------------------------------- |
-| set_state        | 设置应用状态（在应用运行时可以设置）      |
-| on_command       | 注册桌面模式下的命令回调                  |
-| on_state_command | 注册应用运行时在不同状态下的命令回调      |
-| on_text          | 注册桌面模式下的消息回调                  |
-| on_state_text    | 注册应用运行时在不同状态下的消息回调      |
-| on_everyday      | 每日定时触发回调（东8区）                 |
-| on_interval      | 在指定的时间点后开始循环触发（东8区）     |
-| add_listener     | 为该群组添加对 指定私聊 的监听            |
-| remove_listener  | 移除该群组对 指定私聊/所有其他私聊 的监听 |
+| 名称             | 功能                                         | 是否异步 |
+| ---------------- | -------------------------------------------- | -------- |
+| start            | 启动应用（一个群聊同一时间只能运行一个应用） | 是       |
+| close            | 关闭应用                                     | 是       |
+| set_state        | 设置应用状态（在应用运行时可以设置）         | \        |
+| on_command       | 注册桌面模式下的命令回调                     | \        |
+| on_state_command | 注册应用运行时在不同状态下的命令回调         | \        |
+| on_text          | 注册桌面模式下的消息回调                     | \        |
+| on_state_text    | 注册应用运行时在不同状态下的消息回调         | \        |
+| on_everyday      | 每日定时触发回调（东8区）                    | \        |
+| on_interval      | 在指定的时间点后开始循环触发（东8区）        | \        |
+| add_listener     | 为该群组添加对 指定私聊 的监听               | \        |
+| remove_listener  | 移除该群组对 指定私聊/所有其他私聊 的监听    | \        |
 
 # 如何编写ayaka衍生插件
 
@@ -364,9 +366,11 @@ ayaka插件将会自动根据配置项中的分割符来分割消息，例如
 @app.on_command("test")
 async def _():
     # 此时app身上的如下属性的值应该是：...
-    app.cmd = "test"
-    app.arg = "a   b c"
-    app.args = ["a", "b", "c"]
+    app.cmd == "test"
+    str(app.arg) == "a   b c"
+    str(app.args[0]) == "a"
+    str(app.args[1]) == "b"
+    str(app.args[2]) == "c"
 ```
 
 # 未来计划
