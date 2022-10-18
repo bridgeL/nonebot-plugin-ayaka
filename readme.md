@@ -54,6 +54,19 @@ COMMAND_SEP=[" "]
 - 命令隔离
 - 数据隔离
 
+## ayaka 内置插件
+
+ayaka内部已安装一份特殊的综合管理插件，它基于ayaka插件而实现
+
+命令一览：
+- 启用/permit
+- 禁用/forbid
+- 插件/plugin
+- 状态/state
+- 帮助/help
+  
+所有ayaka衍生插件只需要编写app.help，就可以在用户输入 `#help <插件名>` 后获取该插件的帮助
+
 ## 代码速看
 
 ```python
@@ -124,6 +137,8 @@ async def jump_to_somewhere():
 
 <img src="1.png" width="400">
 
+# API
+
 ## app属性一览表
 | 名称      | 类型                   | 功能                                           |
 | --------- | ---------------------- | ---------------------------------------------- |
@@ -158,26 +173,18 @@ async def jump_to_somewhere():
 | add_listener     | 为该群组添加对 指定私聊 的监听            |
 | remove_listener  | 移除该群组对 指定私聊/所有其他私聊 的监听 |
 
-## ayaka 内置插件
+# 如何编写ayaka衍生插件
 
-ayaka内部已安装一份特殊的综合管理插件，它基于ayaka插件而实现
+给出几份例程代码以帮助读者理解使用
 
-命令一览：
-- 启用/permit
-- 禁用/forbid
-- 插件/plugin
-- 状态/state
-- 帮助/help
-  
-### 帮助
-所有ayaka衍生插件只需要编写app.help，就可以在用户输入 `#help` 后获取该插件的帮助
+## 如何使用例程代码？
+以下两种方式皆可
 
-# 例程代码（如何编写ayaka衍生插件）
+### 手动复制本文档中的代码
+你可以在nonebot工作目录的src/plugins中新建一个代码文件，手动复制代码进去，nonebot会在读到`bot.py`文件中的`nonebot.load_from_toml(...)`语句后导入该插件
 
-如何使用例程代码？
-
-1. 你可以在nonebot工作目录的src/plugins中新建一个代码文件，手动复制代码进去，nonebot会在读到`bot.py`文件中的`nonebot.load_from_toml(...)`语句后导入该插件
-2. 你也可以前往[ayaka衍生插件库](https://github.com/bridgeL/ayaka_plugins)，下载其中的example文件夹，放到nonebot工作目录下，然后在`bot.py`中添加`nonebot.load_plugin("example")`
+### 从仓库下载
+你也可以前往[ayaka衍生插件库](https://github.com/bridgeL/ayaka_plugins)，下载其中的example文件夹，放到nonebot工作目录下，然后在`bot.py`中添加`nonebot.load_plugin("example")`
 
 ## 插件编写范例 echo
 
@@ -287,8 +294,6 @@ async def calc():
     await app.send(str(a+b))
 ```
 
-# 更多特性
-
 ## 定时器 Timer
 
 注意，定时器触发回调时，由于缺乏消息激励源，app的大部分属性(bot、group、event、valid、cache、user_name等)将无法正确访问到，并且无法使用app.send方法，需要使用专用的t_send方法
@@ -358,7 +363,7 @@ ayaka插件将会自动根据配置项中的分割符来分割消息，例如
 ```python
 @app.on_command("test")
 async def _():
-    # 此时app身上的如下属性值应该是：...
+    # 此时app身上的如下属性的值应该是：...
     app.cmd = "test"
     app.arg = "a   b c"
     app.args = ["a", "b", "c"]
