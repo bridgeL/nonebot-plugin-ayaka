@@ -289,7 +289,9 @@ async def jump_to_somewhere():
 
 ```python
 '''
-    a + b 各群聊间、各插件间，数据独立，互不影响
+    a + b 
+    
+    各群聊间、各插件间，数据独立，互不影响；不需要自己再专门建个字典了
 '''
 from ayaka import AyakaApp
 
