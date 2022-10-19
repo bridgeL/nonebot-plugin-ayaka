@@ -25,11 +25,15 @@
 </details>
 
 # 安装
-`pip install nonebot-plugin-ayaka` 
 
-无需修改`bot.py`，在ayaka衍生插件里引用即可，`from ayaka import AyakaApp`
+1. `poetry add nonebot-plugin-ayaka` 
+2. `poetry run playwright install chromium`
+3. `bot.py`无需修改，只要在ayaka衍生插件里正常导入就行：`from ayaka import AyakaApp`
 
-**但是ayaka衍生插件需要nonebot来加载**
+**ayaka衍生插件需要nonebot来加载**
+
+如果没有用到无头浏览器截图的功能，可忽略第二步
+
 
 ## 配置
 
@@ -151,7 +155,7 @@ async def jump_to_somewhere():
 
 例如，代码速看中的hello-world应用
 
-我发送hi指令时，应用需要根据自身的状态（earch/moon/sun）给出不同的响应，因此它是有状态应用
+我发送hi指令时，应用需要根据自身的状态（earth/moon/sun）给出不同的响应，因此它是有状态应用
 
 有状态应用在注册回调时，需要使用`app.on_state_command`和`app.on_state_text`
 
@@ -366,7 +370,7 @@ async def every_day():
 
 ## 截图 playwright
 
-注意，win平台使用playwright + nb时需要关闭fastapi的reload功能
+注意，win平台使用playwright时需要关闭fastapi的reload功能
 
 ```python
 
