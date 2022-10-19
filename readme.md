@@ -409,11 +409,11 @@ ayaka插件将会自动根据配置项中的分割符来分割消息，例如
 @app.on_command("test")
 async def _():
     # 此时app身上的如下属性的值应该是：...
-    app.cmd == "test"
-    str(app.arg) == "a   b c"
-    str(app.args[0]) == "a"
-    str(app.args[1]) == "b"
-    str(app.args[2]) == "c"
+    assert app.cmd == "test"
+    assert str(app.arg) == "a   b c"
+    assert str(app.args[0]) == "a"
+    assert str(app.args[1]) == "b"
+    assert str(app.args[2]) == "c"
 ```
 
 # 未来计划
