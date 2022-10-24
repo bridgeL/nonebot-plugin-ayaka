@@ -1,4 +1,4 @@
-# Ayaka 0.3.5
+# Ayaka 0.3.6
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
@@ -21,6 +21,22 @@
 在本文档中更新了部分帮助
 ## 0.3.5
 将ayaka_master集成进本插件中
+## 0.3.6
+**不兼容** 
+
+修改了AyakaStorage和AyakaApp的两处方法：
+- plugin_storage
+- group_storage
+
+修改内容：
+
+取消了suffix参数，现在，你需要在最后一个name中指定suffix，否则，AyakaStorage中的path属性将指向一个文件夹
+
+迁移方式：
+
+`app.plugin_storage("name")` -> `app.plugin_storage("name.json")`
+
+`app.plugin_storage("test", "name", suffix=".txt") `-> `app.plugin_storage("test", "name.txt")`
 
 </details>
 

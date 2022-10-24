@@ -211,27 +211,27 @@ class AyakaApp:
         '''
         return _message.get()
 
-    def plugin_storage(self, *names, suffix=".json", default=None):
+    def plugin_storage(self, *names, default=None):
         '''以app_name划分的独立存储空间，可以实现跨bot、跨群聊的数据共享'''
+        names = [str(n) for n in names]
         return AyakaStorage(
             "plugins",
             self.name,
             *names,
-            suffix=suffix,
             default=default
         )
 
-    def group_storage(self, *names, suffix=".json", default=None):
+    def group_storage(self, *names, default=None):
         '''*timer触发时不可用*
 
         以bot_id、group_id、app_name三级划分分割的独立存储空间'''
+        names = [str(n) for n in names]
         return AyakaStorage(
             "groups",
-            self.bot_id,
-            self.group_id,
+            str(self.bot_id),
+            str(self.group_id),
             self.name,
             *names,
-            suffix=suffix,
             default=default
         )
 
@@ -488,17 +488,20 @@ class AyakaGroup:
 class AyakaStorage:
     '''保存为json文件'''
 
-    def __init__(self, *names, suffix=".json", default=None) -> None:
-        names = [str(n) for n in names]
+    def __init__(self, *names: str, default=None) -> None:
         self.path = Path("data", *names)
-        self.suffix = suffix
-        if suffix:
-            self.path = self.path.with_suffix(suffix)
 
         if not self.path.parent.exists():
             self.path.parent.mkdir(parents=True)
 
-        if suffix and default is not None and not self.path.exists():
+        self.suffix = self.path.suffix
+
+        # 说明这是一个目录
+        if not self.suffix:
+            self.path.mkdir()
+
+        # 文件不存在的情况下，如果有default就新建并写入内容
+        elif not self.path.exists() and default is not None:
             self.save(default)
 
     @property
