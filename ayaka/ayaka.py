@@ -403,7 +403,7 @@ class AyakaGroup:
             "groups",
             self.bot_id,
             self.group_id,
-            "forbid",
+            "forbid.json",
             default=[]
         )
         # 读取forbit列表
