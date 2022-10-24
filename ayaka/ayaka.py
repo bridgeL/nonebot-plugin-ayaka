@@ -96,8 +96,10 @@ class AyakaApp:
         '''设置帮助，若help为str，则设置为介绍，若help为dict，则设置为对应状态的帮助'''
         if isinstance(help, dict):
             self._help.update(help)
+        elif isinstance(help, str):
+            self._help[INIT_STATE] = help.strip()
         else:
-            self._help[INIT_STATE] = help
+            raise
 
     @property
     def valid(self):
