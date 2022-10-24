@@ -1,4 +1,4 @@
-# Ayaka 0.3.6
+# Ayaka 0.3.6b
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
@@ -21,7 +21,7 @@
 在本文档中更新了部分帮助
 ## 0.3.5
 将ayaka_master集成进本插件中
-## 0.3.6
+## 0.3.6b
 **不兼容** 
 
 修改了AyakaStorage和AyakaApp的两处方法：

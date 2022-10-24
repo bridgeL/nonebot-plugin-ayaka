@@ -401,8 +401,8 @@ class AyakaGroup:
 
         self.store_forbid = AyakaStorage(
             "groups",
-            self.bot_id,
-            self.group_id,
+            str(self.bot_id),
+            str(self.group_id),
             "forbid.json",
             default=[]
         )
