@@ -496,13 +496,15 @@ class AyakaStorage:
 
         self.suffix = self.path.suffix
 
-        # 说明这是一个目录
-        if not self.suffix:
-            self.path.mkdir()
+        if not self.path.exists():
+            # 这是一个目录
+            if not self.suffix:
+                self.path.mkdir()
 
-        # 文件不存在的情况下，如果有default就新建并写入内容
-        elif not self.path.exists() and default is not None:
-            self.save(default)
+            # 这是一个文件
+            # 如果有default就新建并写入内容
+            elif default is not None:
+                self.save(default)
 
     @property
     def is_json(self):
@@ -524,7 +526,7 @@ class AyakaStorage:
             if self.is_json:
                 json.dump(data, f, ensure_ascii=False)
             else:
-                f.write(data)
+                f.write(str(data))
 
 
 class AyakaTrigger:
