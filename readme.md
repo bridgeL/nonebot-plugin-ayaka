@@ -9,18 +9,25 @@
 # 更新记录
 
 <details>
-<summary>更新记录</summary>
+<summary>历史更新记录</summary>
 
 ## 0.3.0 
 借助contextvar内置模块，全部重写了之间的代码，现在它们被合并为一个单文件，并能实现ayaka插件先前提供的所有功能，但不幸的是，其无法兼容0.2.x的ayaka插件，需要代码迁移 
+
 ## 0.3.1 
 规定了应用启动后的默认初始状态为 init 
+
 ## 0.3.2 
 增加了较为完善的注释 
+
 ## 0.3.3 
 在本文档中更新了部分帮助
+
 ## 0.3.5
 将ayaka_master集成进本插件中
+
+</details>
+
 ## 0.3.6
 **不兼容** 
 
@@ -38,7 +45,6 @@
 
 `app.plugin_storage("test", "name", suffix=".txt") `-> `app.plugin_storage("test", "name.txt")`
 
-</details>
 
 # 安装
 
@@ -62,6 +68,8 @@ COMMAND_SEP=[" "]
 # 快速了解
 
 通过ayaka插件，二次封装nonebot2提供的api，提供专用api，便于其他文字游戏插件的编写
+
+基于ayaka的衍生插件示例库 https://github.com/bridgeL/ayaka_plugins
 
 基于ayaka的小游戏合集 https://github.com/bridgeL/nonebot-plugin-ayaka-games
 
@@ -235,13 +243,9 @@ async def jump_to_somewhere():
 给出几份例程代码以帮助读者理解使用
 
 ## 如何使用例程代码？
-以下两种方式皆可
+所有的示例代码都可以在 [基于ayaka的衍生插件示例库](https://github.com/bridgeL/ayaka_plugins) 中找到
 
-### 手动复制本文档中的代码
-你可以在nonebot工作目录的src/plugins中新建一个代码文件，手动复制代码进去，nonebot会在读到`bot.py`文件中的`nonebot.load_from_toml(...)`语句后导入该插件
-
-### 从仓库下载
-你也可以前往[ayaka衍生插件库](https://github.com/bridgeL/ayaka_plugins)，下载其中的example文件夹，放到nonebot工作目录下，然后在`bot.py`中添加`nonebot.load_plugin("example")`
+下载其中的插件，放到nonebot工作目录下的`src/plugins`中，随后启动nonebot即可
 
 ## 插件编写范例 echo
 
@@ -429,4 +433,6 @@ async def _():
 ```
 
 # 未来计划
-提供aiosqlite数据库支持
+
+1. 更新关于`app.plugin_storage`和`app.group_storage`的帮助
+2. 提供aiosqlite数据库支持（或许？
