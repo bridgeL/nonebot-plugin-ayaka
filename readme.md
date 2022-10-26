@@ -15,6 +15,8 @@ ayaka 通过二次封装nonebot2提供的api，提供专用api，便于其他文
 
 单独安装ayaka插件没有意义，ayaka插件的意义在于帮助ayaka衍生插件实现功能
 
+任何问题欢迎issue
+
 ## 已有的ayaka衍生插件
 
 - [示例库](https://github.com/bridgeL/ayaka_plugins)
