@@ -3,7 +3,11 @@
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
 
-<b>注意：由于更新pypi的readme.md需要占用版本号，因此其readme.md可能不是最新的，强烈建议读者前往[github仓库](https://github.com/bridgeL/nonebot-plugin-ayaka)以获取最新版本的帮助</b>
+注意：
+
+由于更新pypi的readme.md需要占用版本号，因此其readme.md可能不是最新的
+
+<b>强烈建议读者前往[github仓库](https://github.com/bridgeL/nonebot-plugin-ayaka)以获取最新版本的帮助</b>
 
 
 # 更新记录
@@ -76,7 +80,7 @@ app._help = {
 }
 ```
 
-增加了关于`app.group_storage`的帮助，并增加了一个插件示例
+增加了关于`app.group_storage`的帮助，并增加了一个示例插件
 
 # 安装
 
@@ -206,7 +210,7 @@ async def jump_to_somewhere():
 
 ## 有状态应用 
 
-例如，代码速看中的hello-world应用
+例如，代码速看中的[hello-world](https://github.com/bridgeL/ayaka_plugins/blob/master/hello_world.py)应用
 
 我发送hi指令时，应用需要根据自身的状态（earth/moon/sun）给出不同的响应，因此它是有状态应用
 
@@ -276,6 +280,9 @@ async def jump_to_somewhere():
 给出几份例程代码以帮助读者理解使用
 
 ## 如何使用例程代码？
+
+首先确保本插件已经安装
+
 所有的示例代码都可以在 [基于ayaka的衍生插件示例库](https://github.com/bridgeL/ayaka_plugins) 中找到
 
 下载其中的插件，放到nonebot工作目录下的`src/plugins`中，随后启动nonebot即可
