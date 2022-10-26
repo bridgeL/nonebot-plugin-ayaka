@@ -25,11 +25,14 @@ ayaka 通过二次封装nonebot2提供的api，提供专用api，便于其他文
 1. 修改nonebot工作目录下的`pyproject.toml`文件，将`python = "^3.7.3"`修改为`python = "^3.8.0"`
 2. `poetry add nonebot-plugin-ayaka` 
 3. `poetry run playwright install chromium`
-4. `bot.py`无需修改，只要在ayaka衍生插件里正常导入就行：`from ayaka import AyakaApp`
 
-**ayaka衍生插件需要nonebot来加载**
+注意：
 
-如果没有用到无头浏览器截图的功能，可忽略`poetry run playwright install chromium`
+如果没有用到无头浏览器截图的功能，可忽略最后一步
+
+不需要特意在`bot.py`中加载ayaka插件，只要正常加载ayaka衍生插件即可
+
+ayaka衍生插件中也只需正常导入ayaka就行 `from ayaka import AyakaApp`
 
 ## 配置
 
