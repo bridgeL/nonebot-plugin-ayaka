@@ -46,9 +46,9 @@ async def show_plugins():
         s = ""
         if not _app.valid:
             s = "[已禁用] "
-        info = f"[{_app.name}] {s}{_app.intro}"
+        info = f"[{_app.name}] {s}"
         items.append(info)
-    await app.send_many(items)
+    await app.send("\n".join(items))
 
 
 @app.on_command(["状态", "state"], super=True)
@@ -76,8 +76,14 @@ async def show_help():
             # 详细帮助
             await app.send(_app.all_help)
             return
+
         # 展示所有应用
-        await show_plugins()
+        items = []
+        for _app in app_list:
+            info = f"[{_app.name}] {_app.intro}"
+            items.append(info)
+        await app.send_many(items)
+
         await app.send("使用帮助时提供参数可以展示进一步信息")
         return
 

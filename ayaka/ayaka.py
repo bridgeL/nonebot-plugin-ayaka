@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from typing import List, Dict, Union, AsyncIterator
 from playwright.async_api import async_playwright, Browser, Page, Playwright
 from nonebot import logger, get_driver, on_message
-from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent, escape
+from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
 
 
 _browser: Browser = None
@@ -96,10 +96,8 @@ class AyakaApp:
         '''设置帮助，若help为str，则设置为介绍，若help为dict，则设置为对应状态的帮助'''
         if isinstance(help, dict):
             self._help.update(help)
-        elif isinstance(help, str):
-            self._help[INIT_STATE] = help.strip()
         else:
-            raise
+            self._help[INIT_STATE] = help
 
     @property
     def valid(self):
@@ -356,10 +354,16 @@ class AyakaApp:
         div_len = 80
         div_cnt = ceil(length / div_len)
         for i in range(div_cnt):
-            msgs = messages[i*div_len: (i+1)*div_len]
             # 转换为cqhttp node格式
-            nodes = self.pack_message_nodes(msgs)
-            await self.bot.call_api("send_group_forward_msg", group_id=self.group_id, messages=nodes)
+            msgs = [
+                MessageSegment.node_custom(
+                    user_id=self.bot_id,
+                    nickname="Ayaka Bot",
+                    content=str(m)
+                )
+                for m in messages[i*div_len: (i+1)*div_len]
+            ]
+            await self.bot.call_api("send_group_forward_msg", group_id=self.group_id, messages=msgs)
 
     async def t_send(self, bot_id: int, group_id: int, message):
         '''timer触发回调时，想要发送消息必须使用该方法，一些上下文亦无法使用'''
@@ -376,22 +380,6 @@ class AyakaApp:
             return
 
         await bot.send_group_msg(group_id=group_id, message=message)
-
-    def pack_message_nodes(self, items: list):
-        '''
-            将数组打包为message_node格式的数组
-        '''
-        nodes = []
-        for m in items:
-            nodes.append({
-                "type": "node",
-                "data": {
-                    "name": "Ayaka Bot",
-                    "uin": self.bot.self_id,
-                    "content": escape(str(m), escape_comma=False)
-                }
-            })
-        return nodes
 
 
 class AyakaGroup:

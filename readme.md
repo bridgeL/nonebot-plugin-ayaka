@@ -1,4 +1,4 @@
-# Ayaka 0.3.6
+# Ayaka 0.3.7
 针对Nonebot2框架 Onebot_v11协议的文字游戏开发辅助插件
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
@@ -26,8 +26,6 @@
 ## 0.3.5
 将ayaka_master集成进本插件中
 
-</details>
-
 ## 0.3.6
 **不兼容** 
 
@@ -45,12 +43,40 @@
 
 `app.plugin_storage("test", "name", suffix=".txt") `-> `app.plugin_storage("test", "name.txt")`
 
+</details>
+
+## 0.3.7
+
+增进了ayaka_master的使用体验，现在为app.help赋值时，插件将自动去除app.help首尾的white-space字符
+
+例如，你可以直接填写
+```python
+app.help = '''
+
+你好
+
+啊啊
+
+'''
+```
+
+实际存入的帮助是
+```pythno
+app._help = {
+    "init":"你好\n\n啊啊"
+}
+```
+
+修改了ayaka中send_many的实现方式（不影响使用）
+
+增加了一条安装步骤，解决nb生成的默认toml文件的依赖冲突问题
 
 # 安装
 
-1. `poetry add nonebot-plugin-ayaka` 
-2. `poetry run playwright install chromium`
-3. `bot.py`无需修改，只要在ayaka衍生插件里正常导入就行：`from ayaka import AyakaApp`
+1. 修改nonebot工作目录下的`pyproject.toml`文件，将`python = "^3.7.3"`修改为`python = "^3.8.0"`
+2. `poetry add nonebot-plugin-ayaka` 
+3. `poetry run playwright install chromium`
+4. `bot.py`无需修改，只要在ayaka衍生插件里正常导入就行：`from ayaka import AyakaApp`
 
 **ayaka衍生插件需要nonebot来加载**
 
