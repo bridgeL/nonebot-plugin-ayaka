@@ -274,7 +274,7 @@ class AyakaApp:
         return self.group.set_state(self.name, state)
 
     def on_command(self, cmds: Union[List[str], str], super=False):
-        '''注册桌面模式下的命令'''
+        '''注册闲置的命令'''
         cmds = ensure_list(cmds)
 
         if super:
@@ -306,7 +306,7 @@ class AyakaApp:
         return decorator
 
     def on_text(self, super=False):
-        '''注册桌面模式下的消息'''
+        '''注册闲置的消息'''
         return self.on_command("", super=super)
 
     def on_state_text(self, states: Union[List[str], str] = INIT_STATE):
