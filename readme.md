@@ -145,7 +145,7 @@ app = AyakaApp("hello-world")
 # app.help
 
 
-# 桌面状态下
+# 打开app
 @app.on_command("hw")
 async def app_entrance():
     await app.start()
@@ -202,9 +202,11 @@ async def jump_to_somewhere():
 
 ## 无状态应用
 
-例如，简单复读我说的话的应用
+例如，简单复读应用
 
-那么对于该应用而言，我之前说了啥都是无所谓的，它只需要复读我当前正在说的这句就行了。也就是说，无论我曾经下达过什么指令，都不会影响到该应用的状态，它是永恒不变的，即无状态应用
+对于该应用而言，用户之前说了什么都无所谓，它只需要复读用户当前正在说的这句
+
+换言之，无论用户曾经下达过什么指令，都不会影响到该应用的状态，它是永恒不变的，即无状态应用
 
 无状态应用在注册回调时，使用`app.on_command`和`app.on_text`即可
 
@@ -212,7 +214,7 @@ async def jump_to_somewhere():
 
 例如，代码速看中的[hello-world](https://github.com/bridgeL/ayaka_plugins/blob/master/hello_world.py)应用
 
-我发送hi指令时，应用需要根据自身的状态（earth/moon/sun）给出不同的响应，因此它是有状态应用
+用户发送hi指令时，应用需要根据自身的状态（earth/moon/sun）给出不同的响应，因此它是有状态应用
 
 有状态应用在注册回调时，需要使用`app.on_state_command`和`app.on_state_text`
 
@@ -234,12 +236,20 @@ async def jump_to_somewhere():
 
 `无状态应用`没有运行和关闭的概念，你发完指令，它立刻就会回应你
 
+## 闲置
+
+在没有任何应用运行时，群聊处于闲置状态，此时注册的所有`on_command`和`on_text`回调都可以响应，而`on_state_command`和`on_state_text`则无法响应，因为它们都依赖于相关应用的状态，而闲置时没有应用运行
+
+运行应用后，注册在对应应用下的`on_state_command`和`on_state_text`回调可以响应，而普通的`on_command`和`on_text`无法响应，但对于设置了`super=True`的特殊的`on_command`和`on_text`仍可以响应
+
+这种设计可以帮助一些有特殊需要的`无状态应用`在`有状态应用`运行时仍可响应用户的指令
+
 # API
 
 ## app属性一览表
 | 名称      | 类型                   | 功能                                           |
 | --------- | ---------------------- | ---------------------------------------------- |
-| intro     | `str`                  | 应用介绍（帮助dict中key为init所对应的value）   |
+| intro     | `str`                  | 应用介绍（设置help后自动生成）                 |
 | help      | `str`                  | 当前应用在当前状态下的帮助                     |
 | all_help  | `str`                  | 当前应用的所有帮助                             |
 | state     | `bool`                 | 当前应用的状态                                 |
@@ -266,9 +276,9 @@ async def jump_to_somewhere():
 | send_many        | 发送合并转发消息                          | 是       |
 | t_send           | 定时器触发回调时所使用的专用发送消息方法  | 是       |
 | set_state        | 设置应用状态（在应用运行时可以设置）      | \        |
-| on_command       | 注册桌面模式下的命令回调                  | \        |
+| on_command       | 注册闲置时的命令回调                  | \        |
 | on_state_command | 注册应用运行时在不同状态下的命令回调      | \        |
-| on_text          | 注册桌面模式下的消息回调                  | \        |
+| on_text          | 注册闲置时的消息回调                  | \        |
 | on_state_text    | 注册应用运行时在不同状态下的消息回调      | \        |
 | on_everyday      | 每日定时触发回调（东8区）                 | \        |
 | on_interval      | 在指定的时间点后开始循环触发（东8区）     | \        |
@@ -299,6 +309,7 @@ app = AyakaApp("echo")
 
 # 得益于ayaka内置插件 ayaka_master
 # 用户可通过#help命令展示插件帮助，只需编写app.help即可
+# 第一种写法，该帮助将默认写入app.intro中
 app.help = '''复读只因
 特殊命令一览：
 - reverse 开始说反话
@@ -307,13 +318,15 @@ app.help = '''复读只因
 '''
 
 # 另一种写法
+# init的值，将变成app.intro的值
+# init、reverse表示不同的状态，在不同状态下，app.help将返回对应的值
 app.help = {
     "init": "复读只因\n特殊命令一览：\n- reverse 开始说反话\n- exit 退出",
     "reverse": "说反话模式\n- back 停止说反话"
 }
 
 
-# 桌面状态下
+# 打开app
 @app.on_command("echo")
 async def app_entrance():
     # 输入参数则复读参数（无状态响应
@@ -324,10 +337,10 @@ async def app_entrance():
         return
 
     # 没有输入参数则运行该应用
+    # 运行后，应用初始状态默认为init
     await app.start()
 
-
-# app运行后，进入初始状态(state = "init")
+# on_state_text、on_state_command注册的回调都是在app运行后才有机会响应
 
 # 正常复读
 @app.on_state_text()
