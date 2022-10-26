@@ -87,7 +87,7 @@ app._help = {
 
 **ayaka衍生插件需要nonebot来加载**
 
-如果没有用到无头浏览器截图的功能，可忽略第二步
+如果没有用到无头浏览器截图的功能，可忽略`poetry run playwright install chromium`
 
 
 ## 配置
