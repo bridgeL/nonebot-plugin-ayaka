@@ -78,9 +78,11 @@ class AyakaApp:
     def help(self):
         '''获取当前状态下的帮助，没有找到则返回介绍'''
         if self.group.running_app_name == self.name:
-            helps = self._help.get(self.group.state)
+            helps = self._help.get(self.group.state, []) + \
+                self._help.get("*", [])
             if helps:
                 return "\n".join(helps)
+
         return self.intro
 
     @property
@@ -90,7 +92,7 @@ class AyakaApp:
         for k, v in self._help.items():
             v = "\n".join(v)
             if k != INIT_STATE:
-                info += f"\n[{k}] {v}"
+                info += f"\n[{k}]\n{v}"
         return info
 
     @help.setter

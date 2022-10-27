@@ -80,7 +80,7 @@ async def show_help():
         # 展示所有应用
         items = []
         for _app in app_list:
-            info = f"[{_app.name}] {_app.intro}"
+            info = f"[{_app.name}]\n{_app.intro}"
             items.append(info)
         await app.send_many(items)
 
