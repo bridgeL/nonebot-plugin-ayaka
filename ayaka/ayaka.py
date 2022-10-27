@@ -65,21 +65,22 @@ class AyakaApp:
         self.state_triggers: List[AyakaTrigger] = []
         self.no_state_triggers: List[AyakaTrigger] = []
         self.timers: List[AyakaTimer] = []
-        self._help: Dict[str, str] = {}
+        self._help: Dict[str, List[str]] = {}
         app_list.append(self)
 
     @property
     def intro(self):
         '''获取介绍，也就是init状态下的帮助'''
-        return self._help.get(INIT_STATE, "没有找到帮助")
+        helps = self._help.get(INIT_STATE, ["没有找到帮助"])
+        return "\n".join(helps)
 
     @property
     def help(self):
         '''获取当前状态下的帮助，没有找到则返回介绍'''
         if self.group.running_app_name == self.name:
-            info = self._help.get(self.group.state)
-            if info:
-                return info
+            helps = self._help.get(self.group.state)
+            if helps:
+                return "\n".join(helps)
         return self.intro
 
     @property
@@ -87,18 +88,19 @@ class AyakaApp:
         '''获取介绍以及全部状态下的帮助'''
         info = self.intro
         for k, v in self._help.items():
+            v = "\n".join(v)
             if k != INIT_STATE:
                 info += f"\n[{k}] {v}"
         return info
 
     @help.setter
-    def help(self, help):
+    def help(self, help: Union[str, Dict[str, str]]):
         '''设置帮助，若help为str，则设置为介绍，若help为dict，则设置为对应状态的帮助'''
         if isinstance(help, dict):
-            help = {k: v.strip() for k, v in help.items()}
+            help = {k: [v.strip()] for k, v in help.items()}
             self._help.update(help)
         else:
-            self._help[INIT_STATE] = help.strip()
+            self._help[INIT_STATE] = [help.strip()]
 
     @property
     def valid(self):
@@ -278,17 +280,22 @@ class AyakaApp:
         cmds = ensure_list(cmds)
 
         if super:
-            def decorator(func):
-                for cmd in cmds:
-                    t = AyakaTrigger(self.name, cmd, None, func)
-                    self.super_triggers.append(t)
-                return func
-            return decorator
+            triggers = self.super_triggers
+        else:
+            triggers = self.no_state_triggers
 
         def decorator(func):
             for cmd in cmds:
                 t = AyakaTrigger(self.name, cmd, None, func)
-                self.no_state_triggers.append(t)
+                triggers.append(t)
+
+            # 如果有帮助，自动添加到_help中
+            doc = func.__doc__
+            if doc:
+                if INIT_STATE not in self._help:
+                    self._help[INIT_STATE] = []
+                self._help[INIT_STATE].append(f"- {'/'.join(cmds)} {doc}")
+
             return func
         return decorator
 
@@ -298,10 +305,18 @@ class AyakaApp:
         states = ensure_list(states)
 
         def decorator(func):
-            for cmd in cmds:
-                for state in states:
+            for state in states:
+                for cmd in cmds:
                     t = AyakaTrigger(self.name, cmd, state, func)
                     self.state_triggers.append(t)
+
+                # 如果有帮助，自动添加到_help中
+                doc = func.__doc__
+                if doc:
+                    if state not in self._help:
+                        self._help[state] = []
+                    self._help[state].append(f"- {'/'.join(cmds)} {doc}")
+
             return func
         return decorator
 
