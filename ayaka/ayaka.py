@@ -59,6 +59,9 @@ class AyakaCache:
 
 
 class AyakaApp:
+    def __repr__(self) -> str:
+        return f"AyakaApp({self.name})"
+
     def __init__(self, name: str) -> None:
         self.name = name
         self.super_triggers: List[AyakaTrigger] = []
@@ -401,6 +404,9 @@ class AyakaApp:
 
 
 class AyakaGroup:
+    def __repr__(self) -> str:
+        return f"AyakaGroup({self.bot_id}, {self.group_id}, {self.running_app_name}, {self.state})"
+
     def __init__(self, bot_id: int, group_id: int) -> None:
         self.bot_id = bot_id
         self.group_id = group_id
@@ -496,6 +502,9 @@ class AyakaGroup:
 class AyakaStorage:
     '''保存为json文件'''
 
+    def __repr__(self) -> str:
+        return f"AyakaStorage({self.path})"
+
     def __init__(self, *names: str, default=None) -> None:
         self.path = Path("data", *names)
 
@@ -538,6 +547,9 @@ class AyakaStorage:
 
 
 class AyakaTrigger:
+    def __repr__(self) -> str:
+        return f"AyakaTrigger({self.app_name}, {self.cmd}, {self.state}, {self.func.__name__})"
+
     def __init__(self, app_name, cmd, state, func) -> None:
         self.app_name = app_name
         self.cmd = cmd
@@ -561,13 +573,16 @@ class AyakaTrigger:
         else:
             info += "消息 "
         info += f"执行回调 <c>{self.func.__name__}</c>"
-        logger.opt(colors=True).success(info)
+        logger.opt(colors=True).debug(info)
 
         # 运行回调
         await self.func()
 
 
 class AyakaTimer:
+    def __repr__(self) -> str:
+        return f"AyakaTimer({self.name}, {self.gap}, {self.func.__name__})"
+
     def __init__(self, name: str, gap: int, h: int, m: int, s: int, func) -> None:
         self.name = name
         self.h = h
@@ -598,7 +613,7 @@ class AyakaTimer:
             await asyncio.sleep(gap)
 
         while True:
-            logger.opt(colors=True).success(f"触发定时任务 <y>{self.name}</y>")
+            logger.opt(colors=True).debug(f"触发定时任务 <y>{self.name}</y>")
             asyncio.create_task(self.func())
             await asyncio.sleep(self.gap)
 
@@ -762,7 +777,7 @@ def load_plugins(path: Path, base=""):
         except:
             logger.opt(colors=True).exception(f"{base}<y>{name}</y> 导入失败")
         else:
-            logger.opt(colors=True).success(f"{base}<y>{name}</y> 导入成功")
+            logger.opt(colors=True).debug(f"{base}<y>{name}</y> 导入成功")
 
 
 @asynccontextmanager
@@ -789,17 +804,23 @@ async def get_new_page(size=None, **kwargs) -> AsyncIterator[Page]:
 async def startup():
     app_list.sort(key=lambda x: x.name)
 
-    global _browser, _playwright
-    _playwright = await async_playwright().start()
-    _browser = await _playwright.chromium.launch()
+    try:
+        global _browser, _playwright
+        _playwright = await async_playwright().start()
+        _browser = await _playwright.chromium.launch()
+    except:
+        logger.warning("playwright加载失败，win平台请尝试关闭fastapi reload功能")
 
 
 @driver.on_shutdown
 async def shutdown():
-    if _browser:
-        await _browser.close()
-    if _playwright:
-        await _playwright.stop()
+    try:
+        if _browser:
+            await _browser.close()
+        if _playwright:
+            await _playwright.stop()
+    except:
+        pass
 
 
 @driver.on_bot_connect

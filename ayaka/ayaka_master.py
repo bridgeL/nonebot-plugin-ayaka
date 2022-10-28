@@ -84,7 +84,7 @@ async def show_help():
             items.append(info)
         await app.send_many(items)
 
-        await app.send("使用帮助时提供参数可以展示进一步信息")
+        await app.send("使用 帮助 <插件名> 可以展示该插件的详细帮助信息")
         return
 
     # 展示当前应用当前状态的帮助

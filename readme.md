@@ -1,6 +1,6 @@
 <div align="center">
 
-# Ayaka 0.3.9 
+# Ayaka 0.3.10
 
 适用于[nonebot2机器人](https://github.com/nonebot/nonebot2)的文字游戏开发辅助插件 
 
