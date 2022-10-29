@@ -64,12 +64,22 @@ class AyakaApp:
 
     def __init__(self, name: str) -> None:
         self.name = name
-        self.super_triggers: List[AyakaTrigger] = []
-        self.state_triggers: List[AyakaTrigger] = []
-        self.no_state_triggers: List[AyakaTrigger] = []
+        self.triggers: List[AyakaTrigger] = []
         self.timers: List[AyakaTimer] = []
         self._help: Dict[str, List[str]] = {}
         app_list.append(self)
+
+    @property
+    def super_triggers(self):
+        return [t for t in self.triggers if t.super]
+
+    @property
+    def state_triggers(self):
+        return [t for t in self.triggers if not t.super and t.state is not None]
+
+    @property
+    def no_state_triggers(self):
+        return [t for t in self.triggers if not t.super and t.state is None]
 
     @property
     def intro(self):
@@ -280,44 +290,22 @@ class AyakaApp:
         设置应用|群组当前状态'''
         return self.group.set_state(self.name, state)
 
-    def on_command(self, cmds: Union[List[str], str], super=False):
-        '''注册闲置的命令'''
-        cmds = ensure_list(cmds)
-
-        if super:
-            triggers = self.super_triggers
-        else:
-            triggers = self.no_state_triggers
-
-        def decorator(func):
-            for cmd in cmds:
-                t = AyakaTrigger(self.name, cmd, None, func)
-                triggers.append(t)
-
-            # 如果有帮助，自动添加到_help中
-            doc = func.__doc__
-            if doc:
-                if INIT_STATE not in self._help:
-                    self._help[INIT_STATE] = []
-                self._help[INIT_STATE].append(f"- {'/'.join(cmds)} {doc}")
-
-            return func
-        return decorator
-
-    def on_state_command(self, cmds: Union[List[str], str], states: Union[List[str], str] = INIT_STATE):
-        '''注册应用运行时不同状态下的命令'''
+    def on(self, cmds: Union[List[str], str], states: Union[List[str], str], super=False):
+        '''注册'''
         cmds = ensure_list(cmds)
         states = ensure_list(states)
 
         def decorator(func):
             for state in states:
                 for cmd in cmds:
-                    t = AyakaTrigger(self.name, cmd, state, func)
-                    self.state_triggers.append(t)
+                    t = AyakaTrigger(self.name, cmd, state, super, func)
+                    self.triggers.append(t)
 
                 # 如果有帮助，自动添加到_help中
                 doc = func.__doc__
                 if doc:
+                    if state is None:
+                        state = INIT_STATE
                     if state not in self._help:
                         self._help[state] = []
                     self._help[state].append(f"- {'/'.join(cmds)} {doc}")
@@ -325,9 +313,17 @@ class AyakaApp:
             return func
         return decorator
 
+    def on_command(self, cmds: Union[List[str], str], super=False):
+        '''注册闲置的命令'''
+        return self.on(cmds, None, super)
+
+    def on_state_command(self, cmds: Union[List[str], str], states: Union[List[str], str] = INIT_STATE):
+        '''注册应用运行时不同状态下的命令'''
+        return self.on(cmds, states)
+
     def on_text(self, super=False):
         '''注册闲置的消息'''
-        return self.on_command("", super=super)
+        return self.on_command("", super)
 
     def on_state_text(self, states: Union[List[str], str] = INIT_STATE):
         '''注册应用运行时不同状态下的消息'''
@@ -548,12 +544,13 @@ class AyakaStorage:
 
 class AyakaTrigger:
     def __repr__(self) -> str:
-        return f"AyakaTrigger({self.app_name}, {self.cmd}, {self.state}, {self.func.__name__})"
+        return f"AyakaTrigger({self.app_name}, {self.cmd}, {self.state}, {self.super}, {self.func.__name__})"
 
-    def __init__(self, app_name, cmd, state, func) -> None:
+    def __init__(self, app_name, cmd, state, super, func) -> None:
         self.app_name = app_name
         self.cmd = cmd
         self.state = state
+        self.super = super
         self.func = func
 
     async def run(self):
@@ -736,6 +733,9 @@ def divide_message(message: Message):
         else:
             args.append(m)
 
+    if not args:
+        return cmd, arg, args
+        
     m = args[0]
     if m.is_text():
         m_str = str(m)
