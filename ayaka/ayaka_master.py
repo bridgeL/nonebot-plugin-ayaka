@@ -11,7 +11,8 @@ app.help = '''ayaka综合管理模块
 '''
 
 
-@app.on_command(["启用", "permit"], super=True)
+@app.on.on_idle(super=True)
+@app.on.command("启用", "permit")
 async def permit():
     if not app.args:
         await app.send("参数缺失")
@@ -25,7 +26,8 @@ async def permit():
         await app.send(f"应用不存在 [{name}]")
 
 
-@app.on_command(["禁用", "forbid"], super=True)
+@app.on.on_idle(super=True)
+@app.on.command("禁用", "forbid")
 async def forbid():
     if not app.args:
         await app.send("参数缺失")
@@ -39,7 +41,8 @@ async def forbid():
         await app.send(f"应用不存在 [{name}]")
 
 
-@app.on_command(["插件", "plugin", "plugins"], super=True)
+@app.on.on_idle(super=True)
+@app.on.command("插件", "plugin", "plugins")
 async def show_plugins():
     items = []
     for _app in app_list:
@@ -51,7 +54,8 @@ async def show_plugins():
     await app.send("\n".join(items))
 
 
-@app.on_command(["状态", "state"], super=True)
+@app.on.on_idle(super=True)
+@app.on.command("状态", "state")
 async def show_state():
     name = app.group.running_app_name
     if not name:
@@ -61,7 +65,8 @@ async def show_state():
     await app.send(info)
 
 
-@app.on_command(["帮助", "help"], super=True)
+@app.on.on_idle(super=True)
+@app.on.command("帮助", "help")
 async def show_help():
     _app = app.group.get_running_app()
     # 没有应用正在运行

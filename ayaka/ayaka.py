@@ -1,3 +1,4 @@
+from functools import wraps
 from importlib import import_module
 import json
 import asyncio
@@ -8,7 +9,7 @@ from collections import defaultdict
 from contextvars import ContextVar
 from contextlib import asynccontextmanager
 import platform
-from typing import Callable, Coroutine, List, Dict, Union, AsyncIterator
+from typing import Callable, Coroutine, List, Dict, Tuple, Union, AsyncIterator
 from playwright.async_api import async_playwright, Browser, Page, Playwright
 from nonebot import logger, get_driver, on_message
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
@@ -68,6 +69,7 @@ class AyakaApp:
         self.triggers: List[AyakaTrigger] = []
         self.timers: List[AyakaTimer] = []
         self._help: Dict[str, List[str]] = {}
+        self.on = AyakaOn(self)
         app_list.append(self)
 
     @property
@@ -285,19 +287,18 @@ class AyakaApp:
             return self.group.state
         return "未运行"
 
-    def set_state(self, state: str = INIT_STATE):
+    def set_state(self, state):
         '''*timer触发时不可用*
 
-        设置应用|群组当前状态'''
+        设置应用当前状态'''
         return self.group.set_state(self.name, state)
 
-    def on(self, cmds: Union[List[str], str], states: Union[List[str], str], super: bool):
+    def on_handle(self, cmds: Union[List[str], str], states: Union[List[str], str], super: bool):
         '''注册'''
         cmds = ensure_list(cmds)
         states = ensure_list(states)
 
         def decorator(func: Callable[[], Coroutine]):
-            print(func.__module__)
             for state in states:
                 for cmd in cmds:
                     t = AyakaTrigger(self.name, cmd, state, super, func)
@@ -315,34 +316,7 @@ class AyakaApp:
             return func
         return decorator
 
-# -----------------------------------
-# ---------  已过时的API  ------------
-    def on_command(self, cmds: Union[List[str], str], super=False):
-        '''注册闲置的命令'''
-        return self.on(cmds, None, super)
-
-    def on_text(self, super=False):
-        '''注册闲置的消息'''
-        return self.on("", None, super)
-
-    def on_state_command(self, cmds: Union[List[str], str], states: Union[List[str], str] = INIT_STATE):
-        '''注册应用运行时不同状态下的命令'''
-        return self.on(cmds, states, False)
-
-    def on_state_text(self, states: Union[List[str], str] = INIT_STATE):
-        '''注册应用运行时不同状态下的消息'''
-        return self.on("", states, False)
-# ---------  已过时的API  ------------
-# -----------------------------------
-
-    def get_state_chain(self, name: str, from_states: Union[List[str], str, None] = INIT_STATE, to_state: Union[str, None] = INIT_STATE):
-        return AyakaStateChain(self, name, from_states, to_state)
-
-    def on_everyday(self, h: int, m: int, s: int):
-        '''每日定时触发'''
-        return self.on_interval(86400, h, m, s)
-
-    def on_interval(self, gap: int, h: int = -1, m: int = -1, s: int = -1):
+    def on_timer(self, gap: int, h: int, m: int, s: int):
         '''在指定的时间点后循环触发'''
         def decorator(func):
             t = AyakaTimer(self.name, gap, h, m, s, func)
@@ -407,49 +381,100 @@ class AyakaApp:
 
         await bot.send_group_msg(group_id=group_id, message=message)
 
-    def on_state(self, states: Union[List[str], str] = INIT_STATE):
-        return AyakaOn(self, states, False)
-
-    def on_idle(self, super=False):
-        return AyakaOn(self, None, super)
-
 
 class AyakaOn:
-    def __init__(self, app: AyakaApp, states, super) -> None:
-        self._app = app
-        self._states = states
-        self._super = super
+    def __init__(self, app: AyakaApp) -> None:
+        self.app = app
+        self.chain_dict: Dict[str, int] = {}
+
+    def on_everyday(self, h: int, m: int, s: int):
+        '''每日定时触发'''
+        return self.on_interval(86400, h, m, s)
+
+    def on_interval(self, gap: int, h=-1, m=-1, s=-1):
+        '''在指定的时间点后循环触发'''
+        return self.app.on_timer(gap, h, m, s)
+
+    def on_state(self, states: Union[List[str], str] = INIT_STATE):
+        '''注册有状态回调'''
+        def decorator(func):
+            # 取出之前存的参数
+            return self.app.on_handle(func.cmds, states, False)(func)
+        return decorator
+
+    def on_idle(self, super=False):
+        '''注册无状态回调'''
+        def decorator(func):
+            # 取出之前存的参数
+            return self.app.on_handle(func.cmds, None, super)(func)
+        return decorator
 
     def command(self, *cmds: str):
-        '''注册应用运行时不同状态下的命令'''
-        return self._app.on(cmds, self._states, self._super)
+        def decorator(func):
+            func.cmds = cmds
+            return func
+        return decorator
 
     def text(self):
-        '''注册应用运行时不同状态下的消息'''
-        return self._app.on("", self._states, self._super)
+        def decorator(func):
+            func.cmds = ""
+            return func
+        return decorator
 
+    def get_chain_state(self, name):
+        if name not in self.chain_dict:
+            self.chain_dict[name] = 0
+        return f"{name}_{self.chain_dict[name]}"
 
-class AyakaStateChain:
-    def __init__(self, app: AyakaApp, name, from_states, to_state) -> None:
-        '''
-            - name 该状态链的名称
-            - from_states=None 从应用未运行时开始
-            - to_state=None 最终关闭应用
-        '''
-        self._app = app
-        self._name = name
-        self._step = 0
-        self._from_states = from_states
-        self._to_state = to_state
-        self.begin = AyakaStateChainBegin(self)
-        self.next = AyakaStateChainNext(self)
-        self.end = AyakaStateChainEnd(self)
+    def add_chain_state(self, name):
+        self.chain_dict[name] += 1
 
-    @property
-    def _state(self):
-        if self._step <= 0:
-            return self._name
-        return f"{self._name}_{self._step}"
+    def on_chain(self, name: str):
+        '''注册状态链条'''
+        def decorator(func):
+            # 取出之前存的参数
+            chain_type = func.chain_type
+            cmds = func.cmds
+
+            # 状态转移链起始
+            if chain_type == "begin":
+                from_states = func.from_states
+                next_state = self.get_chain_state(name)
+                return self.create_decorator(cmds, from_states, next_state)(func)
+
+            # 状态转移链+1
+            elif chain_type == "next":
+                last_state = self.get_chain_state(name)
+                self.add_chain_state(name)
+                next_state = self.get_chain_state(name)
+                return self.create_decorator(cmds, last_state, next_state)(func)
+
+            # 状态转移链结束
+            else:
+                last_state = self.get_chain_state(name)
+                to_state = func.to_state
+                return self.create_decorator(cmds, last_state, to_state)(func)
+        return decorator
+
+    def begin(self, from_states: Union[List[str], str, None] = INIT_STATE):
+        def decorator(func):
+            func.from_states = from_states
+            func.chain_type = "begin"
+            return func
+        return decorator
+
+    def next(self):
+        def decorator(func):
+            func.chain_type = "next"
+            return func
+        return decorator
+
+    def end(self, to_state: Union[str, None] = INIT_STATE):
+        def decorator(func):
+            func.to_state = to_state
+            func.chain_type = "end"
+            return func
+        return decorator
 
     def create_decorator(self, cmds, last_states, next_state):
         # 生成state chain专用的装饰器
@@ -457,65 +482,33 @@ class AyakaStateChain:
         def decorator(func):
             # 为原方法添加设置状态转移的代码
             if last_states is None:
+                @wraps(func)
                 async def _func():
-                    if await self._app.start():
+                    if await self.app.start():
                         await func()
-                        self._app.set_state(next_state)
+                        self.app.set_state(next_state)
+
             elif next_state is None:
+                @wraps(func)
                 async def _func():
                     code = await func()
                     # 原方法返回任意负数，视为中断该状态转移链
                     if isinstance(code, int) and code < 0:
                         return
-                    await self._app.close()
+                    await self.app.close()
+
             else:
+                @wraps(func)
                 async def _func():
                     code = await func()
                     # 原方法返回任意负数，视为中断该状态转移链
                     if isinstance(code, int) and code < 0:
                         return
-                    self._app.set_state(next_state)
+                    self.app.set_state(next_state)
 
             # 注册回调
-            self._app.on(cmds, last_states, False)(_func)
+            self.app.on_handle(cmds, last_states, False)(_func)
         return decorator
-
-
-class IAyakaStateChainItem:
-    def __init__(self, sc: AyakaStateChain) -> None:
-        self._sc = sc
-
-    def _on(self, cmds) -> Callable[[Callable[[], Coroutine]], None]:
-        raise NotImplementedError
-
-    def command(self, *cmds: str):
-        return self._on(cmds)
-
-    def text(self):
-        return self._on(None)
-
-
-class AyakaStateChainBegin(IAyakaStateChainItem):
-    def _on(self, cmds):
-        # 读取状态转移链
-        next_state = self._sc._state
-        return self._sc.create_decorator(cmds, self._sc._from_states, next_state)
-
-
-class AyakaStateChainNext(IAyakaStateChainItem):
-    def _on(self, cmds):
-        # 读取状态转移链，并+1
-        last_state = self._sc._state
-        self._sc._step += 1
-        next_state = self._sc._state
-        return self._sc.create_decorator(cmds, last_state, next_state)
-
-
-class AyakaStateChainEnd(IAyakaStateChainItem):
-    def _on(self, cmds):
-        # 读取状态转移链
-        last_state = self._sc._state
-        return self._sc.create_decorator(cmds, last_state, self._sc._to_state)
 
 
 class AyakaGroup:
@@ -577,6 +570,7 @@ class AyakaGroup:
         if self.running_app_name == name:
             self.state = state
             return True
+        return False
 
     def permit_app(self, name: str):
         '''启用指定app'''
@@ -671,6 +665,7 @@ class AyakaTrigger:
         self.state = state
         self.super = super
         self.func = func
+        print(self)
 
     async def run(self):
         # 切换到对应数据空间
@@ -752,6 +747,8 @@ def get_group(bot_id: int, group_id: int):
 
 
 def ensure_list(items):
+    if isinstance(items, tuple):
+        return [item for item in items]
     if not isinstance(items, list):
         return [items]
     return items
@@ -790,9 +787,8 @@ async def deal_group(bot_id: int, group_id: int):
     _message.set(message)
 
     # 命令、参数
-    cmd, arg, args = divide_message(message)
+    cmd, args = divide_message(message)
     _cmd.set(cmd)
-    _arg.set(arg)
     _args.set(args)
 
     # 让super先来
@@ -826,13 +822,18 @@ async def deal_group(bot_id: int, group_id: int):
 
 async def deal_triggers(triggers: List[AyakaTrigger]):
     cmd = _cmd.get()
+    msg = _message.get()
 
     # 命令
     if cmd:
         for t in triggers:
             if t.cmd == cmd:
+                # 设置去掉命令后的消息
+                _arg.set(remove_cmd(cmd, msg))
                 await t.run()
                 return True
+
+    _arg.set(msg)
 
     # 命令退化成消息
     for t in triggers:
@@ -842,7 +843,6 @@ async def deal_triggers(triggers: List[AyakaTrigger]):
 
 def divide_message(message: Message):
     cmd = ""
-    arg = message
     args: List[MessageSegment] = []
 
     for m in message:
@@ -853,25 +853,28 @@ def divide_message(message: Message):
             args.append(m)
 
     if not args:
-        return cmd, arg, args
+        return cmd, args
 
     m = args[0]
     if m.is_text():
         m_str = str(m)
         if m_str.startswith(prefix):
             cmd = m_str[len(prefix):]
-
-            left = str(message[0])[len(m_str):]
-            if left.startswith(sep):
-                left = left[len(sep):]
-            if left:
-                left = MessageSegment.text(left)
-                arg = Message([left, *message[1:]])
-            else:
-                arg = Message(message[1:])
             args.pop(0)
 
-    return cmd, arg, args
+    return cmd, args
+
+
+def remove_cmd(cmd: str, message: Message):
+    m = message[0]
+    if m.is_text():
+        m_str = str(m)
+        m_str = m_str[len(prefix+cmd):]
+        if not m_str:
+            message.pop(0)
+        else:
+            message[0] = MessageSegment.text(m_str)
+    return message
 
 
 def load_plugins(path: Path, base=""):
