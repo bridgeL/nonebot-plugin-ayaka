@@ -2,7 +2,9 @@ __pycache__
 /dist
 /data
 /plugins/*
-/sample
-/scripts
+/sample/*
+/scripts/*
 
 !/plugins/ayaka_test
+!/plugins/echo.py
+!/scripts/echo.ini
