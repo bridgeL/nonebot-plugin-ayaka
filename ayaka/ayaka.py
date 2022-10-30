@@ -32,8 +32,7 @@ group_list: List["AyakaGroup"] = []
 bot_list: List[Bot] = []
 
 INIT_STATE = "init"
-
-_timer_started = False
+AYAKA_DEBUG = True
 
 # 监听私聊
 private_listener_dict: Dict[int, List[int]] = defaultdict(list)
@@ -62,15 +61,18 @@ class AyakaCache:
 
 class AyakaApp:
     def __repr__(self) -> str:
-        return f"AyakaApp({self.name})"
+        return f"AyakaApp({self.name}, {self.state})"
 
     def __init__(self, name: str) -> None:
         self.name = name
+        self.state = INIT_STATE
         self.triggers: List[AyakaTrigger] = []
         self.timers: List[AyakaTimer] = []
         self._help: Dict[str, List[str]] = {}
         self.on = AyakaOn(self)
         app_list.append(self)
+        if AYAKA_DEBUG:
+            print(self)
 
     @property
     def super_triggers(self):
@@ -94,7 +96,7 @@ class AyakaApp:
     def help(self):
         '''获取当前状态下的帮助，没有找到则返回介绍'''
         if self.group.running_app_name == self.name:
-            helps = self._help.get(self.group.state, []) + \
+            helps = self._help.get(self.state, []) + \
                 self._help.get("*", [])
             if helps:
                 return "\n".join(helps)
@@ -260,38 +262,24 @@ class AyakaApp:
         '''*timer触发时不可用*
 
         启动应用，并发送提示'''
-        f = self.group.set_running_app(self.name)
-        if f:
-            await self.send(f"已打开应用 [{self.name}]")
-        else:
+        name = self.group.running_app_name
+        if name and name != self.name:
             await self.send("打开应用失败")
-        return f
+            return False
+        self.group.running_app = self
+        await self.send(f"已打开应用 [{self.name}]")
+        return True
 
     async def close(self):
         '''*timer触发时不可用*
 
         关闭应用，并发送提示'''
-        f = self.group.set_running_app("")
-        if f:
-            await self.send(f"已关闭应用 [{self.name}]")
+        name = self.group.running_app_name
+        if name:
+            self.group.running_app = None
+            await self.send(f"已关闭应用 [{name}]")
         else:
-            await self.send("关闭应用失败")
-        return f
-
-    @property
-    def state(self):
-        '''*timer触发时不可用*
-
-        应用|群组当前状态'''
-        if self.name == self.group.running_app_name:
-            return self.group.state
-        return "未运行"
-
-    def set_state(self, state):
-        '''*timer触发时不可用*
-
-        设置应用当前状态'''
-        return self.group.set_state(self.name, state)
+            await self.send(f"没有应用在运行")
 
     def on_handle(self, cmds: Union[List[str], str], states: Union[List[str], str], super: bool):
         '''注册'''
@@ -311,7 +299,10 @@ class AyakaApp:
                         state = INIT_STATE
                     if state not in self._help:
                         self._help[state] = []
-                    self._help[state].append(f"- {'/'.join(cmds)} {doc}")
+                    cmd_str = '/'.join(cmds)
+                    if not cmd_str:
+                        cmd_str = "*"
+                    self._help[state].append(f"- {cmd_str} {doc}")
 
             return func
         return decorator
@@ -484,9 +475,10 @@ class AyakaOn:
             if last_states is None:
                 @wraps(func)
                 async def _func():
-                    if await self.app.start():
-                        await func()
-                        self.app.set_state(next_state)
+                    if not await self.app.start():
+                        return
+                    await func()
+                    self.app.state = next_state
 
             elif next_state is None:
                 @wraps(func)
@@ -504,7 +496,7 @@ class AyakaOn:
                     # 原方法返回任意负数，视为中断该状态转移链
                     if isinstance(code, int) and code < 0:
                         return
-                    self.app.set_state(next_state)
+                    self.app.state = next_state
 
             # 注册回调
             self.app.on_handle(cmds, last_states, False)(_func)
@@ -513,13 +505,12 @@ class AyakaOn:
 
 class AyakaGroup:
     def __repr__(self) -> str:
-        return f"AyakaGroup({self.bot_id}, {self.group_id}, {self.running_app_name}, {self.state})"
+        return f"AyakaGroup({self.bot_id}, {self.group_id}, {self.apps})"
 
     def __init__(self, bot_id: int, group_id: int) -> None:
         self.bot_id = bot_id
         self.group_id = group_id
-        self.running_app_name = ""
-        self.state = ""
+        self.running_app: AyakaApp = None
 
         self.store_forbid = AyakaStorage(
             "groups",
@@ -541,36 +532,20 @@ class AyakaGroup:
 
         group_list.append(self)
 
-    def get_running_app(self):
-        name = self.running_app_name
-        if name:
-            return self.get_app(name)
+        if AYAKA_DEBUG:
+            print(self)
 
-    def set_running_app(self, name: str):
-        if not name:
-            self.running_app_name = ""
-            self.state = ""
-            return True
-
-        if not self.running_app_name:
-            app = self.get_app(name)
-            if app:
-                self.running_app_name = name
-                self.state = INIT_STATE
-                return True
+    @property
+    def running_app_name(self):
+        if self.running_app:
+            return self.running_app.name
+        return ""
 
     def get_app(self, name: str):
         '''根据app名获取该group所启用的app，不存在则返回None'''
         for app in self.apps:
             if app.name == name:
                 return app
-
-    def set_state(self, name: str, state: str):
-        '''设置该group的状态'''
-        if self.running_app_name == name:
-            self.state = state
-            return True
-        return False
 
     def permit_app(self, name: str):
         '''启用指定app'''
@@ -593,19 +568,22 @@ class AyakaGroup:
             return
 
         app = self.get_app(name)
-        if app:
-            # 禁用正在运行的应用
-            if self.running_app_name == app.name:
-                self.running_app_name = ""
-                self.state = ""
-            # 移除
-            self.apps.remove(app)
-            # 添加到forbit列表
-            app_names: list = self.store_forbid.load()
-            if name not in app_names:
-                app_names.append(name)
-                self.store_forbid.save(app_names)
-            return True
+        if not app:
+            return
+
+        # 禁用正在运行的应用
+        if self.running_app_name == name:
+            self.running_app = None
+
+        # 移除
+        self.apps.remove(app)
+
+        # 添加到forbit列表
+        app_names: list = self.store_forbid.load()
+        if name not in app_names:
+            app_names.append(name)
+            self.store_forbid.save(app_names)
+        return True
 
 
 class AyakaStorage:
@@ -631,6 +609,9 @@ class AyakaStorage:
             # 如果有default就新建并写入内容
             elif default is not None:
                 self.save(default)
+
+        if AYAKA_DEBUG:
+            print(self)
 
     @property
     def is_json(self):
@@ -665,7 +646,8 @@ class AyakaTrigger:
         self.state = state
         self.super = super
         self.func = func
-        print(self)
+        if AYAKA_DEBUG:
+            print(self)
 
     async def run(self):
         # 切换到对应数据空间
@@ -701,6 +683,8 @@ class AyakaTimer:
         self.s = s
         self.gap = gap
         self.func = func
+        if AYAKA_DEBUG:
+            print(self)
 
     def start(self):
         asyncio.create_task(self.run_forever())
@@ -741,9 +725,10 @@ def get_group(bot_id: int, group_id: int):
     '''获取对应的AyakaGroup对象，自动增加'''
     for group in group_list:
         if group.bot_id == bot_id and group.group_id == group_id:
-            return group
+            break
     else:
-        return AyakaGroup(bot_id, group_id)
+        group = AyakaGroup(bot_id, group_id)
+    return group
 
 
 def ensure_list(items):
@@ -805,10 +790,10 @@ async def deal_group(bot_id: int, group_id: int):
     triggers = []
 
     # 当前正在运行
-    app = group.get_running_app()
+    app = group.running_app
     if app:
         for t in app.state_triggers:
-            if t.state == group.state or t.state == "*":
+            if t.state == app.state or t.state == "*":
                 triggers.append(t)
 
     # 其他桌面应用
@@ -950,12 +935,9 @@ async def shutdown():
 async def bot_connect(bot: Bot):
     bot_list.append(bot)
 
-    global _timer_started
-    if not _timer_started:
-        _timer_started = True
-        for app in app_list:
-            for t in app.timers:
-                t.start()
+    for app in app_list:
+        for t in app.timers:
+            t.start()
 
 
 @driver.on_bot_disconnect

@@ -1,3 +1,4 @@
+import re
 import sys
 import json
 import asyncio
@@ -20,73 +21,82 @@ def divide(line):
     return cmd, text
 
 
-class FakeQQ:
-    bot_id = 123
+bot_id = 123
 
-    greeting = f'''
+greeting = f'''
 ============================
 FAKE CQHTTP | UID:{bot_id}
 
-<y>g</y> \<group_id> \<user_id> \<text>\t| 发送群聊消息
-<y>p</y> \<user_id> \<text>            \t| 发送私聊消息
-<y>s</y> test                          \t| 执行test.ini自动化脚本
-<y>h</y>                               \t| 帮助
-<y>sa</y> on/off                       \t| 打开/关闭nonebot采样
-<y>hide  before  after  ;/#  $1</y>    \t| 脚本命令
+<y>g</y> <group_id> <user_id> <text> | 发送群聊消息
+<y>p</y> <user_id> <text>            | 发送私聊消息
+<y>s</y> test                        | 执行test.ini自动化脚本
+<y>h</y>                             | 帮助
+<y>sa</y> on/off                     | 打开/关闭nonebot采样
+<y>hide  before  after  ;/#  $1</y>  | 自动化脚本补充命令
 ============================
 '''.strip()
 
-    private_temp = {
-        "post_type": "message",
-        "message_type": "private",
-        "time": 0,
-        "self_id": bot_id,
-        "sub_type": "friend",
-        "user_id": 0,
-        "target_id": bot_id,
-        "message": "",
-        "raw_message": "",
-        "font": 0,
-        "sender": {
-            "age": 0,
-            "nickname": "",
-            "sex": "unknown",
-            "user_id": 0
-        },
-        "message_id": -1
-    }
-    group_temp = {
-        "post_type": "message",
-        "message_type": "group",
-        "time": 0,
-        "self_id": bot_id,
-        "sub_type": "normal",
-        "sender": {
-            "age": 0,
-            "area": "",
-            "card": "",
-            "level": "",
-            "nickname": "",
-            "role": "owner",
-            "sex": "unknown",
-            "title": "",
-            "user_id": 0
-        },
-        "message_id": -1,
-        "anonymous": None,
-        "font": 0,
-        "raw_message": "",
-        "user_id": 0,
-        "group_id": 0,
-        "message": "",
-        "message_seq": 0
-    }
+private_temp = {
+    "post_type": "message",
+    "message_type": "private",
+    "time": 0,
+    "self_id": bot_id,
+    "sub_type": "friend",
+    "user_id": 0,
+    "target_id": bot_id,
+    "message": "",
+    "raw_message": "",
+    "font": 0,
+    "sender": {
+        "age": 0,
+        "nickname": "",
+        "sex": "unknown",
+        "user_id": 0
+    },
+    "message_id": -1
+}
+
+group_temp = {
+    "post_type": "message",
+    "message_type": "group",
+    "time": 0,
+    "self_id": bot_id,
+    "sub_type": "normal",
+    "sender": {
+        "age": 0,
+        "area": "",
+        "card": "",
+        "level": "",
+        "nickname": "",
+        "role": "owner",
+        "sex": "unknown",
+        "title": "",
+        "user_id": 0
+    },
+    "message_id": -1,
+    "anonymous": None,
+    "font": 0,
+    "raw_message": "",
+    "user_id": 0,
+    "group_id": 0,
+    "message": "",
+    "message_seq": 0
+}
+
+
+class FakeQQ:
     terminal_cmds = {}
     cqhttp_acts = {}
 
     def print(self, *args):
         '''打印到终端上'''
         text = " ".join(str(a) for a in args)
+        # 保护已闭合的标签
+        text = re.sub(r"<(.*)>(.*?)</(\1)>", r"%%%\1%%%\2%%%/\1%%%", text)
+        # 注释未闭合的标签
+        text = re.sub(r"<.*?>", r"\\\g<0>", text)
+        # 恢复已闭合的标签
+        text = re.sub(r"%%%(.*)%%%(.*?)%%%/(\1)%%%", r"<\1>\2</\1>", text)
         try:
             logger.opt(colors=True).log(AYAKA_LOGGER_NAME, text)
         except:
@@ -117,7 +127,7 @@ FAKE CQHTTP | UID:{bot_id}
         port = driver.config.port
         self.conn = Connect(
             f"ws://127.0.0.1:{port}/onebot/v11/ws",
-            extra_headers={"x-self-id": self.bot_id}
+            extra_headers={"x-self-id": bot_id}
         )
         self.ws = await self.conn.__aenter__()
 
@@ -200,7 +210,7 @@ FAKE CQHTTP | UID:{bot_id}
 
     async def send_group(self, gid: int, uid: int, text: str):
         '''向nonebot发送假群聊消息'''
-        data = self.group_temp
+        data = group_temp
         name = f"测试{uid}号"
         data["message"] = data["raw_message"] = text
         data["sender"]["user_id"] = data["user_id"] = uid
@@ -214,7 +224,7 @@ FAKE CQHTTP | UID:{bot_id}
 
     async def send_private(self, uid: int, text: str):
         '''向nonebot发送假私聊消息'''
-        data = self.private_temp
+        data = private_temp
         name = f"测试{uid}号"
         data["message"] = data["raw_message"] = text
         data["sender"]["user_id"] = data["user_id"] = uid
@@ -226,7 +236,7 @@ FAKE CQHTTP | UID:{bot_id}
         self.print(f"私聊({uid}) <y>{name}</y> 说：\n{text}")
 
     def print_help(self):
-        for line in self.greeting.split("\n"):
+        for line in greeting.split("\n"):
             self.print(line)
         self.print("CQ码：https://docs.go-cqhttp.org/cqcode")
         self.print("ayaka_test：https://bridgel.github.io/ayaka_doc/test/")

@@ -68,7 +68,7 @@ async def show_state():
 @app.on.on_idle(super=True)
 @app.on.command("帮助", "help")
 async def show_help():
-    _app = app.group.get_running_app()
+    _app = app.group.running_app
     # 没有应用正在运行
     if not _app:
         # 查询指定应用的详细帮助
