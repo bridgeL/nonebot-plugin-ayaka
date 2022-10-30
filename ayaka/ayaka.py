@@ -7,7 +7,8 @@ from pathlib import Path
 from collections import defaultdict
 from contextvars import ContextVar
 from contextlib import asynccontextmanager
-from typing import List, Dict, Union, AsyncIterator
+import platform
+from typing import Callable, Coroutine, List, Dict, Union, AsyncIterator
 from playwright.async_api import async_playwright, Browser, Page, Playwright
 from nonebot import logger, get_driver, on_message
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
@@ -290,12 +291,13 @@ class AyakaApp:
         设置应用|群组当前状态'''
         return self.group.set_state(self.name, state)
 
-    def on(self, cmds: Union[List[str], str], states: Union[List[str], str], super=False):
+    def on(self, cmds: Union[List[str], str], states: Union[List[str], str], super: bool):
         '''注册'''
         cmds = ensure_list(cmds)
         states = ensure_list(states)
 
-        def decorator(func):
+        def decorator(func: Callable[[], Coroutine]):
+            print(func.__module__)
             for state in states:
                 for cmd in cmds:
                     t = AyakaTrigger(self.name, cmd, state, super, func)
@@ -313,21 +315,28 @@ class AyakaApp:
             return func
         return decorator
 
+# -----------------------------------
+# ---------  已过时的API  ------------
     def on_command(self, cmds: Union[List[str], str], super=False):
         '''注册闲置的命令'''
         return self.on(cmds, None, super)
 
-    def on_state_command(self, cmds: Union[List[str], str], states: Union[List[str], str] = INIT_STATE):
-        '''注册应用运行时不同状态下的命令'''
-        return self.on(cmds, states)
-
     def on_text(self, super=False):
         '''注册闲置的消息'''
-        return self.on_command("", super)
+        return self.on("", None, super)
+
+    def on_state_command(self, cmds: Union[List[str], str], states: Union[List[str], str] = INIT_STATE):
+        '''注册应用运行时不同状态下的命令'''
+        return self.on(cmds, states, False)
 
     def on_state_text(self, states: Union[List[str], str] = INIT_STATE):
         '''注册应用运行时不同状态下的消息'''
-        return self.on_state_command("", states)
+        return self.on("", states, False)
+# ---------  已过时的API  ------------
+# -----------------------------------
+
+    def get_state_chain(self, name: str, from_states: Union[List[str], str, None] = INIT_STATE, to_state: Union[str, None] = INIT_STATE):
+        return AyakaStateChain(self, name, from_states, to_state)
 
     def on_everyday(self, h: int, m: int, s: int):
         '''每日定时触发'''
@@ -397,6 +406,116 @@ class AyakaApp:
             return
 
         await bot.send_group_msg(group_id=group_id, message=message)
+
+    def on_state(self, states: Union[List[str], str] = INIT_STATE):
+        return AyakaOn(self, states, False)
+
+    def on_idle(self, super=False):
+        return AyakaOn(self, None, super)
+
+
+class AyakaOn:
+    def __init__(self, app: AyakaApp, states, super) -> None:
+        self._app = app
+        self._states = states
+        self._super = super
+
+    def command(self, *cmds: str):
+        '''注册应用运行时不同状态下的命令'''
+        return self._app.on(cmds, self._states, self._super)
+
+    def text(self):
+        '''注册应用运行时不同状态下的消息'''
+        return self._app.on("", self._states, self._super)
+
+
+class AyakaStateChain:
+    def __init__(self, app: AyakaApp, name, from_states, to_state) -> None:
+        '''
+            - name 该状态链的名称
+            - from_states=None 从应用未运行时开始
+            - to_state=None 最终关闭应用
+        '''
+        self._app = app
+        self._name = name
+        self._step = 0
+        self._from_states = from_states
+        self._to_state = to_state
+        self.begin = AyakaStateChainBegin(self)
+        self.next = AyakaStateChainNext(self)
+        self.end = AyakaStateChainEnd(self)
+
+    @property
+    def _state(self):
+        if self._step <= 0:
+            return self._name
+        return f"{self._name}_{self._step}"
+
+    def create_decorator(self, cmds, last_states, next_state):
+        # 生成state chain专用的装饰器
+        # 执行回调前后，应用状态从last_states 转移到 next_state
+        def decorator(func):
+            # 为原方法添加设置状态转移的代码
+            if last_states is None:
+                async def _func():
+                    if await self._app.start():
+                        await func()
+                        self._app.set_state(next_state)
+            elif next_state is None:
+                async def _func():
+                    code = await func()
+                    # 原方法返回任意负数，视为中断该状态转移链
+                    if isinstance(code, int) and code < 0:
+                        return
+                    await self._app.close()
+            else:
+                async def _func():
+                    code = await func()
+                    # 原方法返回任意负数，视为中断该状态转移链
+                    if isinstance(code, int) and code < 0:
+                        return
+                    self._app.set_state(next_state)
+
+            # 注册回调
+            self._app.on(cmds, last_states, False)(_func)
+        return decorator
+
+
+class IAyakaStateChainItem:
+    def __init__(self, sc: AyakaStateChain) -> None:
+        self._sc = sc
+
+    def _on(self, cmds) -> Callable[[Callable[[], Coroutine]], None]:
+        raise NotImplementedError
+
+    def command(self, *cmds: str):
+        return self._on(cmds)
+
+    def text(self):
+        return self._on(None)
+
+
+class AyakaStateChainBegin(IAyakaStateChainItem):
+    def _on(self, cmds):
+        # 读取状态转移链
+        next_state = self._sc._state
+        return self._sc.create_decorator(cmds, self._sc._from_states, next_state)
+
+
+class AyakaStateChainNext(IAyakaStateChainItem):
+    def _on(self, cmds):
+        # 读取状态转移链，并+1
+        last_state = self._sc._state
+        self._sc._step += 1
+        next_state = self._sc._state
+        return self._sc.create_decorator(cmds, last_state, next_state)
+
+
+class AyakaStateChainEnd(IAyakaStateChainItem):
+    def _on(self, cmds):
+        # 读取状态转移链
+        last_state = self._sc._state
+        return self._sc.create_decorator(cmds, last_state, self._sc._to_state)
 
 
 class AyakaGroup:
@@ -735,7 +854,7 @@ def divide_message(message: Message):
 
     if not args:
         return cmd, arg, args
-        
+
     m = args[0]
     if m.is_text():
         m_str = str(m)
@@ -804,23 +923,24 @@ async def get_new_page(size=None, **kwargs) -> AsyncIterator[Page]:
 async def startup():
     app_list.sort(key=lambda x: x.name)
 
-    try:
-        global _browser, _playwright
-        _playwright = await async_playwright().start()
-        _browser = await _playwright.chromium.launch()
-    except:
-        logger.warning("playwright加载失败，win平台请尝试关闭fastapi reload功能")
+    if platform.system() == "Windows" and getattr(driver.config, "fastapi_reload", True) == True:
+        logger.warning("playwright未加载，win平台请关闭fastapi reload功能")
+        return
+
+    global _browser, _playwright
+    _playwright = await async_playwright().start()
+    _browser = await _playwright.chromium.launch()
 
 
 @driver.on_shutdown
 async def shutdown():
-    try:
-        if _browser:
-            await _browser.close()
-        if _playwright:
-            await _playwright.stop()
-    except:
-        pass
+    if platform.system() == "Windows" and getattr(driver.config, "fastapi_reload", True) == True:
+        return
+
+    if _browser:
+        await _browser.close()
+    if _playwright:
+        await _playwright.stop()
 
 
 @driver.on_bot_connect

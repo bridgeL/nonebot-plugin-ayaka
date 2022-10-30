@@ -1,2 +1,8 @@
 __pycache__
-dist
+/dist
+/data
+/plugins/*
+/sample
+/scripts
+
+!/plugins/ayaka_test
