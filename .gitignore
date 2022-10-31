@@ -1,10 +1,11 @@
 __pycache__
 /dist
 /data
-/plugins/*
-/sample/*
-/scripts/*
+/sample
 
-!/plugins/ayaka_test
+# 保留示例插件
+/plugins/*
 !/plugins/echo.py
+
+/scripts/*
 !/scripts/echo.ini
