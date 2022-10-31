@@ -1,5 +1,5 @@
 '''安全起见，避免变量冲突'''
-from .ayaka import AyakaApp, AyakaFile, get_new_page
+from .ayaka import AyakaApp, AyakaPath, get_new_page
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot import logger
 

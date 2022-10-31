@@ -359,7 +359,7 @@ class AyakaStorage:
 
     def plugin(self, *names):
         '''以app_name划分的独立存储空间，可以实现跨bot、跨群聊的数据共享'''
-        return AyakaFile(
+        return AyakaPath(
             "plugins",
             self.app.name,
             *names,
@@ -369,7 +369,7 @@ class AyakaStorage:
         '''*timer触发时不可用*
 
         以bot_id、group_id、app_name三级划分分割的独立存储空间'''
-        return AyakaFile(
+        return AyakaPath(
             "groups",
             self.app.bot_id,
             self.app.group_id,
@@ -517,7 +517,7 @@ class AyakaGroup:
         self.group_id = group_id
         self.running_app: AyakaApp = None
 
-        self.store_forbid = AyakaFile(
+        self.store_forbid = AyakaPath(
             "groups",
             str(self.bot_id),
             str(self.group_id),
@@ -590,11 +590,11 @@ class AyakaGroup:
         return True
 
 
-class AyakaFile:
+class AyakaPath:
     '''保存为json文件'''
 
     def __repr__(self) -> str:
-        return f"AyakaFile({self.path})"
+        return f"AyakaPath({self.path})"
 
     def __init__(self, *names) -> None:
         names = [str(name) for name in names]
@@ -638,6 +638,9 @@ class AyakaFile:
                 json.dump(data, f, ensure_ascii=False)
             else:
                 f.write(str(data))
+
+    def iterdir(self):
+        return self.path.iterdir()
 
 
 class AyakaTrigger:
