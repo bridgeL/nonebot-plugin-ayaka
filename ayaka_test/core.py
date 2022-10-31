@@ -103,14 +103,13 @@ class FakeQQ:
             logger.log(AYAKA_LOGGER_NAME, text)
 
     def init_logger(self):
-        level = driver.config.log_level
         logger.remove()
         logger.add(
             sys.stdout,
             level="DEBUG",
             format="<g>{time:HH:mm:ss}</g> | <level>{level}</level> | {message}",
             filter={
-                "nonebot": level,
+                "nonebot": "WARNING",
                 "uvicorn": "INFO",
                 "websockets": "WARNING"
             },

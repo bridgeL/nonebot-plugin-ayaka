@@ -843,7 +843,7 @@ def get_cmd(message: Message):
     if not first or not first.startswith(prefix):
         return ""
     first += sep
-    return first.split(sep, 1)[0]
+    return first.split(sep, 1)[0][len(prefix):]
 
 
 def divide_message(message: Message):
