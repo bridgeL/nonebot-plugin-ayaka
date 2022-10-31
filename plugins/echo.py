@@ -4,7 +4,7 @@ app = AyakaApp("复读")
 app.help = "每三次就复读一次，复读过的不再复读"
 
 
-@app.on.on_idle()
+@app.on.idle()
 @app.on.text()
 async def repeat():
     '''监听一下'''

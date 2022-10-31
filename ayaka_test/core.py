@@ -176,7 +176,9 @@ class FakeQQ:
             data = json.loads(text)
 
             # 调用回调
-            func = self.cqhttp_acts.get(data["action"])
+            action = data["action"]
+            self.print(f"<y>{action}</y>")
+            func = self.cqhttp_acts.get(action)
             if not func:
                 self.print("未定义的假cqhttp动作", data)
             else:

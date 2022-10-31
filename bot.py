@@ -12,6 +12,9 @@ driver.register_adapter(ONEBOT_V11Adapter)
 # 加载插件
 nonebot.load_plugins("plugins")
 
+# 加载测试环境
+nonebot.load_plugins("ayaka_test")
+
 # 启动nonebot
 if __name__ == "__main__":
     nonebot.run(app="__mp_main__:app")

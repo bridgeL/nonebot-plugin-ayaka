@@ -9,7 +9,7 @@ from collections import defaultdict
 from contextvars import ContextVar
 from contextlib import asynccontextmanager
 import platform
-from typing import Callable, Coroutine, List, Dict, Tuple, Union, AsyncIterator
+from typing import Callable, Coroutine, List, Dict, Union, AsyncIterator
 from playwright.async_api import async_playwright, Browser, Page, Playwright
 from nonebot import logger, get_driver, on_message
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
@@ -32,7 +32,7 @@ group_list: List["AyakaGroup"] = []
 bot_list: List[Bot] = []
 
 INIT_STATE = "init"
-AYAKA_DEBUG = True
+AYAKA_DEBUG = 0
 
 # 监听私聊
 private_listener_dict: Dict[int, List[int]] = defaultdict(list)
@@ -234,29 +234,9 @@ class AyakaApp:
         '''
         return _message.get()
 
-    def plugin_storage(self, *names, default=None):
-        '''以app_name划分的独立存储空间，可以实现跨bot、跨群聊的数据共享'''
-        names = [str(n) for n in names]
-        return AyakaStorage(
-            "plugins",
-            self.name,
-            *names,
-            default=default
-        )
-
-    def group_storage(self, *names, default=None):
-        '''*timer触发时不可用*
-
-        以bot_id、group_id、app_name三级划分分割的独立存储空间'''
-        names = [str(n) for n in names]
-        return AyakaStorage(
-            "groups",
-            str(self.bot_id),
-            str(self.group_id),
-            self.name,
-            *names,
-            default=default
-        )
+    @property
+    def storage(self):
+        return AyakaStorage(self)
 
     async def start(self):
         '''*timer触发时不可用*
@@ -373,31 +353,83 @@ class AyakaApp:
         await bot.send_group_msg(group_id=group_id, message=message)
 
 
+class AyakaStorage:
+    def __init__(self, app: AyakaApp) -> None:
+        self.app = app
+
+    def plugin(self, *names):
+        '''以app_name划分的独立存储空间，可以实现跨bot、跨群聊的数据共享'''
+        return AyakaFile(
+            "plugins",
+            self.app.name,
+            *names,
+        )
+
+    def group(self, *names):
+        '''*timer触发时不可用*
+
+        以bot_id、group_id、app_name三级划分分割的独立存储空间'''
+        return AyakaFile(
+            "groups",
+            self.app.bot_id,
+            self.app.group_id,
+            self.app.name,
+            *names,
+        )
+
+
 class AyakaOn:
     def __init__(self, app: AyakaApp) -> None:
         self.app = app
         self.chain_dict: Dict[str, int] = {}
 
-    def on_everyday(self, h: int, m: int, s: int):
+    def everyday(self, h: int, m: int, s: int):
         '''每日定时触发'''
-        return self.on_interval(86400, h, m, s)
+        return self.interval(86400, h, m, s)
 
-    def on_interval(self, gap: int, h=-1, m=-1, s=-1):
+    def interval(self, gap: int, h=-1, m=-1, s=-1):
         '''在指定的时间点后循环触发'''
         return self.app.on_timer(gap, h, m, s)
 
-    def on_state(self, states: Union[List[str], str] = INIT_STATE):
+    def state(self, states: Union[List[str], str] = INIT_STATE):
         '''注册有状态回调'''
         def decorator(func):
             # 取出之前存的参数
             return self.app.on_handle(func.cmds, states, False)(func)
         return decorator
 
-    def on_idle(self, super=False):
+    def idle(self, super=False):
         '''注册无状态回调'''
         def decorator(func):
             # 取出之前存的参数
             return self.app.on_handle(func.cmds, None, super)(func)
+        return decorator
+
+    def chain(self, name: str):
+        '''注册状态链条'''
+        def decorator(func):
+            # 取出之前存的参数
+            chain_type = func.chain_type
+            cmds = func.cmds
+
+            # 状态转移链起始
+            if chain_type == "begin":
+                from_states = func.from_states
+                next_state = self._get_chain_state(name)
+                return self._create_decorator(cmds, from_states, next_state)(func)
+
+            # 状态转移链+1
+            elif chain_type == "next":
+                last_state = self._get_chain_state(name)
+                self._add_chain_state(name)
+                next_state = self._get_chain_state(name)
+                return self._create_decorator(cmds, last_state, next_state)(func)
+
+            # 状态转移链结束
+            else:
+                last_state = self._get_chain_state(name)
+                to_state = func.to_state
+                return self._create_decorator(cmds, last_state, to_state)(func)
         return decorator
 
     def command(self, *cmds: str):
@@ -410,41 +442,6 @@ class AyakaOn:
         def decorator(func):
             func.cmds = ""
             return func
-        return decorator
-
-    def get_chain_state(self, name):
-        if name not in self.chain_dict:
-            self.chain_dict[name] = 0
-        return f"{name}_{self.chain_dict[name]}"
-
-    def add_chain_state(self, name):
-        self.chain_dict[name] += 1
-
-    def on_chain(self, name: str):
-        '''注册状态链条'''
-        def decorator(func):
-            # 取出之前存的参数
-            chain_type = func.chain_type
-            cmds = func.cmds
-
-            # 状态转移链起始
-            if chain_type == "begin":
-                from_states = func.from_states
-                next_state = self.get_chain_state(name)
-                return self.create_decorator(cmds, from_states, next_state)(func)
-
-            # 状态转移链+1
-            elif chain_type == "next":
-                last_state = self.get_chain_state(name)
-                self.add_chain_state(name)
-                next_state = self.get_chain_state(name)
-                return self.create_decorator(cmds, last_state, next_state)(func)
-
-            # 状态转移链结束
-            else:
-                last_state = self.get_chain_state(name)
-                to_state = func.to_state
-                return self.create_decorator(cmds, last_state, to_state)(func)
         return decorator
 
     def begin(self, from_states: Union[List[str], str, None] = INIT_STATE):
@@ -467,7 +464,15 @@ class AyakaOn:
             return func
         return decorator
 
-    def create_decorator(self, cmds, last_states, next_state):
+    def _get_chain_state(self, name):
+        if name not in self.chain_dict:
+            self.chain_dict[name] = 0
+        return f"{name}_{self.chain_dict[name]}"
+
+    def _add_chain_state(self, name):
+        self.chain_dict[name] += 1
+
+    def _create_decorator(self, cmds, last_states, next_state):
         # 生成state chain专用的装饰器
         # 执行回调前后，应用状态从last_states 转移到 next_state
         def decorator(func):
@@ -512,13 +517,12 @@ class AyakaGroup:
         self.group_id = group_id
         self.running_app: AyakaApp = None
 
-        self.store_forbid = AyakaStorage(
+        self.store_forbid = AyakaFile(
             "groups",
             str(self.bot_id),
             str(self.group_id),
             "forbid.json",
-            default=[]
-        )
+        ).default([])
         # 读取forbit列表
         forbid_names = self.store_forbid.load()
 
@@ -586,13 +590,15 @@ class AyakaGroup:
         return True
 
 
-class AyakaStorage:
+class AyakaFile:
     '''保存为json文件'''
 
     def __repr__(self) -> str:
-        return f"AyakaStorage({self.path})"
+        return f"AyakaFile({self.path})"
 
-    def __init__(self, *names: str, default=None) -> None:
+    def __init__(self, *names) -> None:
+        names = [str(name) for name in names]
+
         self.path = Path("data", *names)
 
         if not self.path.parent.exists():
@@ -600,18 +606,16 @@ class AyakaStorage:
 
         self.suffix = self.path.suffix
 
-        if not self.path.exists():
-            # 这是一个目录
-            if not self.suffix:
-                self.path.mkdir()
-
-            # 这是一个文件
-            # 如果有default就新建并写入内容
-            elif default is not None:
-                self.save(default)
+        if not self.path.exists() and not self.suffix:
+            self.path.mkdir()
 
         if AYAKA_DEBUG:
             print(self)
+
+    def default(self, data):
+        if not self.path.exists() and self.suffix:
+            self.save(data)
+        return self
 
     @property
     def is_json(self):
@@ -772,9 +776,8 @@ async def deal_group(bot_id: int, group_id: int):
     _message.set(message)
 
     # 命令、参数
-    cmd, args = divide_message(message)
+    cmd = get_cmd(message)
     _cmd.set(cmd)
-    _args.set(args)
 
     # 让super先来
     triggers = []
@@ -814,11 +817,14 @@ async def deal_triggers(triggers: List[AyakaTrigger]):
         for t in triggers:
             if t.cmd == cmd:
                 # 设置去掉命令后的消息
-                _arg.set(remove_cmd(cmd, msg))
+                arg = remove_cmd(cmd, msg)
+                _arg.set(arg)
+                _args.set(divide_message(arg))
                 await t.run()
                 return True
 
     _arg.set(msg)
+    _args.set(divide_message(msg))
 
     # 命令退化成消息
     for t in triggers:
@@ -826,8 +832,21 @@ async def deal_triggers(triggers: List[AyakaTrigger]):
             await t.run()
 
 
+def get_cmd(message: Message):
+    '''返回命令'''
+    first = ""
+    for m in message:
+        if m.type == "text":
+            first += str(m)
+        else:
+            break
+    if not first or not first.startswith(prefix):
+        return ""
+    first += sep
+    return first.split(sep, 1)[0]
+
+
 def divide_message(message: Message):
-    cmd = ""
     args: List[MessageSegment] = []
 
     for m in message:
@@ -837,17 +856,7 @@ def divide_message(message: Message):
         else:
             args.append(m)
 
-    if not args:
-        return cmd, args
-
-    m = args[0]
-    if m.is_text():
-        m_str = str(m)
-        if m_str.startswith(prefix):
-            cmd = m_str[len(prefix):]
-            args.pop(0)
-
-    return cmd, args
+    return args
 
 
 def remove_cmd(cmd: str, message: Message):
