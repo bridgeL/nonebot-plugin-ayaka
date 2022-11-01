@@ -1,22 +1,19 @@
 from functools import wraps
 from importlib import import_module
-import json
 import asyncio
 import datetime
 from math import ceil
 from pathlib import Path
 from collections import defaultdict
 from contextvars import ContextVar
-from contextlib import asynccontextmanager
-import platform
-from typing import Callable, Coroutine, List, Dict, Union, AsyncIterator
-from playwright.async_api import async_playwright, Browser, Page, Playwright
-from nonebot import logger, get_driver, on_message
+from typing import Callable, Coroutine, List, Dict, Union
+from nonebot import logger, on_message
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
 
+from .storage import AyakaStorage, AyakaStoragePath
+from .config import sep, prefix, exclude_old, driver, INIT_STATE, AYAKA_DEBUG
+from .playwright import init_chrome, close_chrome
 
-_browser: Browser = None
-_playwright: Playwright = None
 
 _bot: ContextVar[Bot] = ContextVar("_bot")
 _event: ContextVar[MessageEvent] = ContextVar("_event")
@@ -31,32 +28,9 @@ app_list: List["AyakaApp"] = []
 group_list: List["AyakaGroup"] = []
 bot_list: List[Bot] = []
 
-INIT_STATE = "init"
-AYAKA_DEBUG = 0
 
 # 监听私聊
 private_listener_dict: Dict[int, List[int]] = defaultdict(list)
-
-driver = get_driver()
-
-# 配置
-# 命令抬头
-prefix = getattr(driver.config, "ayaka_prefix", None)
-if prefix is None:
-    ps = list(driver.config.command_start)
-    prefix = ps[0] if len(ps) else "#"
-# 参数分割符
-sep = getattr(driver.config, "ayaka_separate", None)
-if sep is None:
-    ss = list(driver.config.command_sep)
-    sep = ss[0] if len(ss) else " "
-# 是否排除go-cqhttp缓存的过期消息
-exclude_old = getattr(driver.config, "ayaka_exclude_old", True)
-
-
-class AyakaCache:
-    def __getattr__(self, name: str):
-        return self.__dict__.get(name)
 
 
 class AyakaApp:
@@ -70,6 +44,7 @@ class AyakaApp:
         self.timers: List[AyakaTimer] = []
         self._help: Dict[str, List[str]] = {}
         self.on = AyakaOn(self)
+        self.storage = AyakaStorage(self)
         app_list.append(self)
         if AYAKA_DEBUG:
             print(self)
@@ -234,10 +209,6 @@ class AyakaApp:
         '''
         return _message.get()
 
-    @property
-    def storage(self):
-        return AyakaStorage(self)
-
     async def start(self):
         '''*timer触发时不可用*
 
@@ -353,29 +324,9 @@ class AyakaApp:
         await bot.send_group_msg(group_id=group_id, message=message)
 
 
-class AyakaStorage:
-    def __init__(self, app: AyakaApp) -> None:
-        self.app = app
-
-    def plugin(self, *names):
-        '''以app_name划分的独立存储空间，可以实现跨bot、跨群聊的数据共享'''
-        return AyakaPath(
-            "plugins",
-            self.app.name,
-            *names,
-        )
-
-    def group(self, *names):
-        '''*timer触发时不可用*
-
-        以bot_id、group_id、app_name三级划分分割的独立存储空间'''
-        return AyakaPath(
-            "groups",
-            self.app.bot_id,
-            self.app.group_id,
-            self.app.name,
-            *names,
-        )
+class AyakaCache:
+    def __getattr__(self, name: str):
+        return self.__dict__.get(name)
 
 
 class AyakaOn:
@@ -517,12 +468,12 @@ class AyakaGroup:
         self.group_id = group_id
         self.running_app: AyakaApp = None
 
-        self.store_forbid = AyakaPath(
+        self.store_forbid = AyakaStoragePath(
             "groups",
-            str(self.bot_id),
-            str(self.group_id),
-            "forbid.json",
-        ).default([])
+            self.bot_id,
+            self.group_id
+        ).jsonfile("forbid", [])
+
         # 读取forbit列表
         forbid_names = self.store_forbid.load()
 
@@ -588,59 +539,6 @@ class AyakaGroup:
             app_names.append(name)
             self.store_forbid.save(app_names)
         return True
-
-
-class AyakaPath:
-    '''保存为json文件'''
-
-    def __repr__(self) -> str:
-        return f"AyakaPath({self.path})"
-
-    def __init__(self, *names) -> None:
-        names = [str(name) for name in names]
-
-        self.path = Path("data", *names)
-
-        if not self.path.parent.exists():
-            self.path.parent.mkdir(parents=True)
-
-        self.suffix = self.path.suffix
-
-        if not self.path.exists() and not self.suffix:
-            self.path.mkdir()
-
-        if AYAKA_DEBUG:
-            print(self)
-
-    def default(self, data):
-        if not self.path.exists() and self.suffix:
-            self.save(data)
-        return self
-
-    @property
-    def is_json(self):
-        return self.suffix == ".json"
-
-    def load(self):
-        if not self.path.exists():
-            return None
-
-        with self.path.open("r", encoding="utf8") as f:
-            if self.is_json:
-                data = json.load(f)
-            else:
-                data = f.read()
-        return data
-
-    def save(self, data):
-        with self.path.open("w+", encoding="utf8") as f:
-            if self.is_json:
-                json.dump(data, f, ensure_ascii=False)
-            else:
-                f.write(str(data))
-
-    def iterdir(self):
-        return self.path.iterdir()
 
 
 class AyakaTrigger:
@@ -875,7 +773,9 @@ def remove_cmd(cmd: str, message: Message):
 
 
 def load_plugins(path: Path, base=""):
-    '''导入指定路径内的全部插件，如果是外部路径，还需要指明前置base'''
+    '''导入指定路径内的全部插件，如果是外部路径，还需要指明前置base
+
+    不推荐使用，此API不明确且已落时'''
     if not path.is_dir():
         logger.error(f"{path} 不是路径")
         return
@@ -899,57 +799,25 @@ def load_plugins(path: Path, base=""):
             logger.opt(colors=True).debug(f"{base}<y>{name}</y> 导入成功")
 
 
-@asynccontextmanager
-async def get_new_page(size=None, **kwargs) -> AsyncIterator[Page]:
-    ''' 获取playwright Page对象，size接受二元数组输入，设置屏幕大小 size = [宽,高]
-
-        使用示例：
-        ```
-        async with get_new_page(size=[200,100]) as p:
-            await p.goto(...)
-            await p.screenshot(...)
-        ```
-    '''
-    if size:
-        kwargs["viewport"] = {"width": size[0], "height": size[1]}
-    page = await _browser.new_page(**kwargs)
-    try:
-        yield page
-    finally:
-        await page.close()
-
-
 @driver.on_startup
 async def startup():
     app_list.sort(key=lambda x: x.name)
+    await init_chrome()
 
-    if platform.system() == "Windows" and getattr(driver.config, "fastapi_reload", True) == True:
-        logger.warning("playwright未加载，win平台请关闭fastapi reload功能")
-        return
-
-    global _browser, _playwright
-    _playwright = await async_playwright().start()
-    _browser = await _playwright.chromium.launch()
+    # 在一切准备就绪后，开启插件中的定时模块
+    for app in app_list:
+        for t in app.timers:
+            t.start()
 
 
 @driver.on_shutdown
 async def shutdown():
-    if platform.system() == "Windows" and getattr(driver.config, "fastapi_reload", True) == True:
-        return
-
-    if _browser:
-        await _browser.close()
-    if _playwright:
-        await _playwright.stop()
+    await close_chrome()
 
 
 @driver.on_bot_connect
 async def bot_connect(bot: Bot):
     bot_list.append(bot)
-
-    for app in app_list:
-        for t in app.timers:
-            t.start()
 
 
 @driver.on_bot_disconnect
