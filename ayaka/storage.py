@@ -14,15 +14,15 @@ class AyakaStorage:
 
     def plugin(self, *names):
         '''返回路径'''
-        return AyakaStoragePath(
-            "plugins",
-            self.app.name,
+        return AyakaPath(
+            self.app.path.parent,
             *names
         )
 
     def group(self, *names):
         '''返回路径'''
-        return AyakaStoragePath(
+        return AyakaPath(
+            "data",
             "groups",
             self.app.bot_id,
             self.app.group_id,
@@ -53,16 +53,6 @@ class AyakaPath:
     def file(self, name: str, default=None):
         '''需要输入文件名后缀'''
         return AyakaFile(self.path, name, default)
-
-
-class AyakaLocalPath(AyakaPath):
-    def __init__(self, __file__, *names) -> None:
-        super().__init__(Path(__file__).parent, *names)
-
-
-class AyakaStoragePath(AyakaPath):
-    def __init__(self, *names) -> None:
-        super().__init__("data", *names)
 
 
 class AyakaJsonFile:

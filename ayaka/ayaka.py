@@ -2,6 +2,7 @@ from functools import wraps
 from importlib import import_module
 import asyncio
 import datetime
+import inspect
 from math import ceil
 from pathlib import Path
 from collections import defaultdict
@@ -10,7 +11,7 @@ from typing import Callable, Coroutine, List, Dict, Union
 from nonebot import logger, on_message
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
 
-from .storage import AyakaStorage, AyakaStoragePath
+from .storage import AyakaStorage, AyakaPath
 from .config import sep, prefix, exclude_old, driver, INIT_STATE, AYAKA_DEBUG
 from .playwright import init_chrome, close_chrome
 
@@ -45,6 +46,7 @@ class AyakaApp:
         self._help: Dict[str, List[str]] = {}
         self.on = AyakaOn(self)
         self.storage = AyakaStorage(self)
+        self.path = Path(inspect.stack()[1].filename)
         app_list.append(self)
         if AYAKA_DEBUG:
             print(self)
@@ -468,7 +470,8 @@ class AyakaGroup:
         self.group_id = group_id
         self.running_app: AyakaApp = None
 
-        self.store_forbid = AyakaStoragePath(
+        self.store_forbid = AyakaPath(
+            "data",
             "groups",
             self.bot_id,
             self.group_id

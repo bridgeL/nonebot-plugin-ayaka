@@ -2,6 +2,7 @@ import asyncio
 from pathlib import Path
 import re
 import shlex
+from typing import Dict
 from .core import fake_qq, divide
 from .sample import open_sample, close_sample
 
@@ -45,15 +46,47 @@ async def dd_(text: str):
         await fake_qq.send_private(*items)
 
 
+def shell_parse(text: str):
+    ts = shlex.split(text)
+    params: Dict[str, list] = {}
+    args = []
+    k = None
+    for t in ts:
+        if t.startswith("-"):
+            k = t.lstrip("-")
+            if k not in params:
+                params[k] = []
+        elif k is None:
+            args.append(t)
+        else:
+            params[k].append(t)
+            k = None
+    return params, args
+
+
 @fake_qq.on_terminal("s")
 async def _(text: str):
-    args = shlex.split(text)
-    # 自动化脚本
-    for dirpath in ["", "scripts"]:
-        path = Path(dirpath, f"{args[0]}.ini")
-        if path.is_file():
-            break
-    else:
+    params, args = shell_parse(text)
+
+    # 脚本名称
+    script_name = params.get("n")
+    if not script_name:
+        fake_qq.print("-n <脚本名称>")
+        return
+
+    script_name = script_name[0]
+    path = Path("scripts", script_name)
+
+    # 插件名称
+    plugin_name = params.get("p")
+    if plugin_name:
+        plugin_name = plugin_name[0]
+        path = Path("plugins", plugin_name).joinpath(path)
+
+    print(path)
+
+    path = path.with_suffix(".ini")
+    if not path.is_file():
         fake_qq.print("脚本不存在")
         return
 
@@ -62,10 +95,10 @@ async def _(text: str):
 
     # 替换所有变量
     rs = re.findall(r"\$\d+", data)
-    for r in rs:
-        i = int(r[1:])
-        if i >= 0 and i < len(args):
-            data = data.replace(f"${i}", args[i])
+    nums = list(set(int(r[1:]) for r in rs))
+    for i in nums:
+        if i >= 1 and i <= len(args):
+            data = data.replace(f"${i}", args[i-1])
 
     # 拆分成行
     lines = data.split("\n")

@@ -39,9 +39,6 @@ async def init_chrome():
 
 
 async def close_chrome():
-    if running_on_windows and fastapi_reload:
-        return
-
     if _browser:
         await _browser.close()
     if _playwright:

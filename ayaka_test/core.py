@@ -27,12 +27,17 @@ greeting = f'''
 ============================
 FAKE CQHTTP | UID:{bot_id}
 
+<y>h</y>                             | 帮助
 <y>g</y> <group_id> <user_id> <text> | 发送群聊消息
 <y>p</y> <user_id> <text>            | 发送私聊消息
-<y>s</y> test                        | 执行test.ini自动化脚本
-<y>h</y>                             | 帮助
 <y>sa</y> on/off                     | 打开/关闭nonebot采样
-<y>hide  before  after  ;/#  $1</y>  | 自动化脚本补充命令
+<y>s</y> [-p echo] -n 1 测试一下aa   | 执行[plugins/echo/]1.ini自动化脚本
+
+<y>hide</y>                          | 关闭脚本命令回显
+<y>before</y>                        | 在运行每一命令前执行命令
+<y>after</y>                         | 在运行每一命令后执行命令
+<y># ;</y>                           | 注释
+<y>$1 $2 $3</y>                      | 脚本变量
 ============================
 '''.strip()
 
