@@ -117,7 +117,7 @@ class FakeQQ:
             level="DEBUG",
             format="<g>{time:HH:mm:ss}</g> | <level>{level}</level> | {message}",
             filter={
-                "nonebot": "WARNING",
+                # "nonebot": "WARNING",
                 "uvicorn": "INFO",
                 "websockets": "WARNING"
             },
@@ -141,14 +141,10 @@ class FakeQQ:
         self.print_help()
 
         # 启动收发循环
-        self.tf = asyncio.create_task(self.terminal_loop())
-        self.nf = asyncio.create_task(self.nonebot_loop())
+        asyncio.create_task(self.terminal_loop())
+        asyncio.create_task(self.nonebot_loop())
 
     async def disconnect(self):
-        # 停止收发循环
-        self.tf.cancel()
-        self.nf.cancel()
-
         # 断开连接
         await self.ws.close()
 

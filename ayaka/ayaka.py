@@ -290,27 +290,30 @@ class AyakaApp:
         # 这里不使用event，因为一些event可能来自其他设备的监听传递
         await self.bot.send_group_msg(group_id=self.group_id, message=message)
 
+    def pack_messages(self, bot_id, messages):
+        '''转换为cqhttp node格式'''
+        return [
+            MessageSegment.node_custom(
+                user_id=bot_id,
+                nickname="Ayaka Bot",
+                content=str(m)
+            )
+            for m in messages
+        ]
+
     async def send_many(self, messages):
         '''发送合并转发消息，消息的类型可以是 List[Message | MessageSegment | str]'''
-        length = len(messages)
-
-        # 自动分割长消息组（不可超过100条）谨慎起见，使用80作为单元长度
+        # 分割长消息组（不可超过100条）谨慎起见，使用80作为单元长度
         div_len = 80
-        div_cnt = ceil(length / div_len)
+        div_cnt = ceil(len(messages) / div_len)
         for i in range(div_cnt):
-            # 转换为cqhttp node格式
-            msgs = [
-                MessageSegment.node_custom(
-                    user_id=self.bot_id,
-                    nickname="Ayaka Bot",
-                    content=str(m)
-                )
-                for m in messages[i*div_len: (i+1)*div_len]
-            ]
+            msgs = self.pack_messages(
+                self.bot_id,
+                messages[i*div_len: (i+1)*div_len]
+            )
             await self.bot.call_api("send_group_forward_msg", group_id=self.group_id, messages=msgs)
 
-    async def t_send(self, bot_id: int, group_id: int, message):
-        '''timer触发回调时，想要发送消息必须使用该方法，一些上下文亦无法使用'''
+    def t_check(self, bot_id: int, group_id: int):
         # 未连接
         bot = get_bot(bot_id)
         if not bot:
@@ -323,7 +326,31 @@ class AyakaApp:
         if not app:
             return
 
+        return bot
+
+    async def t_send(self, bot_id: int, group_id: int, message):
+        '''timer触发回调时，想要发送消息必须使用该方法，一些上下文亦无法使用'''
+        bot = self.t_check(bot_id, group_id)
+        if not bot:
+            return
+
         await bot.send_group_msg(group_id=group_id, message=message)
+
+    async def t_send_many(self, bot_id: int, group_id: int, messages):
+        '''timer触发回调时，想要发送消息必须使用该方法，一些上下文亦无法使用'''
+        bot = self.t_check(bot_id, group_id)
+        if not bot:
+            return
+
+        # 分割长消息组（不可超过100条）谨慎起见，使用80作为单元长度
+        div_len = 80
+        div_cnt = ceil(len(messages) / div_len)
+        for i in range(div_cnt):
+            msgs = self.pack_messages(
+                bot_id,
+                messages[i*div_len: (i+1)*div_len]
+            )
+            await bot.call_api("send_group_forward_msg", group_id=group_id, messages=msgs)
 
 
 class AyakaCache:
@@ -564,16 +591,23 @@ class AyakaTrigger:
         _cache.set(cache)
 
         # 日志记录
-        info = f"已触发应用 "
-        if self.state is not None:
-            info += f"<y>{self.app_name}</y>|<g>{self.state}</g> "
-        else:
-            info += f"<y>{self.app_name}</y> "
+        items = []
+
         if self.cmd:
-            info += f"命令 <y>{self.cmd}</y> "
+            items.append("<y>命令</y>")
         else:
-            info += "消息 "
-        info += f"执行回调 <c>{self.func.__name__}</c>"
+            items.append("<g>消息</g>")
+
+        app_name = f"<y>{self.app_name}</y>"
+        if self.state is not None:
+            app_name += f" <g>{self.state}</g>"
+        items.append(app_name)
+
+        if self.cmd:
+            items.append(f"<y>{self.cmd}</y>")
+
+        items.append(f"执行回调 <c>{self.func.__name__}</c>")
+        info = " | ".join(items)
         logger.opt(colors=True).debug(info)
 
         # 运行回调
