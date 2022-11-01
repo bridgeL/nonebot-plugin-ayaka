@@ -60,7 +60,7 @@ class AyakaJsonFile:
         return f"AyakaJsonFile({self.path})"
 
     def __init__(self, path: Path, name, default) -> None:
-        self.path = path.joinpath(name).with_suffix(".json")
+        self.path = path.joinpath(str(name)).with_suffix(".json")
         if not self.path.exists():
             self.save(default)
         if AYAKA_DEBUG:
@@ -84,7 +84,7 @@ class AyakaFile:
         return f"AyakaFile({self.path})"
 
     def __init__(self, path: Path, name, default) -> None:
-        self.path = path.joinpath(name)
+        self.path = path.joinpath(str(name))
         if not self.path.exists() and default is not None:
             self.save(default)
         if AYAKA_DEBUG:
