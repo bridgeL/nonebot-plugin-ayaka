@@ -23,7 +23,7 @@ def divide(line):
 
 bot_id = 123
 
-greeting = f'''
+helps = f'''
 ============================
 FAKE CQHTTP | UID:{bot_id}
 
@@ -31,8 +31,11 @@ FAKE CQHTTP | UID:{bot_id}
 <y>g</y> <group_id> <user_id> <text> | 发送群聊消息
 <y>p</y> <user_id> <text>            | 发送私聊消息
 <y>sa</y> on/off                     | 打开/关闭nonebot采样
-<y>s</y> [-p echo] -n 1 测试一下aa   | 执行[plugins/echo/]1.ini自动化脚本
 
+<y>d</y> <float>                     | 延时x秒
+<y>dn</y> <float>                    | 延时x秒后空一行
+
+<y>s</y> [-p echo] -n 1 测试一下aa   | 执行[plugins/echo/]script/1.ini自动化脚本
 <y>hide</y>                          | 关闭脚本命令回显
 <y>before</y>                        | 在运行每一命令前执行命令
 <y>after</y>                         | 在运行每一命令后执行命令
@@ -242,7 +245,7 @@ class FakeQQ:
         self.print(f"私聊({uid}) <y>{name}</y> 说：\n{text}")
 
     def print_help(self):
-        for line in greeting.split("\n"):
+        for line in helps.split("\n"):
             self.print(line)
         self.print("CQ码：https://docs.go-cqhttp.org/cqcode")
         self.print("ayaka_test：https://bridgel.github.io/ayaka_doc/test/")

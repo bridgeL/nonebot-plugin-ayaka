@@ -7,10 +7,22 @@ from .core import fake_qq, divide
 from .sample import open_sample, close_sample
 
 
-@fake_qq.on_terminal("n")
-async def _(text: str):
-    # 空一行
-    print()
+def shell_parse(text: str):
+    ts = shlex.split(text)
+    params: Dict[str, list] = {}
+    args = []
+    k = None
+    for t in ts:
+        if t.startswith("-"):
+            k = t.lstrip("-")
+            if k not in params:
+                params[k] = []
+        elif k is None:
+            args.append(t)
+        else:
+            params[k].append(t)
+            k = None
+    return params, args
 
 
 @fake_qq.on_terminal("d")
@@ -46,24 +58,6 @@ async def dd_(text: str):
         await fake_qq.send_private(*items)
 
 
-def shell_parse(text: str):
-    ts = shlex.split(text)
-    params: Dict[str, list] = {}
-    args = []
-    k = None
-    for t in ts:
-        if t.startswith("-"):
-            k = t.lstrip("-")
-            if k not in params:
-                params[k] = []
-        elif k is None:
-            args.append(t)
-        else:
-            params[k].append(t)
-            k = None
-    return params, args
-
-
 @fake_qq.on_terminal("s")
 async def _(text: str):
     params, args = shell_parse(text)
@@ -75,15 +69,13 @@ async def _(text: str):
         return
 
     script_name = script_name[0]
-    path = Path("scripts", script_name)
+    path = Path("script", script_name)
 
     # 插件名称
     plugin_name = params.get("p")
     if plugin_name:
         plugin_name = plugin_name[0]
         path = Path("plugins", plugin_name).joinpath(path)
-
-    print(path)
 
     path = path.with_suffix(".ini")
     if not path.is_file():

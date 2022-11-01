@@ -9,13 +9,13 @@ app.help = "每三次就复读一次，复读过的不再复读"
 async def repeat():
     '''监听一下'''
     s = str(app.arg)
-    if app.cache.last == s:
-        if app.cache.cnt is None:
-            app.cache.cnt = 0
-        app.cache.cnt += 1
-    else:
-        app.cache.cnt = 0
-    app.cache.last = s
+    uid = app.user_id
+    if app.cache.last != s:
+        app.cache.uids = [uid]
+        app.cache.last = s
+        return
 
-    if app.cache.cnt == 2:
-        await app.send(s)
+    if uid not in app.cache.uids:
+        app.cache.uids.append(uid)
+        if len(app.cache.uids) == 3:
+            await app.send(s)

@@ -17,7 +17,7 @@ def handle_message(message):
 async def group_msg(echo: int, params: dict):
     gid = params["group_id"]
     text = handle_message(params["message"])
-    fake_qq.print(f"群聊({gid}) <r>bot</r>({bot_id}) 说：\n{text}")
+    fake_qq.print(f"群聊({gid}) <r>Ayaka Bot</r>({bot_id}) 说：\n{text}")
     await fake_qq.send_echo(echo, None)
 
 
@@ -39,7 +39,7 @@ async def _(echo: int, params: dict):
 async def private_msg(echo: int, params: dict):
     uid = params["user_id"]
     text = handle_message(params["message"])
-    fake_qq.print(f"<r>bot</r>({bot_id}) 对私聊({uid}) 说：\n{text}")
+    fake_qq.print(f"<r>Ayaka Bot</r>({bot_id}) 对私聊({uid}) 说：\n{text}")
     await fake_qq.send_echo(echo, None)
 
 
