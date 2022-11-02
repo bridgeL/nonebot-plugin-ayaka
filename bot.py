@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import nonebot
-from nonebot.adapters.onebot.v11 import Adapter as ONEBOT_V11Adapter
+from nonebot.adapters.onebot.v11 import Adapter
 
 # 初始化nonebot
 nonebot.init()
 app = nonebot.get_asgi()
 driver = nonebot.get_driver()
-driver.register_adapter(ONEBOT_V11Adapter)
+driver.register_adapter(Adapter)
 
 
 def load():

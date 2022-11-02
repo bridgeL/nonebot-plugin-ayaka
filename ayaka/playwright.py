@@ -1,7 +1,7 @@
 from playwright.async_api import async_playwright, Browser, Page, Playwright
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
-from nonebot import logger
+from .logger import logger
 from .config import fastapi_reload, running_on_windows
 
 _browser: Browser = None

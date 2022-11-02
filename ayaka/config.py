@@ -1,5 +1,5 @@
 import platform
-from nonebot import get_driver
+from .driver import get_driver
 
 INIT_STATE = "init"
 AYAKA_DEBUG = 0

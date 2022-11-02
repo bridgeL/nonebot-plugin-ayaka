@@ -94,3 +94,11 @@ async def show_help():
 
     # 展示当前应用当前状态的帮助
     await app.send(_app.help)
+
+
+@app.on.idle(super=True)
+@app.on.command("强制退出", "force_exit")
+async def force_exit():
+    _app = app.group.running_app
+    if _app:
+        await _app.close()

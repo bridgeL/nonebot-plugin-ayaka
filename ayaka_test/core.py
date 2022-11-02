@@ -5,7 +5,8 @@ import asyncio
 from time import time
 from typing import Callable, Coroutine
 from websockets.legacy.client import Connect
-from nonebot import get_driver, logger
+from ayaka import logger, get_driver
+from ayaka.config import AYAKA_DEBUG
 
 
 AYAKA_LOGGER_NAME = "AYAKA"
@@ -117,7 +118,7 @@ class FakeQQ:
             level="DEBUG",
             format="<g>{time:HH:mm:ss}</g> | <level>{level}</level> | {message}",
             filter={
-                # "nonebot": "WARNING",
+                "nonebot": "DEBUG" if AYAKA_DEBUG else "WARNING",
                 "uvicorn": "INFO",
                 "websockets": "WARNING"
             },
