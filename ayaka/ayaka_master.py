@@ -1,19 +1,13 @@
 from .ayaka import app_list, AyakaApp
 
 app = AyakaApp("ayaka_master")
-app.help = '''ayaka综合管理模块
-命令一览：
-- 启用/permit
-- 禁用/forbid
-- 插件/plugin
-- 状态/state
-- 帮助/help
-'''
+app.help = '''ayaka综合管理模块'''
 
 
 @app.on.idle(super=True)
 @app.on.command("启用", "permit")
 async def permit():
+    ''' '''
     if not app.args:
         await app.send("参数缺失")
         return
@@ -29,6 +23,7 @@ async def permit():
 @app.on.idle(super=True)
 @app.on.command("禁用", "forbid")
 async def forbid():
+    ''' '''
     if not app.args:
         await app.send("参数缺失")
         return
@@ -44,6 +39,7 @@ async def forbid():
 @app.on.idle(super=True)
 @app.on.command("插件", "plugin", "plugins")
 async def show_plugins():
+    ''' '''
     items = []
     for _app in app_list:
         s = ""
@@ -57,6 +53,7 @@ async def show_plugins():
 @app.on.idle(super=True)
 @app.on.command("状态", "state")
 async def show_state():
+    ''' '''
     name = app.group.running_app_name
     if not name:
         await app.send("当前设备处于闲置状态")
@@ -68,6 +65,7 @@ async def show_state():
 @app.on.idle(super=True)
 @app.on.command("帮助", "help")
 async def show_help():
+    ''' '''
     _app = app.group.running_app
     # 没有应用正在运行
     if not _app:
@@ -99,6 +97,7 @@ async def show_help():
 @app.on.idle(super=True)
 @app.on.command("强制退出", "force_exit")
 async def force_exit():
+    ''' '''
     _app = app.group.running_app
     if _app:
         await _app.close()

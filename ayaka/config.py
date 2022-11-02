@@ -1,3 +1,4 @@
+'''便于之后拓展与迁移'''
 import platform
 from .driver import get_driver
 

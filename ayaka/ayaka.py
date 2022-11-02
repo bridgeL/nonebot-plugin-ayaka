@@ -200,7 +200,7 @@ class AyakaApp:
         '''
         return _message.get()
 
-    async def start(self):
+    async def start(self, state=INIT_STATE):
         '''*timer触发时不可用*
 
         启动应用，并发送提示'''
@@ -209,6 +209,8 @@ class AyakaApp:
             await self.send("打开应用失败")
             return False
         self.group.running_app = self
+        if state:
+            self.state = state
         await self.send(f"已打开应用 [{self.name}]")
         return True
 

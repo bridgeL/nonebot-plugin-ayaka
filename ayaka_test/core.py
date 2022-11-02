@@ -5,7 +5,8 @@ import asyncio
 from time import time
 from typing import Callable, Coroutine
 from websockets.legacy.client import Connect
-from ayaka import logger, get_driver
+from nonebot import get_driver
+from ayaka import logger
 from ayaka.config import AYAKA_DEBUG
 
 
