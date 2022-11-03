@@ -316,20 +316,25 @@ async def startup():
     app_list.sort(key=lambda x: x.name)
     await init_chrome()
 
-    # 在一切准备就绪后，开启插件中的定时模块
-    for app in app_list:
-        for t in app.timers:
-            t.start()
-
 
 @driver.on_shutdown
 async def shutdown():
     await close_chrome()
 
+first_bot_connect = True
+
 
 @driver.on_bot_connect
 async def bot_connect(bot: Bot):
     bot_list.append(bot)
+
+    # 在一切准备就绪后，开启插件中的定时模块
+    global first_bot_connect
+    if first_bot_connect:
+        first_bot_connect = False
+        for app in app_list:
+            for t in app.timers:
+                t.start()
 
 
 @driver.on_bot_disconnect
