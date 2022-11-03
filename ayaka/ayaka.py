@@ -1,4 +1,3 @@
-
 import inspect
 from math import ceil
 from pathlib import Path
@@ -262,14 +261,18 @@ class AyakaApp:
 
     def pack_messages(self, bot_id, messages):
         '''转换为cqhttp node格式'''
-        return [
-            MessageSegment.node_custom(
-                user_id=bot_id,
-                nickname="Ayaka Bot",
-                content=str(m)
-            )
-            for m in messages
-        ]
+        data: List[MessageSegment] = []
+        for m in messages:
+            if isinstance(m, MessageSegment):
+                data.append(m)
+            else:
+                m = MessageSegment.node_custom(
+                    user_id=bot_id,
+                    nickname="Ayaka Bot",
+                    content=str(m)
+                )
+                data.append(m)
+        return data
 
     async def send_many(self, messages):
         '''发送合并转发消息，消息的类型可以是 List[Message | MessageSegment | str]'''
