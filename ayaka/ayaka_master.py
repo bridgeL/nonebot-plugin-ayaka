@@ -58,7 +58,7 @@ async def show_state():
     if not name:
         await app.send("当前设备处于闲置状态")
         return
-    info = f"正在运行应用 [{name} | {app.group.running_app.state}]"
+    info = f"正在运行应用 [{name}|{app.group.running_app.state}]"
     await app.send(info)
 
 

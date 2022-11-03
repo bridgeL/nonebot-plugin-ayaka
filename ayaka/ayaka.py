@@ -58,12 +58,26 @@ class AyakaApp:
         helps = self._help.get(INIT_STATE, ["没有找到帮助"])
         return "\n".join(helps)
 
+    def get_helps(self, state: str):
+        helps = self._help.get(state)
+        if not helps:
+            return []
+        return [f"[{state}]"] + helps
+
     @property
     def help(self):
         '''获取当前状态下的帮助，没有找到则返回介绍'''
         if self.group.running_app_name == self.name:
-            helps = self._help.get(self.state, []) + \
-                self._help.get("*", [])
+            helps = []
+            state = self.state
+            helps.extend(self.get_helps(state))
+
+            while "." in state:
+                state = state.rsplit(".", 1)[0]
+                helps.extend(self.get_helps(state))
+
+            helps.extend(self.get_helps("*"))
+
             if helps:
                 return "\n".join(helps)
 

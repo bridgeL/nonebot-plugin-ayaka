@@ -5,6 +5,6 @@ __pycache__
 
 # 保留示例插件
 /plugins/*
-!/plugins/echo
+!/plugins/星际旅行
 
 /error.log

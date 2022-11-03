@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 class AyakaOn:
     def __init__(self, app: "AyakaApp") -> None:
         self.app = app
-        self.chain_dict: Dict[str, int] = {}
 
     def everyday(self, h: int, m: int, s: int):
         '''每日定时触发'''

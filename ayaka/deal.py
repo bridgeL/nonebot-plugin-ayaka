@@ -101,6 +101,8 @@ async def deal_group(bot_id: int, group_id: int):
 
 
 async def deal_triggers(triggers: List[AyakaTrigger]):
+    triggers.sort(key=lambda t:str(t.state), reverse=True)
+
     cmd = _cmd.get()
     msg = _message.get()
 
@@ -155,7 +157,7 @@ def remove_cmd(cmd: str, message: Message):
     m = message[0]
     if m.is_text():
         m_str = str(m)
-        m_str = m_str[len(prefix+cmd):]
+        m_str = m_str[len(prefix+cmd):].lstrip(sep)
         if not m_str:
             message.pop(0)
         else:
