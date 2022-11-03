@@ -274,13 +274,14 @@ class AyakaApp:
         # 未连接
         bot = get_bot(bot_id)
         if not bot:
-            logger.warning(f"{bot_id} 未连接")
+            logger.warning(f"BOT({bot_id}) 未连接")
             return
 
         # 已禁用
         group = get_group(bot_id, group_id)
         app = group.get_app(self.name)
         if not app:
+            logger.warning(f"群聊({group_id}) 已禁用 {self.name}")
             return
 
         return bot
