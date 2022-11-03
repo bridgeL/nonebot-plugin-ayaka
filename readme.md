@@ -6,8 +6,6 @@
 
 <img src="https://img.shields.io/badge/python-3.8%2B-blue">
 
-[仓库](https://github.com/bridgeL/nonebot-plugin-ayaka)
-
 </div>
 
 ayaka 通过二次封装nonebot2提供的api，提供专用api，便于其他文字游戏插件（ayaka衍生插件）的编写
