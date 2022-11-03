@@ -8,10 +8,13 @@
 
 [仓库](https://github.com/bridgeL/nonebot-plugin-ayaka)
 
-**0.4.x 目前没有文档支持**
-
 </div>
 
 ayaka 通过二次封装nonebot2提供的api，提供专用api，便于其他文字游戏插件（ayaka衍生插件）的编写
 
 单独安装ayaka插件没有意义，ayaka插件的意义在于帮助ayaka衍生插件实现功能
+
+## 文档
+
+https://bridgel.github.io/ayaka_doc/
+
