@@ -22,8 +22,11 @@ class AyakaOn:
         '''在指定的时间点后循环触发'''
         return self.on_timer(gap, h, m, s)
 
-    def state(self, states: Union[List[str], str] = INIT_STATE):
+    def state(self, *states: str):
         '''注册有状态回调'''
+        if not states:
+            states = INIT_STATE
+
         def decorator(func):
             # 取出之前存的参数
             return self.on_handle(func.cmds, states, False)(func)

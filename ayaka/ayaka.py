@@ -209,8 +209,7 @@ class AyakaApp:
             await self.send("打开应用失败")
             return False
         self.group.running_app = self
-        if state:
-            self.state = state
+        self.state = state
         await self.send(f"已打开应用 [{self.name}]")
         return True
 

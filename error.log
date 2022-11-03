@@ -1,0 +1,17 @@
+2022-11-03 15:16:10.821 | ERROR    | nonebot:load_plugin:161 - Failed to import "星际旅行"
+Traceback (most recent call last):
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python38\lib\site-packages\nonebot\plugin\manager.py", line 145, in load_plugin
+    module = importlib.import_module(
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python38\lib\importlib\__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "C:\Users\Administrator\AppData\Local\Programs\Python\Python38\lib\site-packages\nonebot\plugin\manager.py", line 233, in exec_module
+    super().exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 783, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "F:\code_project\robot\ayaka\nonebot_plugin_ayaka\plugins\星际旅行\__init__.py", line 28, in <module>
+    @app.on.state("地球", "月亮", "太阳")
+TypeError: state() takes from 1 to 2 positional arguments but 4 were given
