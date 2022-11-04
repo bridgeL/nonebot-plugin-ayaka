@@ -14,10 +14,13 @@ result = os.popen(f'netstat -aon|findstr "{port}"')
 info = result.read()
 if not info:
     print("端口畅通")
-else:    
-    pid = shlex.split(info)[-1]
-    print(info, pid)
-    input("确认kill? ")
+else:
+    print(info)
+    lines = info.strip().split("\n")
+    pids = set(shlex.split(line)[-1] for line in lines)
+    pids = [pid for pid in pids if not pid]
+    input(f"{pids} kill?")
 
-    result = os.popen(f"taskkill -pid {pid} -f")
-    print(result.read())
+    for pid in pids:
+        result = os.popen(f"taskkill -pid {pid} -f")
+        print(result.read())

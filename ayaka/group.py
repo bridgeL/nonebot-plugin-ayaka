@@ -1,34 +1,43 @@
 from typing import List, TYPE_CHECKING
-from .storage import AyakaPath
+from pathlib import Path
+from .storage import AyakaDir
 from .config import AYAKA_DEBUG
 from .constant import app_list, group_list
+from .cache import AyakaCache
+
 if TYPE_CHECKING:
     from .ayaka import AyakaApp
-
-
-class AyakaCache:
-    def __getattr__(self, name: str):
-        return self.__dict__.get(name)
 
 
 class AyakaGroup:
     def __repr__(self) -> str:
         return f"AyakaGroup({self.bot_id}, {self.group_id}, {self.apps})"
 
+    def forbid_init(self):
+        def func():
+            names = [
+                "data", "groups",
+                self.bot_id,
+                self.group_id
+            ]
+            names = [str(name) for name in names]
+            return Path(*names)
+        self.store_forbid = AyakaDir(func).json("forbid", [])
+
+    def forbid_load(self):
+        return self.store_forbid.load()
+
+    def forbid_save(self, data):
+        return self.store_forbid.save(data)
+
     def __init__(self, bot_id: int, group_id: int) -> None:
         self.bot_id = bot_id
         self.group_id = group_id
         self.running_app: "AyakaApp" = None
 
-        self.store_forbid = AyakaPath(
-            "data",
-            "groups",
-            self.bot_id,
-            self.group_id
-        ).jsonfile("forbid", [])
-
         # 读取forbit列表
-        forbid_names = self.store_forbid.load()
+        self.forbid_init()
+        forbid_names = self.forbid_load()
 
         # 添加app，并分配独立数据空间
         self.apps: List["AyakaApp"] = []
@@ -64,10 +73,10 @@ class AyakaGroup:
             if app.name == name:
                 self.apps.append(app)
                 # 从forbit列表移除
-                app_names: list = self.store_forbid.load()
+                app_names: list = self.forbid_load()
                 if name in app_names:
                     app_names.remove(name)
-                    self.store_forbid.save(app_names)
+                    self.forbid_save(app_names)
                 return True
 
     def forbid_app(self, name: str):
@@ -87,8 +96,8 @@ class AyakaGroup:
         self.apps.remove(app)
 
         # 添加到forbit列表
-        app_names: list = self.store_forbid.load()
+        app_names: list = self.forbid_load()
         if name not in app_names:
             app_names.append(name)
-            self.store_forbid.save(app_names)
+            self.forbid_save(app_names)
         return True

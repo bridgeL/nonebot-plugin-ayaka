@@ -2,10 +2,11 @@ from contextvars import ContextVar
 from collections import defaultdict
 from typing import List, TYPE_CHECKING, Dict
 from .driver import Message, MessageSegment, Bot, MessageEvent
+from .cache import AyakaCache
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp
-    from .group import AyakaGroup, AyakaCache
+    from .group import AyakaGroup
 
 
 _bot: ContextVar[Bot] = ContextVar("_bot")

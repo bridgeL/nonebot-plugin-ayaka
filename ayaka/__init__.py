@@ -1,6 +1,5 @@
 from .ayaka import AyakaApp
 from .playwright import get_new_page
-from .storage import AyakaPath
 from .logger import logger
 from .driver import Message, MessageSegment, Bot
 
