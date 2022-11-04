@@ -7,3 +7,4 @@ __pycache__
 /plugins/*
 !/plugins/星际旅行
 
+/error.log
