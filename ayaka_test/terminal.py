@@ -109,14 +109,9 @@ async def _(text: str):
     lines = temp
 
     # 执行脚本
-    show = True
     before = ""
-    after = ""
+    after = "dn 0.1"
     for line in lines:
-        if line == "hide":
-            show = False
-            continue
-
         cmd, text = divide(line)
         if cmd == "after":
             after = text
@@ -128,9 +123,6 @@ async def _(text: str):
 
         if before:
             await fake_qq.deal_line(before)
-
-        if show:
-            print(line)
 
         await fake_qq.deal_line(line)
 

@@ -2,7 +2,6 @@ import asyncio
 import datetime
 from typing import Callable, Coroutine, TYPE_CHECKING, Dict, Union, List
 from .logger import logger
-from .constant import _group, _cache
 from .config import INIT_STATE, AYAKA_DEBUG
 
 if TYPE_CHECKING:
@@ -99,11 +98,6 @@ class AyakaTrigger:
             print(self)
 
     async def run(self):
-        # 切换到对应数据空间
-        group = _group.get()
-        cache = group.cache_dict.get(self.app_name)
-        _cache.set(cache)
-
         # 日志记录
         items = []
 

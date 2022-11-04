@@ -8,7 +8,7 @@ from .on import AyakaOn, AyakaTimer, AyakaTrigger
 from .storage import AyakaStorage
 from .config import INIT_STATE, AYAKA_DEBUG
 from .playwright import init_chrome, close_chrome
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, _cache, app_list, bot_list, private_listener_dict
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, bot_list, private_listener_dict
 from .logger import logger
 from .deal import deal_event, get_bot, get_group
 
@@ -115,7 +115,7 @@ class AyakaApp:
 
         当前群组、当前app的独立数据空间
         '''
-        return _cache.get()
+        return self.group.cache_dict.get(self.name)
 
     @property
     def user_name(self):

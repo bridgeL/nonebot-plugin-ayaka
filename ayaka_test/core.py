@@ -37,8 +37,7 @@ FAKE CQHTTP | UID:{bot_id}
 <y>d</y> <float>                     | 延时x秒
 <y>dn</y> <float>                    | 延时x秒后空一行
 
-<y>s</y> [-p echo] -n 1 测试一下aa   | 执行[plugins/echo/]script/1.ini自动化脚本
-<y>hide</y>                          | 关闭脚本命令回显
+<y>s</y> [-p echo] -n 1 测试一下aa   | 执行[plugins/echo]/script/1.ini自动化脚本
 <y>before</y>                        | 在运行每一命令前执行命令
 <y>after</y>                         | 在运行每一命令后执行命令
 <y># ;</y>                           | 注释

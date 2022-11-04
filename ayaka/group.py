@@ -1,6 +1,6 @@
-from typing import List, TYPE_CHECKING
+from typing import List, Dict, TYPE_CHECKING
 from pathlib import Path
-from .storage import AyakaDir
+from .storage import AyakaPath
 from .config import AYAKA_DEBUG
 from .constant import app_list, group_list
 from .cache import AyakaCache
@@ -14,15 +14,14 @@ class AyakaGroup:
         return f"AyakaGroup({self.bot_id}, {self.group_id}, {self.apps})"
 
     def forbid_init(self):
-        def func():
-            names = [
-                "data", "groups",
-                self.bot_id,
-                self.group_id
-            ]
-            names = [str(name) for name in names]
-            return Path(*names)
-        self.store_forbid = AyakaDir(func).json("forbid", [])
+        names = [
+            "data", "groups",
+            self.bot_id,
+            self.group_id
+        ]
+        names = [str(name) for name in names]
+        path = Path(*names)
+        self.store_forbid = AyakaPath(path).json("forbid", [])
 
     def forbid_load(self):
         return self.store_forbid.load()
@@ -41,7 +40,7 @@ class AyakaGroup:
 
         # 添加app，并分配独立数据空间
         self.apps: List["AyakaApp"] = []
-        self.cache_dict = {}
+        self.cache_dict: Dict[str, AyakaCache] = {}
         for app in app_list:
             if app.name not in forbid_names:
                 self.apps.append(app)

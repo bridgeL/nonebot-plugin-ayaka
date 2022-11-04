@@ -1,10 +1,11 @@
-class AyakaCache:
-    def __repr__(self) -> str:
-        return str(self.__dict__)
+class AyakaCache(dict):
+    def __getitem__(self, k):
+        if k not in self:
+            self[k] = AyakaCache()
+        return super().__getitem__(k)
 
-    def __getattr__(self, name: str):
-        return self.__dict__.get(name)
+    def __getattr__(self, k):
+        return self[k]
 
-    def __setitem__(self, key, val):
-        self.__dict__[key] = val
-        return val
+    def __setattr__(self, k, v):
+        self[k] = v

@@ -16,7 +16,6 @@ _arg: ContextVar[Message] = ContextVar("_arg")
 _args: ContextVar[List[MessageSegment]] = ContextVar("_args")
 _message: ContextVar[Message] = ContextVar("_message")
 _cmd: ContextVar[str] = ContextVar("_cmd")
-_cache: ContextVar["AyakaCache"] = ContextVar("_cache")
 
 app_list: List["AyakaApp"] = []
 group_list: List["AyakaGroup"] = []
