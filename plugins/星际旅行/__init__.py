@@ -73,7 +73,7 @@ async def handle():
 
 # 关闭应用
 @all
-@app.on.command("exit", "quit", "退出")
+@app.on.command("exit", "quit")
 async def handle():
     '''退出'''
     await app.close()
@@ -87,28 +87,33 @@ async def handle():
     await app.send("喝了一口3000度的奶茶")
 
 
+# 补充2
 @app.on.state("太阳.售票处")
 @app.on.command("buy")
 async def handle():
     '''买门票'''
+    ctrl = app.cache.chain("ticket")
+    ctrl.set(ctrl.get(0) + 1)
     await app.send("耀斑表演门票+1")
-    app.cache.ticket = 1
 
 
 @app.on.state("太阳")
-@app.on.command("go", "去现场")
+@app.on.command("watch")
 async def handle():
     '''去现场'''
-    if app.cache.ticket:
-        app.cache.ticket -= 1
+    ctrl = app.cache.chain("ticket")
+    ticket = ctrl.get(0)
+    if ticket > 0:
+        ctrl.set(ticket - 1)
         await app.send("耀斑表演门票-1")
-        app.state = "太阳.表演现场"
-        await app.send("不一会，你到了")
+        app.state = "太阳.耀斑表演"
+        await app.send("10分甚至9分的好看")
     else:
         await app.send("你还没买票")
 
 
-@app.on.state("太阳.表演现场")
+# 补充3
+@app.on.state("太阳.耀斑表演")
 @app.on.command("drink")
 async def handle():
     '''令人震惊的事实'''

@@ -18,7 +18,6 @@ else:
     print(info)
     lines = info.strip().split("\n")
     pids = set(shlex.split(line)[-1] for line in lines)
-    pids = [pid for pid in pids if not pid]
     input(f"{pids} kill?")
 
     for pid in pids:
