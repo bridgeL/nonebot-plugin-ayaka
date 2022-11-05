@@ -237,6 +237,9 @@ class AyakaApp:
         else:
             await self.send(f"没有应用在运行")
 
+    def set_state(self, state=INIT_STATE):
+        self.state = state
+
     def add_listener(self, user_id: int):
         '''为该群组添加对指定私聊的监听'''
         private_listener_dict[user_id].append(self.group_id)

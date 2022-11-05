@@ -2,7 +2,7 @@ from contextvars import ContextVar
 from collections import defaultdict
 from typing import List, TYPE_CHECKING, Dict
 from .driver import Message, MessageSegment, Bot, MessageEvent
-from .cache import AyakaCache
+from .cache import AyakaCacheCtrl
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp

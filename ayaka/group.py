@@ -3,7 +3,7 @@ from pathlib import Path
 from .storage import AyakaPath
 from .config import AYAKA_DEBUG
 from .constant import app_list, group_list
-from .cache import AyakaCache
+from .cache import AyakaCacheCtrl
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp
@@ -40,11 +40,11 @@ class AyakaGroup:
 
         # 添加app，并分配独立数据空间
         self.apps: List["AyakaApp"] = []
-        self.cache_dict: Dict[str, AyakaCache] = {}
+        self.cache_dict: Dict[str, AyakaCacheCtrl] = {}
         for app in app_list:
             if app.name not in forbid_names:
                 self.apps.append(app)
-                self.cache_dict[app.name] = AyakaCache()
+                self.cache_dict[app.name] = AyakaCacheCtrl()
 
         group_list.append(self)
 
