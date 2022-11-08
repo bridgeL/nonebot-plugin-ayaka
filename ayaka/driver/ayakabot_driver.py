@@ -1,5 +1,6 @@
 # 无缝切换ayaka bot
-from .ayakabot import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent, get_driver, on_message
+from .ayakabot import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent, get_driver, on_message, Event
+from .ayakabot.model import DataclassEncoder
 
 tip = '''
 您目前正在使用AYAKA BOT！

@@ -100,17 +100,17 @@ class AyakaJsonFileCtrl(AbstractJsonCtrl):
     '''AyakaJsonFileCtrl实际上可兼容替代AyakaJsonFile，但是为了避免语义上的混乱，仍分作两个类'''
 
     def __init__(self, path: Path, *keys) -> None:
-        self.path = path
-        self.keys = [str(k) for k in keys]
+        self._path = path
+        self._keys = [str(k) for k in keys]
 
     def _load(self):
-        with self.path.open("r", encoding="utf8") as f:
+        with self._path.open("r", encoding="utf8") as f:
             data = json.load(f)
         return data
 
     def _save(self, data):
-        with self.path.open("w+", encoding="utf8") as f:
+        with self._path.open("w+", encoding="utf8") as f:
             json.dump(data, f, ensure_ascii=False)
 
     def chain(self, *keys):
-        return AyakaJsonFileCtrl(self.path, *self.keys, *keys)
+        return AyakaJsonFileCtrl(self._path, *self._keys, *keys)

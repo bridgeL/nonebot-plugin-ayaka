@@ -40,6 +40,21 @@ async def forbid():
 @app.on.command("插件", "plugin", "plugins")
 async def show_plugins():
     ''' '''
+    _app = app.group.running_app
+    # 没有应用正在运行
+    if not _app:
+        # 查询指定应用的详细帮助
+        if app.args:
+            name = str(app.args[0])
+            _app = app.group.get_app(name)
+            if not _app:
+                await app.send(f"应用不存在 [{name}]")
+                return
+            # 详细帮助
+            await app.send(_app.all_help)
+            return
+
+    # 展示所有应用
     items = []
     for _app in app_list:
         s = ""

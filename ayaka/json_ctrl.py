@@ -2,7 +2,7 @@ class AbstractJsonCtrl:
     '''JSON控制器'''
 
     def __init__(self, *keys) -> None:
-        self.keys = keys
+        self._keys = keys
 
     def _load(self):
         raise NotImplementedError
@@ -15,7 +15,7 @@ class AbstractJsonCtrl:
 
     def get(self, default=None):
         data = self._load()
-        for k in self.keys:
+        for k in self._keys:
             if not isinstance(data, dict):
                 return default
             if k not in data:
@@ -24,7 +24,7 @@ class AbstractJsonCtrl:
         return data
 
     def set(self, value):
-        if not self.keys:
+        if not self._keys:
             self._save(value)
             return value
 
@@ -32,10 +32,10 @@ class AbstractJsonCtrl:
         if not isinstance(origin, dict):
             origin = {}
         data = origin
-        for k in self.keys[:-1]:
+        for k in self._keys[:-1]:
             if k not in data or not isinstance(data[k], dict):
                 data[k] = {}
             data = data[k]
-        data[self.keys[-1]] = value
+        data[self._keys[-1]] = value
         self._save(origin)
         return value

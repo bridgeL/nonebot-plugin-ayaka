@@ -8,17 +8,17 @@ class AyakaCacheCtrl(AbstractJsonCtrl):
         return f"AyakaCacheCtrl({self.get()})"
 
     def __init__(self, data=None, *keys) -> None:
-        self.data = {} if data is None else data
-        self.keys = [str(k) for k in keys]
+        self._data = {} if data is None else data
+        self._keys = [str(k) for k in keys]
 
     def _load(self):
-        return self.data
+        return self._data
 
     def _save(self, data):
-        self.data = data
+        self._data = data
 
     def chain(self, *keys):
-        return AyakaCacheCtrl(self.data, *self.keys, *keys)
+        return AyakaCacheCtrl(self._data, *self._keys, *keys)
 
     # 兼容旧API
     def __getattr__(self, k):
@@ -26,7 +26,7 @@ class AyakaCacheCtrl(AbstractJsonCtrl):
 
     # 兼容旧API
     def __setattr__(self, k, v):
-        if k in ["data", "keys"]:
+        if k in ["_data", "_keys"]:
             super().__setattr__(k, v)
         else:
             self.chain(k).set(v)

@@ -6,6 +6,7 @@ from typing import List, Dict, Union
 from .driver import get_driver, on_message, MessageSegment, Bot
 from .on import AyakaOn, AyakaTimer, AyakaTrigger
 from .storage import AyakaStorage
+from .parser import AyakaParser
 from .config import INIT_STATE, AYAKA_DEBUG
 from .playwright import init_chrome, close_chrome
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, bot_list, private_listener_dict
@@ -27,6 +28,7 @@ class AyakaApp:
         self._help: Dict[str, List[str]] = {}
         self.on = AyakaOn(self)
         self.storage = AyakaStorage(self)
+        self.parser = AyakaParser()
         self.path = Path(inspect.stack()[1].filename)
 
         for app in app_list:
