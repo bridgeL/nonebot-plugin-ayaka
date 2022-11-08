@@ -15,7 +15,7 @@ if not reload or __name__ == "__mp_main__":
     # 加载插件
     nonebot.load_plugins("plugins")
     # 加载测试环境
-    nonebot.load_plugins("ayaka_test")
+    nonebot.load_plugin("ayaka_test")
     
 # 启动nonebot
 if __name__ == "__main__":

@@ -4,13 +4,8 @@ BOT_TYPE = "nonebot"
 
 # nonebot
 if BOT_TYPE == "nonebot":
-    try:
-        from .nonebot_driver import *
-    except:
-        # 如果没有安装nonebot则无缝切换ayaka bot
-        BOT_TYPE = "ayakabot"
-        from .ayakabot_driver import *
+    from .nonebot_driver import *
 
 # ayaka bot
-else:
+if BOT_TYPE == "ayakabot":
     from .ayakabot_driver import *
