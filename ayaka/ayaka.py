@@ -3,17 +3,15 @@ from math import ceil
 from pathlib import Path
 from typing import List, Dict, Union
 
-from .driver import get_driver, on_message, MessageSegment, Bot
-from .on import AyakaOn, AyakaTimer, AyakaTrigger
-from .storage import AyakaStorage
-from .parser import AyakaParser
+from .parser import parser
 from .config import INIT_STATE, AYAKA_DEBUG
-from .playwright import init_chrome, close_chrome
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, bot_list, private_listener_dict
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
 from .logger import logger
-from .deal import deal_event, get_bot, get_group
-
-driver = get_driver()
+from .deal import deal_event
+from .group import get_group
+from .storage import AyakaStorage
+from .driver import on_message, MessageSegment
+from .on import AyakaOn, AyakaTimer, AyakaTrigger
 
 
 class AyakaApp:
@@ -28,7 +26,7 @@ class AyakaApp:
         self._help: Dict[str, List[str]] = {}
         self.on = AyakaOn(self)
         self.storage = AyakaStorage(self)
-        self.parser = AyakaParser()
+        self.parser = parser
         self.path = Path(inspect.stack()[1].filename)
 
         for app in app_list:
@@ -268,7 +266,7 @@ class AyakaApp:
         '''转换为cqhttp node格式'''
         data: List[MessageSegment] = []
         for m in messages:
-            if isinstance(m, MessageSegment):
+            if isinstance(m, MessageSegment) and m.type == "node":
                 data.append(m)
             else:
                 m = MessageSegment.node_custom(
@@ -332,34 +330,4 @@ class AyakaApp:
             await bot.call_api("send_group_forward_msg", group_id=group_id, messages=msgs)
 
 
-@driver.on_startup
-async def startup():
-    app_list.sort(key=lambda x: x.name)
-    await init_chrome()
-
-
-@driver.on_shutdown
-async def shutdown():
-    await close_chrome()
-
-first_bot_connect = True
-
-
-@driver.on_bot_connect
-async def bot_connect(bot: Bot):
-    bot_list.append(bot)
-
-    # 在一切准备就绪后，开启插件中的定时模块
-    global first_bot_connect
-    if first_bot_connect:
-        first_bot_connect = False
-        for app in app_list:
-            for t in app.timers:
-                t.start()
-
-
-@driver.on_bot_disconnect
-async def bot_disconnect(bot: Bot):
-    bot_list.remove(bot)
-
-on_message(priority=5, block=False, handlers=[deal_event])
+on_message(priority=20, block=False, handlers=[deal_event])

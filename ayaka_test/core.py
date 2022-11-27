@@ -99,7 +99,9 @@ class FakeQQ:
 
     def print(self, *args):
         '''打印到终端上'''
-        text = " ".join(str(a) for a in args)
+        # 限制长度
+        text = " ".join(str(a)[:1000] for a in args)
+
         # 保护已闭合的标签
         text = re.sub(r"<(.*)>(.*?)</(\1)>", r"%%%\1%%%\2%%%/\1%%%", text)
         # 注释未闭合的标签
@@ -245,7 +247,7 @@ class FakeQQ:
         for line in helps.split("\n"):
             self.print(line)
         self.print("CQ码：https://docs.go-cqhttp.org/cqcode")
-        self.print("ayaka_test：https://bridgel.github.io/ayaka_doc/test/")
+        self.print("ayaka_test：https://bridgel.github.io/ayaka_doc/latest/intro/test/")
 
 
 fake_qq = FakeQQ()

@@ -9,8 +9,6 @@ if TYPE_CHECKING:
 
 
 class AyakaStorage:
-    '''中间层，方便后续拓展，比如aiosqlite(?'''
-
     def __init__(self, app: "AyakaApp") -> None:
         self.app = app
 

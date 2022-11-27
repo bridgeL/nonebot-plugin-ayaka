@@ -9,6 +9,16 @@ if TYPE_CHECKING:
     from .ayaka import AyakaApp
 
 
+def get_group(bot_id: int, group_id: int):
+    '''获取对应的AyakaGroup对象，自动增加'''
+    for group in group_list:
+        if group.bot_id == bot_id and group.group_id == group_id:
+            break
+    else:
+        group = AyakaGroup(bot_id, group_id)
+    return group
+
+
 class AyakaGroup:
     def __repr__(self) -> str:
         return f"AyakaGroup({self.bot_id}, {self.group_id}, {self.apps})"

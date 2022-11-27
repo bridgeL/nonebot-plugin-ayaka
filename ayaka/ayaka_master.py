@@ -1,4 +1,5 @@
 from .ayaka import app_list, AyakaApp
+from .constant import get_app
 
 app = AyakaApp("ayaka_master")
 app.help = '''ayaka综合管理模块'''
@@ -40,26 +41,10 @@ async def forbid():
 @app.on.command("插件", "plugin", "plugins")
 async def show_plugins():
     ''' '''
-    _app = app.group.running_app
-    # 没有应用正在运行
-    if not _app:
-        # 查询指定应用的详细帮助
-        if app.args:
-            name = str(app.args[0])
-            _app = app.group.get_app(name)
-            if not _app:
-                await app.send(f"应用不存在 [{name}]")
-                return
-            # 详细帮助
-            await app.send(_app.all_help)
-            return
-
     # 展示所有应用
     items = []
     for _app in app_list:
-        s = ""
-        if not _app.valid:
-            s = "[已禁用] "
+        s = "[已禁用] " if not _app.valid else ""
         info = f"[{_app.name}] {s}"
         items.append(info)
     await app.send("\n".join(items))
@@ -82,31 +67,37 @@ async def show_state():
 async def show_help():
     ''' '''
     _app = app.group.running_app
-    # 没有应用正在运行
-    if not _app:
-        # 查询指定应用的详细帮助
-        if app.args:
-            name = str(app.args[0])
-            _app = app.group.get_app(name)
-            if not _app:
-                await app.send(f"应用不存在 [{name}]")
-                return
-            # 详细帮助
-            await app.send(_app.all_help)
-            return
-
-        # 展示所有应用
-        items = []
-        for _app in app_list:
-            info = f"[{_app.name}]\n{_app.intro}"
-            items.append(info)
-        await app.send_many(items)
-
-        await app.send("使用 帮助 <插件名> 可以展示该插件的详细帮助信息")
-        return
 
     # 展示当前应用当前状态的帮助
-    await app.send(_app.help)
+    if _app:
+        await app.send(_app.help)
+        return
+
+    # 没有应用正在运行
+
+    # 查询指定应用的详细帮助
+    if app.args:
+        name = str(app.args[0])
+        _app = get_app(name)
+        if not _app:
+            await app.send(f"应用不存在 [{name}]")
+            return
+
+        # 详细帮助
+        s = "[已禁用] " if not _app.valid else ""
+        info = f"[{_app.name}] {s}\n{_app.all_help}"
+        await app.send(info)
+        return
+
+    # 展示所有应用介绍
+    items = ["所有应用介绍一览"]
+    for _app in app_list:
+        s = "[已禁用] " if not _app.valid else ""
+        info = f"[{_app.name}] {s}\n{_app.intro}"
+        items.append(info)
+
+    await app.send_many(items)
+    await app.send("使用 帮助 <插件名> 可以进一步展示指定插件的详细帮助信息")
 
 
 @app.on.idle(super=True)

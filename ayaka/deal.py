@@ -3,28 +3,10 @@ import datetime
 from typing import List
 
 from .driver import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
-from .group import AyakaGroup
 from .on import AyakaTrigger
 from .config import sep, prefix, exclude_old
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, private_listener_dict, bot_list, group_list
-
-
-def get_bot(bot_id: int):
-    '''获取已连接的bot'''
-    bot_id = str(bot_id)
-    for bot in bot_list:
-        if bot.self_id == bot_id:
-            return bot
-
-
-def get_group(bot_id: int, group_id: int):
-    '''获取对应的AyakaGroup对象，自动增加'''
-    for group in group_list:
-        if group.bot_id == bot_id and group.group_id == group_id:
-            break
-    else:
-        group = AyakaGroup(bot_id, group_id)
-    return group
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, private_listener_dict
+from .group import get_group
 
 
 async def deal_event(bot: Bot, event: MessageEvent):
@@ -101,7 +83,7 @@ async def deal_group(bot_id: int, group_id: int):
 
 
 async def deal_triggers(triggers: List[AyakaTrigger]):
-    triggers.sort(key=lambda t:str(t.state), reverse=True)
+    triggers.sort(key=lambda t: str(t.state), reverse=True)
 
     cmd = _cmd.get()
     msg = _message.get()
@@ -159,7 +141,6 @@ def remove_cmd(cmd: str, message: Message):
         m_str = str(m)
         m_str = m_str[len(prefix+cmd):].lstrip(sep)
         if not m_str:
-            message.pop(0)
-        else:
-            message[0] = MessageSegment.text(m_str)
+            return message[1:]
+        return [MessageSegment.text(m_str)] + message[1:]
     return message

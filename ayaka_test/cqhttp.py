@@ -1,17 +1,21 @@
 '''简单模拟cqhttp'''
 from .core import fake_qq, bot_id
+from .utils import base64_to_pic
 
 
 # message 可能是cqhttp格式的node数组
 def handle_message(message):
+    '''message 可能是cqhttp格式的node数组'''
     if isinstance(message, list):
         def handle(node: dict):
             if node["type"] == "text":
                 return node["data"]["text"]
+            if node["type"] == "image":
+                if "file" in node["data"]:
+                    return base64_to_pic(node["data"]["file"])
             return str(node)
         return "".join(handle(m) for m in message)
     return str(message)
-
 
 @fake_qq.on_cqhttp("send_msg")
 async def _(echo: int, params: dict):

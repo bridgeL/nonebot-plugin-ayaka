@@ -8,3 +8,8 @@ __pycache__
 !/plugins/星际旅行
 
 /error.log
+
+*.db
+/test.log
+/db
+/backup

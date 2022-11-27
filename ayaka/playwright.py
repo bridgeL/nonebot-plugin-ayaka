@@ -1,9 +1,12 @@
+import datetime
 from playwright.async_api import async_playwright, Browser, Page, Playwright
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 from .logger import logger
 from .config import fastapi_reload, running_on_windows
+from .driver import get_driver
 
+driver = get_driver()
 _browser: Browser = None
 _playwright: Playwright = None
 
@@ -28,7 +31,16 @@ async def get_new_page(width=None, high_quality=False, **kwargs) -> AsyncIterato
     await page.close()
 
 
-async def init_chrome():
+@driver.on_startup
+async def startup():
+    with open("test.log", "a+", encoding="utf8") as f:
+        d = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        f.write(f"[{d}] 记录时间  playwright init\n")
+    print('''
+
+playwright init
+
+    ''')
     if running_on_windows and fastapi_reload:
         logger.warning("playwright未加载，win平台请关闭fastapi reload功能")
         return
@@ -38,7 +50,17 @@ async def init_chrome():
     _browser = await _playwright.chromium.launch()
 
 
-async def close_chrome():
+@driver.on_shutdown
+async def shutdown():
+    # 查bug 怀疑卡死原因是没有正确退出
+    with open("test.log", "a+", encoding="utf8") as f:
+        d = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        f.write(f"[{d}] 记录时间  playwright close\n")
+    print('''
+
+playwright close
+
+    ''')
     if _browser:
         await _browser.close()
     if _playwright:
