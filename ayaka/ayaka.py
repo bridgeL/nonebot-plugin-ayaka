@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, Dict, Union
 
 from .parser import parser
-from .config import INIT_STATE, AYAKA_DEBUG
+from .config import INIT_STATE, AYAKA_DEBUG, ayaka_root_config, create_ayaka_plugin_config_base
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
 from .logger import logger
 from .deal import deal_event
@@ -19,6 +19,14 @@ class AyakaApp:
         return f"AyakaApp({self.name}, {self.state})"
 
     def __init__(self, name: str) -> None:
+        self.path = Path(inspect.stack()[1].filename)
+        
+        for app in app_list:
+            if app.name == name:
+                logger.warning(
+                    f"应用{app.name} 重复注册，已忽略注册时间更晚的应用！\n{app.path}(最早注册)\n{self.path}(被忽略)")
+                return
+
         self.name = name
         self.state = INIT_STATE
         self.triggers: List[AyakaTrigger] = []
@@ -27,15 +35,10 @@ class AyakaApp:
         self.on = AyakaOn(self)
         self.storage = AyakaStorage(self)
         self.parser = parser
-        self.path = Path(inspect.stack()[1].filename)
+        self.BaseConfig = create_ayaka_plugin_config_base(name)
+        self.ayaka_root_config = ayaka_root_config
 
-        for app in app_list:
-            if app.name == self.name:
-                logger.warning(
-                    f"应用{app.name} 重复注册，已忽略后注册的应用！\n{app.path}\n{self.path}(被忽略)")
-                break
-        else:
-            app_list.append(self)
+        app_list.append(self)
         if AYAKA_DEBUG:
             print(self)
 

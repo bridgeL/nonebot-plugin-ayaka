@@ -1,0 +1,15 @@
+{
+    "__root__": {
+        "version": "0.4.4b0",
+        "prefix": "",
+        "separate": " ",
+        "exclude_old_msg": true,
+        "owners": [
+            1
+        ],
+        "admins": []
+    },
+    "签到": {
+        "reward_money": 10000
+    }
+}

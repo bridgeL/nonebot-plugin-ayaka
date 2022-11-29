@@ -77,9 +77,9 @@ def load_plugins(path):
         name = re.sub(r"\\|/", ".", str(p))
         try:
             import_module(name)
-            logger.success(f"导入成功 {name}")
+            logger.success(f"导入成功 \"{name}\"")
         except:
-            logger.exception(f"导入失败 {name}")
+            logger.exception(f"导入失败 \"{name}\"")
 
 
 @app.websocket("/ayakabot")
