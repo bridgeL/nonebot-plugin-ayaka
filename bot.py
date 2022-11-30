@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+# 读取bot类型
 import json
 from pathlib import Path
 bot_type = "nonebot"
@@ -10,8 +12,9 @@ if path.exists():
         data = json.load(f)
         bot_type = data["__root__"]["bot_type"]
 
+# 根据bot类型加载对应方法
 if bot_type == "ayakabot":
-    from ayaka.driver import run, load_plugins, load_plugin, get_driver
+    from ayaka.driver.ayakabot import run, load_plugins, load_plugin, get_driver
     driver = get_driver()
 
 if bot_type == "nonebot":
@@ -28,10 +31,9 @@ if bot_type == "nonebot":
     def run():
         nonebot.run(app=f"__mp_main__:app")
 
-
+# 加载插件
 reload = getattr(driver.config, "fastapi_reload", True)
 if not reload or __name__ == "__mp_main__":
-    # 加载插件
     load_plugins("plugins")
     # 加载测试环境
     load_plugin("ayaka_test")
