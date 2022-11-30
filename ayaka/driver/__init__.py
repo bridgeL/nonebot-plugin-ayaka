@@ -1,11 +1,10 @@
 '''便于之后拓展与迁移'''
-BOT_TYPE = "nonebot"
-# BOT_TYPE = "ayakabot"
+from ..config import ayaka_root_config
 
 # nonebot
-if BOT_TYPE == "nonebot":
+if ayaka_root_config.bot_type == "nonebot":
     from .nonebot_driver import *
 
 # ayaka bot
-if BOT_TYPE == "ayakabot":
+if ayaka_root_config.bot_type == "ayakabot":
     from .ayakabot_driver import *

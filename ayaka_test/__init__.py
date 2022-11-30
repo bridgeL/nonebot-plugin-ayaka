@@ -1,5 +1,5 @@
-from ayaka.driver import BOT_TYPE
+from ayaka.config import ayaka_root_config
 
 # 仅nonebot可用
-if BOT_TYPE == "nonebot":
+if ayaka_root_config.bot_type == "nonebot":
     from . import cqhttp, terminal

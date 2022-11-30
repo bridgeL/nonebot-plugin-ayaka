@@ -1,9 +1,9 @@
 '''便于之后拓展与迁移'''
 from loguru import logger
-from .driver import BOT_TYPE
+from .config import ayaka_root_config
 
 # ayaka bot配置
-if BOT_TYPE == "ayakabot":
+if ayaka_root_config.bot_type == "ayakabot":
     import sys
     logger.remove()
     logger.add(

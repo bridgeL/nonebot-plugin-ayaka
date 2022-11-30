@@ -4,13 +4,13 @@ from typing import List
 
 from .driver import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
 from .on import AyakaTrigger
-from .config import sep, prefix, exclude_old
+from .config import ayaka_root_config
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, private_listener_dict
 from .group import get_group
 
 
 async def deal_event(bot: Bot, event: MessageEvent):
-    if exclude_old:
+    if ayaka_root_config.exclude_old_msg:
         time_i = int(datetime.datetime.now().timestamp())
         if event.time < time_i - 60:
             return
@@ -110,6 +110,8 @@ async def deal_triggers(triggers: List[AyakaTrigger]):
 
 def get_cmd(message: Message):
     '''返回命令'''
+    prefix = ayaka_root_config.prefix
+    sep = ayaka_root_config.separate
     first = ""
     for m in message:
         if m.type == "text":
@@ -124,6 +126,7 @@ def get_cmd(message: Message):
 
 def divide_message(message: Message):
     args: List[MessageSegment] = []
+    sep = ayaka_root_config.separate
 
     for m in message:
         if m.is_text():
@@ -136,6 +139,8 @@ def divide_message(message: Message):
 
 
 def remove_cmd(cmd: str, message: Message):
+    prefix = ayaka_root_config.prefix
+    sep = ayaka_root_config.separate
     m = message[0]
     if m.is_text():
         m_str = str(m)

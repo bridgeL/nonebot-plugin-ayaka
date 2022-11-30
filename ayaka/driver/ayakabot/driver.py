@@ -2,11 +2,11 @@ from importlib import import_module
 import json
 import asyncio
 import uvicorn
+from loguru import logger
 from fastapi import FastAPI, WebSocket
 from pathlib import Path
 import re
 
-from loguru import logger
 from .bot import Bot
 from .event import json_to_event, MessageEvent
 from .websocket import FastAPIWebSocket
@@ -82,7 +82,7 @@ def load_plugins(path):
             logger.exception(f"导入失败 \"{name}\"")
 
 
-@app.websocket("/ayakabot")
+@app.websocket("/onebot/v11/ws")
 async def endpoint(websocket: WebSocket):
     self_id = websocket.headers.get("x-self-id")
     ws = FastAPIWebSocket(websocket)

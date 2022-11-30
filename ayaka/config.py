@@ -3,12 +3,10 @@
 '''
 
 import json
-import platform
 from pathlib import Path
-from pydantic import BaseModel, ValidationError
-from typing import List
-from .driver import get_driver
-from .logger import logger
+from pydantic import BaseModel, ValidationError, validator
+from typing import List, Literal
+from loguru import logger
 
 total_settings: dict = {}
 setting_filepath = Path("ayaka_setting.json")
@@ -40,6 +38,9 @@ def create_ayaka_plugin_config_base(app_name):
             with setting_filepath.open("w+", encoding="utf8") as f:
                 json.dump(total_settings, f, ensure_ascii=0, indent=4)
 
+        def force_update(self):
+            self.__save__()
+
     return AyakaPluginConfigBase
 
 
@@ -51,29 +52,28 @@ BaseConfig = create_ayaka_plugin_config_base("__root__")
 
 class Config(BaseConfig):
     version: str = "0.4.4b0"
+    # 命令抬头
     prefix: str = "#"
+    # 参数分割符
     separate: str = " "
+    # 是否排除go-cqhttp缓存的过期消息
     exclude_old_msg: bool = True
+    # 是否使用playwright
+    use_playwright: bool = True
+    # ayaka插件的所有者
     owners: List[int] = []
+    # ayaka插件的管理者
     admins: List[int] = []
+    # 切换bot类型
+    bot_type: Literal["nonebot", "ayakabot"] = "nonebot"
+
+    @validator('separate')
+    def name_must_contain_space(cls, v):
+        if not v:
+            logger.warning("ayaka的分割符不可设置为空，已强制设置为空格")
+            return " "
+        return v
 
 
 ayaka_root_config = Config()
 logger.success(f"已读取ayaka根配置 {ayaka_root_config.dict()}")
-
-# 命令抬头
-prefix = ayaka_root_config.prefix
-
-# 参数分割符
-sep = ayaka_root_config.separate
-if not sep:
-    logger.error("ayaka的分割符不可设置为空")
-    raise
-
-# 是否排除go-cqhttp缓存的过期消息
-exclude_old = ayaka_root_config.exclude_old_msg
-
-# 是否开启fastapi-reload
-fastapi_reload = getattr(get_driver().config, "fastapi_reload", True)
-
-running_on_windows = platform.system() == "Windows"

@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 from typing import Callable, Coroutine, TYPE_CHECKING, Dict, Union, List
-from .logger import logger
+from loguru import logger
 from .config import INIT_STATE, AYAKA_DEBUG
 
 if TYPE_CHECKING:
