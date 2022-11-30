@@ -45,13 +45,14 @@ def create_ayaka_plugin_config_base(app_name):
 
 
 INIT_STATE = "init"
+AYAKA_VERSION = "0.4.4"
 AYAKA_DEBUG = 0
 
 BaseConfig = create_ayaka_plugin_config_base("__root__")
 
 
 class Config(BaseConfig):
-    version: str = "0.4.4b0"
+    version: str = AYAKA_VERSION
     # 命令抬头
     prefix: str = "#"
     # 参数分割符
