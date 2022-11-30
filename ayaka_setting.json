@@ -11,7 +11,7 @@
         "admins": [
             2
         ],
-        "bot_type": "ayakabot"
+        "bot_type": "nonebot"
     },
     "签到": {
         "reward_money": 1000

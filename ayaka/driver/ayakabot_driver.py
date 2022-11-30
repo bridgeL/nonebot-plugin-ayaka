@@ -9,6 +9,4 @@ tip = '''
 - ws://127.0.0.1:19900/onebot/v11/ws
 '''
 
-
-def init():
-    print(tip)
+print(tip)
