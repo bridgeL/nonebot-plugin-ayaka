@@ -147,5 +147,5 @@ def remove_cmd(cmd: str, message: Message):
         m_str = m_str[len(prefix+cmd):].lstrip(sep)
         if not m_str:
             return message[1:]
-        return [MessageSegment.text(m_str)] + message[1:]
+        return [MessageSegment.text(m_str), *message[1:]]
     return message

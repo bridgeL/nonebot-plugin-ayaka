@@ -15,6 +15,7 @@ app = FastAPI()
 
 
 class Config:
+    port = 19900
     ayaka_prefix = "#"
     ayaka_separate = " "
     ayaka_exclude_old = True
@@ -62,7 +63,7 @@ driver = Driver()
 
 
 # 启动服务
-def run(host="127.0.0.1", port=19900, reload=True):
+def run(host="127.0.0.1", port=driver.config.port, reload=True):
     uvicorn.run(
         app=f"{__name__}:app",
         host=host,
@@ -74,12 +75,25 @@ def run(host="127.0.0.1", port=19900, reload=True):
 def load_plugins(path):
     path = Path(path)
     for p in path.iterdir():
+        if p.name.startswith("_"):
+            continue
+        
         name = re.sub(r"\\|/", ".", str(p))
         try:
             import_module(name)
-            logger.success(f"导入成功 \"{name}\"")
+            logger.opt(colors=True).success(f"导入成功 \"<y>{p.stem}</y>\"")
         except:
-            logger.exception(f"导入失败 \"{name}\"")
+            logger.opt(colors=True).exception(f"导入失败 \"<y>{p.stem}</y>\"")
+
+
+def load_plugin(path):
+    p = Path(path)
+    name = re.sub(r"\\|/", ".", str(p))
+    try:
+        import_module(name)
+        logger.success(f"导入成功 \"{name}\"")
+    except:
+        logger.exception(f"导入失败 \"{name}\"")
 
 
 @app.websocket("/onebot/v11/ws")

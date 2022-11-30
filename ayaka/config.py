@@ -18,34 +18,39 @@ with setting_filepath.open("r", encoding="utf8") as f:
     total_settings = json.load(f)
 
 
+class AyakaPluginConfigBaseBase(BaseModel):
+    @classmethod
+    def setup_app_name(cls, app_name):
+        cls.app_name = app_name
+
+    def __init__(self):
+        try:
+            super().__init__(**total_settings.get(self.app_name, {}))
+        except ValidationError as e:
+            logger.error(
+                f"导入配置失败，请检查 ayaka_setting.json 中，{self.app_name}的配置是否正确")
+            raise e
+        self.force_update()
+
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+        self.force_update()
+
+    def force_update(self):
+        total_settings[self.app_name] = self.dict()
+        with setting_filepath.open("w+", encoding="utf8") as f:
+            json.dump(total_settings, f, ensure_ascii=0, indent=4)
+
+
 def create_ayaka_plugin_config_base(app_name):
-    class AyakaPluginConfigBase(BaseModel):
-        def __init__(self):
-            try:
-                super().__init__(**total_settings.get(app_name, {}))
-            except ValidationError as e:
-                logger.error(
-                    f"导入配置失败，请检查 ayaka_setting.json 中，{app_name}的配置是否正确")
-                raise e
-            self.__save__()
-
-        def __setattr__(self, name, value):
-            super().__setattr__(name, value)
-            self.__save__()
-
-        def __save__(self):
-            total_settings[app_name] = self.dict()
-            with setting_filepath.open("w+", encoding="utf8") as f:
-                json.dump(total_settings, f, ensure_ascii=0, indent=4)
-
-        def force_update(self):
-            self.__save__()
-
+    class AyakaPluginConfigBase(AyakaPluginConfigBaseBase):
+        pass
+    AyakaPluginConfigBase.setup_app_name(app_name)
     return AyakaPluginConfigBase
 
 
 INIT_STATE = "init"
-AYAKA_VERSION = "0.4.4"
+AYAKA_VERSION = "0.4.5b0"
 AYAKA_DEBUG = 0
 
 BaseConfig = create_ayaka_plugin_config_base("__root__")
@@ -77,4 +82,19 @@ class Config(BaseConfig):
 
 
 ayaka_root_config = Config()
+
+# ayaka bot配置
+if ayaka_root_config.bot_type == "ayakabot":
+    import sys
+    logger.remove()
+    logger.add(
+        sys.stdout, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> \t| <blue>{name}</blue> - {message}", level="DEBUG", backtrace=False, diagnose=False
+    )
+
+# 通用配置
+logger.add(
+    open("error.log", "a+", encoding="utf8"),
+    level="ERROR", backtrace=False, diagnose=False
+)
+
 logger.success(f"已读取ayaka根配置 {ayaka_root_config.dict()}")

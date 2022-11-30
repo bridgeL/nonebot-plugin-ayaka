@@ -5,11 +5,15 @@
         "separate": " ",
         "exclude_old_msg": true,
         "use_playwright": false,
-        "owners": [],
-        "admins": [],
-        "bot_type": "nonebot"
+        "owners": [
+            1
+        ],
+        "admins": [
+            2
+        ],
+        "bot_type": "ayakabot"
     },
     "签到": {
-        "reward_money": 10000
+        "reward_money": 1000
     }
 }
