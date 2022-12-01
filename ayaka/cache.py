@@ -1,3 +1,4 @@
+'''群组缓存'''
 from .json_ctrl import AbstractJsonCtrl
 
 

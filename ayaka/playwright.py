@@ -1,3 +1,4 @@
+'''浏览器截图'''
 from .driver import get_driver
 import platform
 from loguru import logger

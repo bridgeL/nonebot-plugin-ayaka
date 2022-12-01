@@ -1,3 +1,4 @@
+'''ayaka核心'''
 import inspect
 from math import ceil
 from pathlib import Path
@@ -5,7 +6,7 @@ from loguru import logger
 from typing import List, Dict, Union
 
 from .parser import parser
-from .config import INIT_STATE, AYAKA_DEBUG, ayaka_root_config, create_ayaka_plugin_config_base
+from .config import INIT_STATE, ayaka_root_config, create_ayaka_plugin_config_base
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
 from .deal import deal_event
 from .group import get_group
@@ -39,7 +40,7 @@ class AyakaApp:
         self.ayaka_root_config = ayaka_root_config
 
         app_list.append(self)
-        if AYAKA_DEBUG:
+        if ayaka_root_config.debug:
             print(self)
 
     @property

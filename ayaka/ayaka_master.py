@@ -1,3 +1,4 @@
+'''ayaka综合管理模块'''
 from .ayaka import app_list, AyakaApp
 from .constant import get_app
 from .config import ayaka_root_config

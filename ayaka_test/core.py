@@ -7,7 +7,6 @@ from typing import Callable, Coroutine
 from websockets.legacy.client import Connect
 from loguru import logger
 from ayaka import get_driver
-from ayaka.config import AYAKA_DEBUG
 
 
 AYAKA_LOGGER_NAME = "AYAKA"
@@ -123,7 +122,7 @@ class FakeQQ:
             level="DEBUG",
             format="<g>{time:HH:mm:ss}</g> | <level>{level}</level> | {message}",
             filter={
-                "nonebot": "DEBUG" if AYAKA_DEBUG else "WARNING",
+                "nonebot": "WARNING",
                 "uvicorn": "INFO",
                 "websockets": "WARNING"
             },

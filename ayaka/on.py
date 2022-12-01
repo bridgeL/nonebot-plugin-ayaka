@@ -1,8 +1,9 @@
+'''注册回调'''
 import asyncio
 import datetime
-from typing import Callable, Coroutine, TYPE_CHECKING, Dict, Union, List
+from typing import Callable, Coroutine, TYPE_CHECKING, Union, List
 from loguru import logger
-from .config import INIT_STATE, AYAKA_DEBUG
+from .config import INIT_STATE, ayaka_root_config
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp
@@ -94,7 +95,7 @@ class AyakaTrigger:
         self.state = state
         self.super = super
         self.func = func
-        if AYAKA_DEBUG:
+        if ayaka_root_config.debug:
             print(self)
 
     async def run(self):
@@ -133,7 +134,7 @@ class AyakaTimer:
         self.s = s
         self.gap = gap
         self.func = func
-        if AYAKA_DEBUG:
+        if ayaka_root_config.debug:
             print(self)
 
     def start(self):

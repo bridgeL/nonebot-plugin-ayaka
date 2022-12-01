@@ -1,3 +1,4 @@
+'''处理收到的消息，将其分割为cmd和args，设置上下文相关变量的值，并将消息传递给对应的群组'''
 import asyncio
 import datetime
 from typing import List
@@ -120,12 +121,15 @@ def get_cmd(message: Message):
             break
     if not first or not first.startswith(prefix):
         return ""
+
+    if not sep:
+        return first
     first += sep
     return first.split(sep, 1)[0][len(prefix):]
 
 
-def divide_message(message: Message):
-    args: List[MessageSegment] = []
+def divide_message(message: Message) -> List[MessageSegment]:
+    args = []
     sep = ayaka_root_config.separate
 
     for m in message:
@@ -138,7 +142,7 @@ def divide_message(message: Message):
     return args
 
 
-def remove_cmd(cmd: str, message: Message):
+def remove_cmd(cmd: str, message: Message) -> Message:
     prefix = ayaka_root_config.prefix
     sep = ayaka_root_config.separate
     m = message[0]
@@ -146,6 +150,6 @@ def remove_cmd(cmd: str, message: Message):
         m_str = str(m)
         m_str = m_str[len(prefix+cmd):].lstrip(sep)
         if not m_str:
-            return message[1:]
-        return [MessageSegment.text(m_str), *message[1:]]
+            return Message(message[1:])
+        return Message([MessageSegment.text(m_str), *message[1:]])
     return message

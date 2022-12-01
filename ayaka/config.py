@@ -51,7 +51,7 @@ def create_ayaka_plugin_config_base(app_name):
 
 INIT_STATE = "init"
 AYAKA_VERSION = "0.4.5b0"
-AYAKA_DEBUG = 0
+
 
 BaseConfig = create_ayaka_plugin_config_base("__root__")
 
@@ -72,29 +72,16 @@ class Config(BaseConfig):
     admins: List[int] = []
     # 切换bot类型
     bot_type: Literal["nonebot", "ayakabot"] = "nonebot"
+    # 是否处于调试模式
+    debug: bool = False
 
     @validator('separate')
     def name_must_contain_space(cls, v):
         if not v:
-            logger.warning("ayaka的分割符不可设置为空，已强制设置为空格")
-            return " "
+            logger.warning("ayaka的分割符被设置为空字符串，这会使得ayaka无法正确分割参数")
         return v
 
 
 ayaka_root_config = Config()
-
-# ayaka bot配置
-if ayaka_root_config.bot_type == "ayakabot":
-    import sys
-    logger.remove()
-    logger.add(
-        sys.stdout, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> \t| <blue>{name}</blue> - {message}", level="DEBUG", backtrace=False, diagnose=False
-    )
-
-# 通用配置
-logger.add(
-    open("error.log", "a+", encoding="utf8"),
-    level="ERROR", backtrace=False, diagnose=False
-)
-
-logger.success(f"已读取ayaka根配置 {ayaka_root_config.dict()}")
+ayaka_root_config.version = AYAKA_VERSION
+ayaka_root_config.force_update()

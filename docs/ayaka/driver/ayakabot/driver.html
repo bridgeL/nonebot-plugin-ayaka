@@ -187,62 +187,61 @@
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>            <span class="k">continue</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>        <span class="n">name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">|/&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>            <span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入成功 </span><span class="se">\&quot;</span><span class="s2">&lt;y&gt;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">&lt;/y&gt;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>        <span class="k">except</span><span class="p">:</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入失败 </span><span class="se">\&quot;</span><span class="s2">&lt;y&gt;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">&lt;/y&gt;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="k">def</span> <span class="nf">load_plugin</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="n">name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">|/&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>        <span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入成功 </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="k">except</span><span class="p">:</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入失败 </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>        <span class="n">load_plugin</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="k">def</span> <span class="nf">load_plugin</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="n">p</span> <span class="o">=</span> <span class="n">path</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>        <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="n">name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">|/&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>        <span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入成功 </span><span class="se">\&quot;</span><span class="s2">&lt;y&gt;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">&lt;/y&gt;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    <span class="k">except</span><span class="p">:</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入失败 </span><span class="se">\&quot;</span><span class="s2">&lt;y&gt;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">&lt;/y&gt;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="nd">@app</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/onebot/v11/ws&quot;</span><span class="p">)</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="n">self_id</span> <span class="o">=</span> <span class="n">websocket</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x-self-id&quot;</span><span class="p">)</span>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="n">ws</span> <span class="o">=</span> <span class="n">FastAPIWebSocket</span><span class="p">(</span><span class="n">websocket</span><span class="p">)</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">bot</span> <span class="o">=</span> <span class="n">Bot</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">self_id</span><span class="p">)</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>    <span class="c1"># 建立ws连接</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>    <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>    <span class="k">await</span> <span class="n">driver</span><span class="o">.</span><span class="n">bot_connect</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="c1"># 监听循环</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>            <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>            <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>            <span class="c1"># 将json解析为对应的event</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>            <span class="n">event</span> <span class="o">=</span> <span class="n">json_to_event</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>            <span class="k">if</span> <span class="ow">not</span> <span class="n">event</span><span class="p">:</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>                <span class="k">continue</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>            <span class="n">driver</span><span class="o">.</span><span class="n">deal</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="k">except</span><span class="p">:</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;连接中断&quot;</span><span class="p">)</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="k">finally</span><span class="p">:</span>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="c1"># 结束ws连接</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>        <span class="k">await</span> <span class="n">driver</span><span class="o">.</span><span class="n">bot_disconnect</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>        <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="nd">@app</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/onebot/v11/ws&quot;</span><span class="p">)</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="n">self_id</span> <span class="o">=</span> <span class="n">websocket</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x-self-id&quot;</span><span class="p">)</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="n">ws</span> <span class="o">=</span> <span class="n">FastAPIWebSocket</span><span class="p">(</span><span class="n">websocket</span><span class="p">)</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="n">bot</span> <span class="o">=</span> <span class="n">Bot</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">self_id</span><span class="p">)</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>    <span class="c1"># 建立ws连接</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>    <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>    <span class="k">await</span> <span class="n">driver</span><span class="o">.</span><span class="n">bot_connect</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="c1"># 监听循环</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>            <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>            <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>            <span class="c1"># 将json解析为对应的event</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>            <span class="n">event</span> <span class="o">=</span> <span class="n">json_to_event</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>            <span class="k">if</span> <span class="ow">not</span> <span class="n">event</span><span class="p">:</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>                <span class="k">continue</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>            <span class="n">driver</span><span class="o">.</span><span class="n">deal</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="k">except</span><span class="p">:</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;连接中断&quot;</span><span class="p">)</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="k">finally</span><span class="p">:</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>        <span class="c1"># 结束ws连接</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="k">await</span> <span class="n">driver</span><span class="o">.</span><span class="n">bot_disconnect</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>        <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="k">def</span> <span class="nf">get_driver</span><span class="p">():</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="k">return</span> <span class="n">driver</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="k">def</span> <span class="nf">get_driver</span><span class="p">():</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="k">return</span> <span class="n">driver</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>
 </span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="n">handlers</span><span class="p">):</span>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="n">driver</span><span class="o">.</span><span class="n">deal_event</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="n">handlers</span><span class="p">):</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="n">driver</span><span class="o">.</span><span class="n">deal_event</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span></pre></div>
 
 
@@ -528,13 +527,8 @@
 </span><span id="load_plugins-78"><a href="#load_plugins-78"><span class="linenos">78</span></a>    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
 </span><span id="load_plugins-79"><a href="#load_plugins-79"><span class="linenos">79</span></a>        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
 </span><span id="load_plugins-80"><a href="#load_plugins-80"><span class="linenos">80</span></a>            <span class="k">continue</span>
-</span><span id="load_plugins-81"><a href="#load_plugins-81"><span class="linenos">81</span></a>        
-</span><span id="load_plugins-82"><a href="#load_plugins-82"><span class="linenos">82</span></a>        <span class="n">name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">|/&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
-</span><span id="load_plugins-83"><a href="#load_plugins-83"><span class="linenos">83</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="load_plugins-84"><a href="#load_plugins-84"><span class="linenos">84</span></a>            <span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-</span><span id="load_plugins-85"><a href="#load_plugins-85"><span class="linenos">85</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入成功 </span><span class="se">\&quot;</span><span class="s2">&lt;y&gt;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">&lt;/y&gt;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="load_plugins-86"><a href="#load_plugins-86"><span class="linenos">86</span></a>        <span class="k">except</span><span class="p">:</span>
-</span><span id="load_plugins-87"><a href="#load_plugins-87"><span class="linenos">87</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入失败 </span><span class="se">\&quot;</span><span class="s2">&lt;y&gt;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">&lt;/y&gt;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="load_plugins-81"><a href="#load_plugins-81"><span class="linenos">81</span></a>
+</span><span id="load_plugins-82"><a href="#load_plugins-82"><span class="linenos">82</span></a>        <span class="n">load_plugin</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -552,14 +546,18 @@
 
     </div>
     <a class="headerlink" href="#load_plugin"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="load_plugin-90"><a href="#load_plugin-90"><span class="linenos">90</span></a><span class="k">def</span> <span class="nf">load_plugin</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-</span><span id="load_plugin-91"><a href="#load_plugin-91"><span class="linenos">91</span></a>    <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-</span><span id="load_plugin-92"><a href="#load_plugin-92"><span class="linenos">92</span></a>    <span class="n">name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">|/&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
-</span><span id="load_plugin-93"><a href="#load_plugin-93"><span class="linenos">93</span></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="load_plugin-94"><a href="#load_plugin-94"><span class="linenos">94</span></a>        <span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-</span><span id="load_plugin-95"><a href="#load_plugin-95"><span class="linenos">95</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入成功 </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="load_plugin-96"><a href="#load_plugin-96"><span class="linenos">96</span></a>    <span class="k">except</span><span class="p">:</span>
-</span><span id="load_plugin-97"><a href="#load_plugin-97"><span class="linenos">97</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入失败 </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="load_plugin-85"><a href="#load_plugin-85"><span class="linenos">85</span></a><span class="k">def</span> <span class="nf">load_plugin</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+</span><span id="load_plugin-86"><a href="#load_plugin-86"><span class="linenos">86</span></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+</span><span id="load_plugin-87"><a href="#load_plugin-87"><span class="linenos">87</span></a>        <span class="n">p</span> <span class="o">=</span> <span class="n">path</span>
+</span><span id="load_plugin-88"><a href="#load_plugin-88"><span class="linenos">88</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="load_plugin-89"><a href="#load_plugin-89"><span class="linenos">89</span></a>        <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</span><span id="load_plugin-90"><a href="#load_plugin-90"><span class="linenos">90</span></a>
+</span><span id="load_plugin-91"><a href="#load_plugin-91"><span class="linenos">91</span></a>    <span class="n">name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">|/&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+</span><span id="load_plugin-92"><a href="#load_plugin-92"><span class="linenos">92</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="load_plugin-93"><a href="#load_plugin-93"><span class="linenos">93</span></a>        <span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</span><span id="load_plugin-94"><a href="#load_plugin-94"><span class="linenos">94</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入成功 </span><span class="se">\&quot;</span><span class="s2">&lt;y&gt;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">&lt;/y&gt;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="load_plugin-95"><a href="#load_plugin-95"><span class="linenos">95</span></a>    <span class="k">except</span><span class="p">:</span>
+</span><span id="load_plugin-96"><a href="#load_plugin-96"><span class="linenos">96</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;导入失败 </span><span class="se">\&quot;</span><span class="s2">&lt;y&gt;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">&lt;/y&gt;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -578,35 +576,35 @@
 
     </div>
     <a class="headerlink" href="#endpoint"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="endpoint-100"><a href="#endpoint-100"><span class="linenos">100</span></a><span class="nd">@app</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/onebot/v11/ws&quot;</span><span class="p">)</span>
-</span><span id="endpoint-101"><a href="#endpoint-101"><span class="linenos">101</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
-</span><span id="endpoint-102"><a href="#endpoint-102"><span class="linenos">102</span></a>    <span class="n">self_id</span> <span class="o">=</span> <span class="n">websocket</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x-self-id&quot;</span><span class="p">)</span>
-</span><span id="endpoint-103"><a href="#endpoint-103"><span class="linenos">103</span></a>    <span class="n">ws</span> <span class="o">=</span> <span class="n">FastAPIWebSocket</span><span class="p">(</span><span class="n">websocket</span><span class="p">)</span>
-</span><span id="endpoint-104"><a href="#endpoint-104"><span class="linenos">104</span></a>    <span class="n">bot</span> <span class="o">=</span> <span class="n">Bot</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">self_id</span><span class="p">)</span>
-</span><span id="endpoint-105"><a href="#endpoint-105"><span class="linenos">105</span></a>
-</span><span id="endpoint-106"><a href="#endpoint-106"><span class="linenos">106</span></a>    <span class="c1"># 建立ws连接</span>
-</span><span id="endpoint-107"><a href="#endpoint-107"><span class="linenos">107</span></a>    <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
-</span><span id="endpoint-108"><a href="#endpoint-108"><span class="linenos">108</span></a>    <span class="k">await</span> <span class="n">driver</span><span class="o">.</span><span class="n">bot_connect</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
-</span><span id="endpoint-109"><a href="#endpoint-109"><span class="linenos">109</span></a>
-</span><span id="endpoint-110"><a href="#endpoint-110"><span class="linenos">110</span></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="endpoint-111"><a href="#endpoint-111"><span class="linenos">111</span></a>        <span class="c1"># 监听循环</span>
-</span><span id="endpoint-112"><a href="#endpoint-112"><span class="linenos">112</span></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-</span><span id="endpoint-113"><a href="#endpoint-113"><span class="linenos">113</span></a>            <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
-</span><span id="endpoint-114"><a href="#endpoint-114"><span class="linenos">114</span></a>            <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span id="endpoint-115"><a href="#endpoint-115"><span class="linenos">115</span></a>            <span class="c1"># 将json解析为对应的event</span>
-</span><span id="endpoint-116"><a href="#endpoint-116"><span class="linenos">116</span></a>            <span class="n">event</span> <span class="o">=</span> <span class="n">json_to_event</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
-</span><span id="endpoint-117"><a href="#endpoint-117"><span class="linenos">117</span></a>
-</span><span id="endpoint-118"><a href="#endpoint-118"><span class="linenos">118</span></a>            <span class="k">if</span> <span class="ow">not</span> <span class="n">event</span><span class="p">:</span>
-</span><span id="endpoint-119"><a href="#endpoint-119"><span class="linenos">119</span></a>                <span class="k">continue</span>
-</span><span id="endpoint-120"><a href="#endpoint-120"><span class="linenos">120</span></a>
-</span><span id="endpoint-121"><a href="#endpoint-121"><span class="linenos">121</span></a>            <span class="n">driver</span><span class="o">.</span><span class="n">deal</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
-</span><span id="endpoint-122"><a href="#endpoint-122"><span class="linenos">122</span></a>
-</span><span id="endpoint-123"><a href="#endpoint-123"><span class="linenos">123</span></a>    <span class="k">except</span><span class="p">:</span>
-</span><span id="endpoint-124"><a href="#endpoint-124"><span class="linenos">124</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;连接中断&quot;</span><span class="p">)</span>
-</span><span id="endpoint-125"><a href="#endpoint-125"><span class="linenos">125</span></a>    <span class="k">finally</span><span class="p">:</span>
-</span><span id="endpoint-126"><a href="#endpoint-126"><span class="linenos">126</span></a>        <span class="c1"># 结束ws连接</span>
-</span><span id="endpoint-127"><a href="#endpoint-127"><span class="linenos">127</span></a>        <span class="k">await</span> <span class="n">driver</span><span class="o">.</span><span class="n">bot_disconnect</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
-</span><span id="endpoint-128"><a href="#endpoint-128"><span class="linenos">128</span></a>        <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="endpoint-99"><a href="#endpoint-99"><span class="linenos"> 99</span></a><span class="nd">@app</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/onebot/v11/ws&quot;</span><span class="p">)</span>
+</span><span id="endpoint-100"><a href="#endpoint-100"><span class="linenos">100</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
+</span><span id="endpoint-101"><a href="#endpoint-101"><span class="linenos">101</span></a>    <span class="n">self_id</span> <span class="o">=</span> <span class="n">websocket</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;x-self-id&quot;</span><span class="p">)</span>
+</span><span id="endpoint-102"><a href="#endpoint-102"><span class="linenos">102</span></a>    <span class="n">ws</span> <span class="o">=</span> <span class="n">FastAPIWebSocket</span><span class="p">(</span><span class="n">websocket</span><span class="p">)</span>
+</span><span id="endpoint-103"><a href="#endpoint-103"><span class="linenos">103</span></a>    <span class="n">bot</span> <span class="o">=</span> <span class="n">Bot</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">self_id</span><span class="p">)</span>
+</span><span id="endpoint-104"><a href="#endpoint-104"><span class="linenos">104</span></a>
+</span><span id="endpoint-105"><a href="#endpoint-105"><span class="linenos">105</span></a>    <span class="c1"># 建立ws连接</span>
+</span><span id="endpoint-106"><a href="#endpoint-106"><span class="linenos">106</span></a>    <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+</span><span id="endpoint-107"><a href="#endpoint-107"><span class="linenos">107</span></a>    <span class="k">await</span> <span class="n">driver</span><span class="o">.</span><span class="n">bot_connect</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+</span><span id="endpoint-108"><a href="#endpoint-108"><span class="linenos">108</span></a>
+</span><span id="endpoint-109"><a href="#endpoint-109"><span class="linenos">109</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="endpoint-110"><a href="#endpoint-110"><span class="linenos">110</span></a>        <span class="c1"># 监听循环</span>
+</span><span id="endpoint-111"><a href="#endpoint-111"><span class="linenos">111</span></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span id="endpoint-112"><a href="#endpoint-112"><span class="linenos">112</span></a>            <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
+</span><span id="endpoint-113"><a href="#endpoint-113"><span class="linenos">113</span></a>            <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="endpoint-114"><a href="#endpoint-114"><span class="linenos">114</span></a>            <span class="c1"># 将json解析为对应的event</span>
+</span><span id="endpoint-115"><a href="#endpoint-115"><span class="linenos">115</span></a>            <span class="n">event</span> <span class="o">=</span> <span class="n">json_to_event</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+</span><span id="endpoint-116"><a href="#endpoint-116"><span class="linenos">116</span></a>
+</span><span id="endpoint-117"><a href="#endpoint-117"><span class="linenos">117</span></a>            <span class="k">if</span> <span class="ow">not</span> <span class="n">event</span><span class="p">:</span>
+</span><span id="endpoint-118"><a href="#endpoint-118"><span class="linenos">118</span></a>                <span class="k">continue</span>
+</span><span id="endpoint-119"><a href="#endpoint-119"><span class="linenos">119</span></a>
+</span><span id="endpoint-120"><a href="#endpoint-120"><span class="linenos">120</span></a>            <span class="n">driver</span><span class="o">.</span><span class="n">deal</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+</span><span id="endpoint-121"><a href="#endpoint-121"><span class="linenos">121</span></a>
+</span><span id="endpoint-122"><a href="#endpoint-122"><span class="linenos">122</span></a>    <span class="k">except</span><span class="p">:</span>
+</span><span id="endpoint-123"><a href="#endpoint-123"><span class="linenos">123</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;连接中断&quot;</span><span class="p">)</span>
+</span><span id="endpoint-124"><a href="#endpoint-124"><span class="linenos">124</span></a>    <span class="k">finally</span><span class="p">:</span>
+</span><span id="endpoint-125"><a href="#endpoint-125"><span class="linenos">125</span></a>        <span class="c1"># 结束ws连接</span>
+</span><span id="endpoint-126"><a href="#endpoint-126"><span class="linenos">126</span></a>        <span class="k">await</span> <span class="n">driver</span><span class="o">.</span><span class="n">bot_disconnect</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
+</span><span id="endpoint-127"><a href="#endpoint-127"><span class="linenos">127</span></a>        <span class="k">await</span> <span class="n">ws</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -624,8 +622,8 @@
 
     </div>
     <a class="headerlink" href="#get_driver"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_driver-131"><a href="#get_driver-131"><span class="linenos">131</span></a><span class="k">def</span> <span class="nf">get_driver</span><span class="p">():</span>
-</span><span id="get_driver-132"><a href="#get_driver-132"><span class="linenos">132</span></a>    <span class="k">return</span> <span class="n">driver</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_driver-130"><a href="#get_driver-130"><span class="linenos">130</span></a><span class="k">def</span> <span class="nf">get_driver</span><span class="p">():</span>
+</span><span id="get_driver-131"><a href="#get_driver-131"><span class="linenos">131</span></a>    <span class="k">return</span> <span class="n">driver</span>
 </span></pre></div>
 
 
@@ -643,8 +641,8 @@
 
     </div>
     <a class="headerlink" href="#on_message"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="on_message-135"><a href="#on_message-135"><span class="linenos">135</span></a><span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="n">handlers</span><span class="p">):</span>
-</span><span id="on_message-136"><a href="#on_message-136"><span class="linenos">136</span></a>    <span class="n">driver</span><span class="o">.</span><span class="n">deal_event</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="on_message-134"><a href="#on_message-134"><span class="linenos">134</span></a><span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="n">handlers</span><span class="p">):</span>
+</span><span id="on_message-135"><a href="#on_message-135"><span class="linenos">135</span></a>    <span class="n">driver</span><span class="o">.</span><span class="n">deal_event</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </span></pre></div>
 
 

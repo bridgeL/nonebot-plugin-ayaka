@@ -1,3 +1,4 @@
+'''所有上下文变量'''
 from contextvars import ContextVar
 from collections import defaultdict
 from typing import List, TYPE_CHECKING, Dict

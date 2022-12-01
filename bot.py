@@ -1,43 +1,36 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+if 1:
+    # 通过ayaka启动
+    from ayaka.driver import load_plugins, load_plugin, get_driver, run
 
-# 读取bot类型
-import json
-from pathlib import Path
-bot_type = "nonebot"
-
-path = Path("ayaka_setting.json")
-if path.exists():
-    with path.open("r", encoding="utf8") as f:
-        data = json.load(f)
-        bot_type = data["__root__"]["bot_type"]
-
-# 根据bot类型加载对应方法
-if bot_type == "ayakabot":
-    from ayaka.driver.ayakabot import run, load_plugins, load_plugin, get_driver
     driver = get_driver()
+    reload = getattr(driver.config, "fastapi_reload", True)
+    if not reload or __name__ == "__mp_main__":
+        # 加载插件
+        load_plugins("plugins")
+        # 加载测试环境
+        load_plugin("ayaka_test")
 
-if bot_type == "nonebot":
-    import nonebot
-    from nonebot import load_plugin, load_plugins, run
+    # 启动bot
+    if __name__ == "__main__":
+        run()
+
+else:
+    # 通过nonebot官方启动
+    from nonebot import init, get_asgi, load_plugins, load_plugin, get_driver, run
     from nonebot.adapters.onebot.v11 import Adapter
 
-    # 初始化nonebot
-    nonebot.init()
-    driver = nonebot.get_driver()
+    init()
+    app = get_asgi()
+    driver = get_driver()
     driver.register_adapter(Adapter)
-    app = nonebot.get_asgi()
+    reload = getattr(driver.config, "fastapi_reload", True)
+    if not reload or __name__ == "__mp_main__":
+        # 加载插件
+        load_plugins("plugins")
+        # 加载测试环境
+        load_plugin("ayaka_test")
 
-    def run():
-        nonebot.run(app=f"__mp_main__:app")
-
-# 加载插件
-reload = getattr(driver.config, "fastapi_reload", True)
-if not reload or __name__ == "__mp_main__":
-    load_plugins("plugins")
-    # 加载测试环境
-    load_plugin("ayaka_test")
-
-# 启动bot
-if __name__ == "__main__":
-    run()
+    if __name__ == "__main__":
+        run(app="__mp_main__:app")

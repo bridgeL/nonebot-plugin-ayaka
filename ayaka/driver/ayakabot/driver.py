@@ -77,23 +77,22 @@ def load_plugins(path):
     for p in path.iterdir():
         if p.name.startswith("_"):
             continue
-        
-        name = re.sub(r"\\|/", ".", str(p))
-        try:
-            import_module(name)
-            logger.opt(colors=True).success(f"导入成功 \"<y>{p.stem}</y>\"")
-        except:
-            logger.opt(colors=True).exception(f"导入失败 \"<y>{p.stem}</y>\"")
+
+        load_plugin(p)
 
 
 def load_plugin(path):
-    p = Path(path)
+    if isinstance(path, Path):
+        p = path
+    else:
+        p = Path(path)
+
     name = re.sub(r"\\|/", ".", str(p))
     try:
         import_module(name)
-        logger.success(f"导入成功 \"{name}\"")
+        logger.opt(colors=True).success(f"导入成功 \"<y>{p.stem}</y>\"")
     except:
-        logger.exception(f"导入失败 \"{name}\"")
+        logger.opt(colors=True).exception(f"导入失败 \"<y>{p.stem}</y>\"")
 
 
 @app.websocket("/onebot/v11/ws")

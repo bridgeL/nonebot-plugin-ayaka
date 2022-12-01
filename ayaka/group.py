@@ -1,7 +1,8 @@
+'''群组'''
 from typing import List, Dict, TYPE_CHECKING
 from pathlib import Path
 from .storage import AyakaPath
-from .config import AYAKA_DEBUG
+from .config import ayaka_root_config
 from .constant import app_list, group_list
 from .cache import AyakaCacheCtrl
 
@@ -58,7 +59,7 @@ class AyakaGroup:
 
         group_list.append(self)
 
-        if AYAKA_DEBUG:
+        if ayaka_root_config.debug:
             print(self)
 
     @property
