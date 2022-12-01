@@ -84,4 +84,3 @@ class Config(BaseConfig):
 
 ayaka_root_config = Config()
 ayaka_root_config.version = AYAKA_VERSION
-ayaka_root_config.force_update()
