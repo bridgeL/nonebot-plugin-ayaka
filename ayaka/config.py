@@ -18,7 +18,7 @@ with setting_filepath.open("r", encoding="utf8") as f:
     total_settings = json.load(f)
 
 
-class AyakaPluginConfigBaseBase(BaseModel):
+class AyakaPluginConfig(BaseModel):
     @classmethod
     def setup_app_name(cls, app_name):
         cls.app_name = app_name
@@ -43,10 +43,10 @@ class AyakaPluginConfigBaseBase(BaseModel):
 
 
 def create_ayaka_plugin_config_base(app_name):
-    class AyakaPluginConfigBase(AyakaPluginConfigBaseBase):
+    class _AyakaPluginConfig(AyakaPluginConfig):
         pass
-    AyakaPluginConfigBase.setup_app_name(app_name)
-    return AyakaPluginConfigBase
+    _AyakaPluginConfig.setup_app_name(app_name)
+    return _AyakaPluginConfig
 
 
 INIT_STATE = "init"
