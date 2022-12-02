@@ -4,13 +4,9 @@
         "prefix": "#",
         "separate": " ",
         "exclude_old_msg": true,
-        "use_playwright": true,
-        "owners": [
-            1
-        ],
-        "admins": [
-            2
-        ],
+        "use_playwright": false,
+        "owners": [],
+        "admins": [],
         "bot_type": "nonebot",
         "debug": false
     }
