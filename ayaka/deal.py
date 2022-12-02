@@ -119,11 +119,13 @@ def get_cmd(message: Message):
             first += str(m)
         else:
             break
+        
     if not first or not first.startswith(prefix):
         return ""
 
     if not sep:
         return first
+    
     first += sep
     return first.split(sep, 1)[0][len(prefix):]
 
