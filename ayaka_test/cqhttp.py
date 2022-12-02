@@ -17,6 +17,7 @@ def handle_message(message):
         return "".join(handle(m) for m in message)
     return str(message)
 
+
 @fake_qq.on_cqhttp("send_msg")
 async def _(echo: int, params: dict):
     message_type = params["message_type"]
@@ -82,3 +83,9 @@ async def get_msg(echo: int, params: dict):
         "time": 1667308483
     }
     await fake_qq.send_echo(echo, data)
+
+
+@fake_qq.on_cqhttp("delete_msg")
+async def delete_msg(echo: int, params: dict):
+    await fake_qq.send_echo(echo, params)
+    fake_qq.print(f"<r>Ayaka Bot</r>({bot_id}) 说：\n已撤回")

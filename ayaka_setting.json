@@ -4,7 +4,7 @@
         "prefix": "#",
         "separate": " ",
         "exclude_old_msg": true,
-        "use_playwright": false,
+        "use_playwright": true,
         "owners": [
             1
         ],
@@ -13,8 +13,5 @@
         ],
         "bot_type": "nonebot",
         "debug": false
-    },
-    "签到": {
-        "reward_money": 1000
     }
 }
