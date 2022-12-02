@@ -50,7 +50,7 @@ def create_ayaka_plugin_config_base(app_name):
 
 
 INIT_STATE = "init"
-AYAKA_VERSION = "0.4.5b0"
+AYAKA_VERSION = "0.4.5"
 
 
 BaseConfig = create_ayaka_plugin_config_base("__root__")

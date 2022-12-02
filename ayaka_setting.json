@@ -1,6 +1,6 @@
 {
     "__root__": {
-        "version": "0.4.5b0",
+        "version": "0.4.5",
         "prefix": "#",
         "separate": " ",
         "exclude_old_msg": true,

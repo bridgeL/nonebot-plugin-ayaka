@@ -24,9 +24,7 @@ class AyakaApp:
         
         for app in app_list:
             if app.name == name:
-                logger.warning(
-                    f"应用{app.name} 重复注册，已忽略注册时间更晚的应用！\n{app.path}(最早注册)\n{self.path}(被忽略)")
-                return
+                raise Exception(f"应用{app.name} 重复注册，已忽略注册时间更晚的应用！\n{app.path}(最早注册)\n{self.path}(被忽略)")
 
         self.name = name
         self.state = INIT_STATE
