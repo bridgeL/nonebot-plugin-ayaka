@@ -39,9 +39,6 @@ if ayaka_root_config.use_playwright:
 
     @driver.on_startup
     async def startup():
-        with open("test.log", "a+", encoding="utf8") as f:
-            d = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"[{d}] 记录时间  playwright init\n")
         print('''
 
     playwright init
@@ -58,9 +55,6 @@ if ayaka_root_config.use_playwright:
     @driver.on_shutdown
     async def shutdown():
         # 查bug 怀疑卡死原因是没有正确退出
-        with open("test.log", "a+", encoding="utf8") as f:
-            d = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"[{d}] 记录时间  playwright close\n")
         print('''
 
     playwright close

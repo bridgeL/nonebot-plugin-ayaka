@@ -74,6 +74,8 @@ class Config(BaseConfig):
     bot_type: Literal["nonebot", "ayakabot"] = "nonebot"
     # 是否处于调试模式
     debug: bool = False
+    # 端口号
+    ayaka_port: int = 19900
 
     @validator('separate')
     def name_must_contain_space(cls, v):

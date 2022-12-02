@@ -4,11 +4,11 @@ from ..config import ayaka_root_config
 
 # nonebot
 if ayaka_root_config.bot_type == "nonebot":
-    from .nonebot_driver import *
+    from .nonebot_driver import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent, get_driver, on_message, Event, load_plugin, load_plugins, run, DataclassEncoder
 
 # ayaka bot
 if ayaka_root_config.bot_type == "ayakabot":
-    from .ayakabot_driver import *
+    from .ayakabot_driver import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent, get_driver, on_message, Event, load_plugin, load_plugins, run, DataclassEncoder
 
 # 修改logger
 # ayakabot配置

@@ -10,12 +10,13 @@ import re
 from .bot import Bot
 from .event import json_to_event, MessageEvent
 from .websocket import FastAPIWebSocket
+from ...config import ayaka_root_config
 
 app = FastAPI()
 
 
 class Config:
-    port = 19900
+    port = ayaka_root_config.ayaka_port
     ayaka_prefix = "#"
     ayaka_separate = " "
     ayaka_exclude_old = True
@@ -64,6 +65,13 @@ driver = Driver()
 
 # 启动服务
 def run(host="127.0.0.1", port=driver.config.port, reload=True):
+    tip = f'''
+您目前正在使用AYAKA BOT！
+注意设置cqhttp连接配置为
+- 反向ws
+- ws://127.0.0.1:{port}/onebot/v11/ws
+'''
+    print(tip)
     uvicorn.run(
         app=f"{__name__}:app",
         host=host,

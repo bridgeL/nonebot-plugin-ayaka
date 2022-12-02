@@ -8,6 +8,7 @@
         "owners": [],
         "admins": [],
         "bot_type": "nonebot",
-        "debug": false
+        "debug": false,
+        "ayaka_port": 19901
     }
 }
