@@ -5,14 +5,14 @@ from pathlib import Path
 from loguru import logger
 from typing import List, Dict, Union
 
-from .ayaka_parser import parser
 from .config import INIT_STATE, ayaka_root_config, create_ayaka_plugin_config_base
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
-from .deal import deal_event
-from .group import get_group
 from .storage import AyakaStorage
-from .driver import on_message, MessageSegment
 from .on import AyakaOn, AyakaTimer, AyakaTrigger
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
+from .group import get_group
+from .driver import on_message, MessageSegment
+from .deal import deal_event
+from .ayaka_parser import parser
 
 
 class AyakaApp:

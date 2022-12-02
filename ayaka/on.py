@@ -19,7 +19,7 @@ class AyakaOn:
 
     def interval(self, gap: int, h=-1, m=-1, s=-1):
         '''在指定的时间点后循环触发'''
-        return self.on_timer(gap, h, m, s)
+        return self.timer(gap, h, m, s)
 
     def state(self, *states: str):
         '''注册有状态回调'''
@@ -28,14 +28,14 @@ class AyakaOn:
 
         def decorator(func):
             # 取出之前存的参数
-            return self.on_handle(func.cmds, states, False)(func)
+            return self.handle(func.cmds, states, False)(func)
         return decorator
 
     def idle(self, super=False):
         '''注册无状态回调'''
         def decorator(func):
             # 取出之前存的参数
-            return self.on_handle(func.cmds, None, super)(func)
+            return self.handle(func.cmds, None, super)(func)
         return decorator
 
     def command(self, *cmds: str):
@@ -50,7 +50,7 @@ class AyakaOn:
             return func
         return decorator
 
-    def on_handle(self, cmds: Union[List[str], str], states: Union[List[str], str], super: bool):
+    def handle(self, cmds: Union[List[str], str], states: Union[List[str], str], super: bool):
         '''注册'''
         cmds = ensure_list(cmds)
         states = ensure_list(states)
@@ -76,7 +76,7 @@ class AyakaOn:
             return func
         return decorator
 
-    def on_timer(self, gap: int, h: int, m: int, s: int):
+    def timer(self, gap: int, h: int, m: int, s: int):
         '''在指定的时间点后循环触发'''
         def decorator(func):
             t = AyakaTimer(self.app.name, gap, h, m, s, func)

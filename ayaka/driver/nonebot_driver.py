@@ -6,8 +6,7 @@ from ..config import ayaka_root_config
 
 try:
     import nonebot
-    get_driver()  # 判断nonebot是否已经初始化
-    app = nonebot.get_asgi()
+    driver = get_driver()  # 判断nonebot是否已经初始化
 except:
     import nonebot
     nonebot.init()
@@ -17,10 +16,12 @@ except:
     from nonebot.adapters.onebot.v11 import Adapter
     driver = nonebot.get_driver()
     driver.register_adapter(Adapter)
-    app = nonebot.get_asgi()
 
-    # 传递端口号
-    ayaka_root_config.ayaka_port = driver.config.port
+# 得到app
+app = nonebot.get_asgi()
+
+# 传递端口号
+ayaka_root_config.ayaka_port = driver.config.port
 
 
 def run():
