@@ -54,26 +54,34 @@
 
                         <label class="view-source-button" for="mod-nonebot_driver-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">from</span> <span class="nn">nonebot.adapters.onebot.v11</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">MessageSegment</span><span class="p">,</span> <span class="n">Bot</span><span class="p">,</span> <span class="n">MessageEvent</span><span class="p">,</span> <span class="n">GroupMessageEvent</span><span class="p">,</span> <span class="n">Event</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">from</span> <span class="nn">nonebot</span> <span class="kn">import</span> <span class="n">get_driver</span><span class="p">,</span> <span class="n">on_message</span><span class="p">,</span> <span class="n">load_plugins</span><span class="p">,</span> <span class="n">load_plugin</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">nonebot.utils</span> <span class="kn">import</span> <span class="n">DataclassEncoder</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="k">try</span><span class="p">:</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>    <span class="kn">import</span> <span class="nn">nonebot</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>    <span class="n">get_driver</span><span class="p">()</span> <span class="c1"># 判断nonebot是否已经初始化</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">nonebot</span><span class="o">.</span><span class="n">get_asgi</span><span class="p">()</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="k">except</span><span class="p">:</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>    <span class="kn">import</span> <span class="nn">nonebot</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="kn">from</span> <span class="nn">nonebot.adapters.onebot.v11</span> <span class="kn">import</span> <span class="n">Adapter</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>    <span class="n">nonebot</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="n">driver</span> <span class="o">=</span> <span class="n">nonebot</span><span class="o">.</span><span class="n">get_driver</span><span class="p">()</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="n">driver</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span><span class="n">Adapter</span><span class="p">)</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">nonebot</span><span class="o">.</span><span class="n">get_asgi</span><span class="p">()</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="k">def</span> <span class="nf">run</span><span class="p">():</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="kn">import</span> <span class="nn">nonebot</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="n">nonebot</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">:app&quot;</span><span class="p">)</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">from</span> <span class="nn">loguru</span> <span class="kn">import</span> <span class="n">logger</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">from</span> <span class="nn">nonebot.adapters.onebot.v11</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">MessageSegment</span><span class="p">,</span> <span class="n">Bot</span><span class="p">,</span> <span class="n">MessageEvent</span><span class="p">,</span> <span class="n">GroupMessageEvent</span><span class="p">,</span> <span class="n">Event</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">nonebot</span> <span class="kn">import</span> <span class="n">get_driver</span><span class="p">,</span> <span class="n">on_message</span><span class="p">,</span> <span class="n">load_plugins</span><span class="p">,</span> <span class="n">load_plugin</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">from</span> <span class="nn">nonebot.utils</span> <span class="kn">import</span> <span class="n">DataclassEncoder</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span> <span class="nn">..config</span> <span class="kn">import</span> <span class="n">ayaka_root_config</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="k">try</span><span class="p">:</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="kn">import</span> <span class="nn">nonebot</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>    <span class="n">get_driver</span><span class="p">()</span>  <span class="c1"># 判断nonebot是否已经初始化</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">nonebot</span><span class="o">.</span><span class="n">get_asgi</span><span class="p">()</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="k">except</span><span class="p">:</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>    <span class="kn">import</span> <span class="nn">nonebot</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="n">nonebot</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;由于ayaka在nonebot初始化前被调用，ayaka内部已自动完成nonebot的初始化工作&quot;</span><span class="p">)</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="c1"># 默认使用OnebotV11适配器</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="kn">from</span> <span class="nn">nonebot.adapters.onebot.v11</span> <span class="kn">import</span> <span class="n">Adapter</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>    <span class="n">driver</span> <span class="o">=</span> <span class="n">nonebot</span><span class="o">.</span><span class="n">get_driver</span><span class="p">()</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="n">driver</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span><span class="n">Adapter</span><span class="p">)</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="n">app</span> <span class="o">=</span> <span class="n">nonebot</span><span class="o">.</span><span class="n">get_asgi</span><span class="p">()</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    <span class="c1"># 传递端口号</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="n">ayaka_root_config</span><span class="o">.</span><span class="n">ayaka_port</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">port</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="k">def</span> <span class="nf">run</span><span class="p">():</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>    <span class="kn">import</span> <span class="nn">nonebot</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>    <span class="n">nonebot</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">:app&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -89,9 +97,9 @@
 
     </div>
     <a class="headerlink" href="#run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="run-19"><a href="#run-19"><span class="linenos">19</span></a><span class="k">def</span> <span class="nf">run</span><span class="p">():</span>
-</span><span id="run-20"><a href="#run-20"><span class="linenos">20</span></a>    <span class="kn">import</span> <span class="nn">nonebot</span>
-</span><span id="run-21"><a href="#run-21"><span class="linenos">21</span></a>    <span class="n">nonebot</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">:app&quot;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="run-27"><a href="#run-27"><span class="linenos">27</span></a><span class="k">def</span> <span class="nf">run</span><span class="p">():</span>
+</span><span id="run-28"><a href="#run-28"><span class="linenos">28</span></a>    <span class="kn">import</span> <span class="nn">nonebot</span>
+</span><span id="run-29"><a href="#run-29"><span class="linenos">29</span></a>    <span class="n">nonebot</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">:app&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 

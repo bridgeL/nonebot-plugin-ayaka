@@ -27,10 +27,18 @@
                    pattern=".+" required>
 
 
-
-        <h2>API Documentation</h2>
-            <ul class="memberlist">
-    </ul>
+        <h2>Submodules</h2>
+        <ul>
+                <li><a href="ayakabot_driver/bot.html">bot</a></li>
+                <li><a href="ayakabot_driver/driver.html">driver</a></li>
+                <li><a href="ayakabot_driver/event.html">event</a></li>
+                <li><a href="ayakabot_driver/message.html">message</a></li>
+                <li><a href="ayakabot_driver/model.html">model</a></li>
+                <li><a href="ayakabot_driver/result.html">result</a></li>
+                <li><a href="ayakabot_driver/template.html">template</a></li>
+                <li><a href="ayakabot_driver/utils.html">utils</a></li>
+                <li><a href="ayakabot_driver/websocket.html">websocket</a></li>
+        </ul>
 
 
 
@@ -46,23 +54,21 @@
                     <h1 class="modulename">
 <a href="./../../ayaka.html">ayaka</a><wbr>.<a href="./../driver.html">driver</a><wbr>.ayakabot_driver    </h1>
 
-                
+                        <div class="docstring"><p>ayakabot</p>
+</div>
+
                         <input id="mod-ayakabot_driver-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-ayakabot_driver-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="c1"># 无缝切换ayaka bot</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">from</span> <span class="nn">.ayakabot</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">MessageSegment</span><span class="p">,</span> <span class="n">Bot</span><span class="p">,</span> <span class="n">MessageEvent</span><span class="p">,</span> <span class="n">GroupMessageEvent</span><span class="p">,</span> <span class="n">get_driver</span><span class="p">,</span> <span class="n">on_message</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">load_plugin</span><span class="p">,</span> <span class="n">load_plugins</span><span class="p">,</span> <span class="n">run</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">.ayakabot.model</span> <span class="kn">import</span> <span class="n">DataclassEncoder</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="n">tip</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="s1">您目前正在使用AYAKA BOT！</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="s1">注意设置cqhttp连接配置为</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="s1">- 反向ws</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="s1">- ws://127.0.0.1:19900/onebot/v11/ws</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="s1">&#39;&#39;&#39;</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="nb">print</span><span class="p">(</span><span class="n">tip</span><span class="p">)</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="sd">&#39;&#39;&#39;ayakabot&#39;&#39;&#39;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">2</span></a><span class="kn">from</span> <span class="nn">.bot</span> <span class="kn">import</span> <span class="n">Bot</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">3</span></a><span class="kn">from</span> <span class="nn">.event</span> <span class="kn">import</span> <span class="n">json_to_event</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">GroupMessageEvent</span><span class="p">,</span> <span class="n">MessageEvent</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">4</span></a><span class="kn">from</span> <span class="nn">.websocket</span> <span class="kn">import</span> <span class="n">FastAPIWebSocket</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">5</span></a><span class="kn">from</span> <span class="nn">.message</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">MessageSegment</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">6</span></a><span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">escape</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">7</span></a><span class="kn">from</span> <span class="nn">.driver</span> <span class="kn">import</span> <span class="n">get_driver</span><span class="p">,</span> <span class="n">on_message</span><span class="p">,</span> <span class="n">run</span><span class="p">,</span> <span class="n">load_plugins</span><span class="p">,</span> <span class="n">load_plugin</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">8</span></a><span class="kn">from</span> <span class="nn">.model</span> <span class="kn">import</span> <span class="n">DataclassEncoder</span>
 </span></pre></div>
 
 
