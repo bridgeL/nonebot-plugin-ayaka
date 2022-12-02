@@ -4,7 +4,7 @@
 
 适用于[nonebot2机器人](https://github.com/nonebot/nonebot2)的文字游戏开发辅助插件 
 
-<img src="https://img.shields.io/badge/python-3.8%2B-blue">
+<img src="https://img.shields.io/pypi/pyversions/nonebot-plugin-ayaka">
 
 </div>
 
