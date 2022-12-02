@@ -31,16 +31,16 @@
         <h2>API Documentation</h2>
             <ul class="memberlist">
             <li>
-                    <a class="class" href="#AyakaPluginConfigBaseBase">AyakaPluginConfigBaseBase</a>
+                    <a class="class" href="#AyakaPluginConfig">AyakaPluginConfig</a>
                             <ul class="memberlist">
                         <li>
-                                <a class="function" href="#AyakaPluginConfigBaseBase.__init__">AyakaPluginConfigBaseBase</a>
+                                <a class="function" href="#AyakaPluginConfig.__init__">AyakaPluginConfig</a>
                         </li>
                         <li>
-                                <a class="function" href="#AyakaPluginConfigBaseBase.setup_app_name">setup_app_name</a>
+                                <a class="function" href="#AyakaPluginConfig.setup_app_name">setup_app_name</a>
                         </li>
                         <li>
-                                <a class="function" href="#AyakaPluginConfigBaseBase.force_update">force_update</a>
+                                <a class="function" href="#AyakaPluginConfig.force_update">force_update</a>
                         </li>
                 </ul>
 
@@ -100,7 +100,7 @@
 </span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>    <span class="n">total_settings</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>
 </span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="k">class</span> <span class="nc">AyakaPluginConfigBaseBase</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="k">class</span> <span class="nc">AyakaPluginConfig</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    <span class="nd">@classmethod</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="k">def</span> <span class="nf">setup_app_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">app_name</span><span class="p">):</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>        <span class="bp">cls</span><span class="o">.</span><span class="n">app_name</span> <span class="o">=</span> <span class="n">app_name</span>
@@ -125,10 +125,10 @@
 </span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>
 </span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>
 </span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="k">def</span> <span class="nf">create_ayaka_plugin_config_base</span><span class="p">(</span><span class="n">app_name</span><span class="p">):</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="k">class</span> <span class="nc">AyakaPluginConfigBase</span><span class="p">(</span><span class="n">AyakaPluginConfigBaseBase</span><span class="p">):</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="k">class</span> <span class="nc">_AyakaPluginConfig</span><span class="p">(</span><span class="n">AyakaPluginConfig</span><span class="p">):</span>
 </span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>        <span class="k">pass</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="n">AyakaPluginConfigBase</span><span class="o">.</span><span class="n">setup_app_name</span><span class="p">(</span><span class="n">app_name</span><span class="p">)</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>    <span class="k">return</span> <span class="n">AyakaPluginConfigBase</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="n">_AyakaPluginConfig</span><span class="o">.</span><span class="n">setup_app_name</span><span class="p">(</span><span class="n">app_name</span><span class="p">)</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>    <span class="k">return</span> <span class="n">_AyakaPluginConfig</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>
 </span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>
 </span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="n">INIT_STATE</span> <span class="o">=</span> <span class="s2">&quot;init&quot;</span>
@@ -166,67 +166,66 @@
 </span><span id="L-84"><a href="#L-84"><span class="linenos">84</span></a>
 </span><span id="L-85"><a href="#L-85"><span class="linenos">85</span></a><span class="n">ayaka_root_config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 </span><span id="L-86"><a href="#L-86"><span class="linenos">86</span></a><span class="n">ayaka_root_config</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">AYAKA_VERSION</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos">87</span></a><span class="n">ayaka_root_config</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
 </span></pre></div>
 
 
             </section>
-                <section id="AyakaPluginConfigBaseBase">
-                            <input id="AyakaPluginConfigBaseBase-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                <section id="AyakaPluginConfig">
+                            <input id="AyakaPluginConfig-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr class">
             
     <span class="def">class</span>
-    <span class="name">AyakaPluginConfigBaseBase</span><wbr>(<span class="base">pydantic.main.BaseModel</span>):
+    <span class="name">AyakaPluginConfig</span><wbr>(<span class="base">pydantic.main.BaseModel</span>):
 
-                <label class="view-source-button" for="AyakaPluginConfigBaseBase-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="AyakaPluginConfig-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#AyakaPluginConfigBaseBase"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaPluginConfigBaseBase-22"><a href="#AyakaPluginConfigBaseBase-22"><span class="linenos">22</span></a><span class="k">class</span> <span class="nc">AyakaPluginConfigBaseBase</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="AyakaPluginConfigBaseBase-23"><a href="#AyakaPluginConfigBaseBase-23"><span class="linenos">23</span></a>    <span class="nd">@classmethod</span>
-</span><span id="AyakaPluginConfigBaseBase-24"><a href="#AyakaPluginConfigBaseBase-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="nf">setup_app_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">app_name</span><span class="p">):</span>
-</span><span id="AyakaPluginConfigBaseBase-25"><a href="#AyakaPluginConfigBaseBase-25"><span class="linenos">25</span></a>        <span class="bp">cls</span><span class="o">.</span><span class="n">app_name</span> <span class="o">=</span> <span class="n">app_name</span>
-</span><span id="AyakaPluginConfigBaseBase-26"><a href="#AyakaPluginConfigBaseBase-26"><span class="linenos">26</span></a>
-</span><span id="AyakaPluginConfigBaseBase-27"><a href="#AyakaPluginConfigBaseBase-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="AyakaPluginConfigBaseBase-28"><a href="#AyakaPluginConfigBaseBase-28"><span class="linenos">28</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="AyakaPluginConfigBaseBase-29"><a href="#AyakaPluginConfigBaseBase-29"><span class="linenos">29</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">total_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">,</span> <span class="p">{}))</span>
-</span><span id="AyakaPluginConfigBaseBase-30"><a href="#AyakaPluginConfigBaseBase-30"><span class="linenos">30</span></a>        <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span id="AyakaPluginConfigBaseBase-31"><a href="#AyakaPluginConfigBaseBase-31"><span class="linenos">31</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-</span><span id="AyakaPluginConfigBaseBase-32"><a href="#AyakaPluginConfigBaseBase-32"><span class="linenos">32</span></a>                <span class="sa">f</span><span class="s2">&quot;导入配置失败，请检查 ayaka_setting.json 中，</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="si">}</span><span class="s2">的配置是否正确&quot;</span><span class="p">)</span>
-</span><span id="AyakaPluginConfigBaseBase-33"><a href="#AyakaPluginConfigBaseBase-33"><span class="linenos">33</span></a>            <span class="k">raise</span> <span class="n">e</span>
-</span><span id="AyakaPluginConfigBaseBase-34"><a href="#AyakaPluginConfigBaseBase-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
-</span><span id="AyakaPluginConfigBaseBase-35"><a href="#AyakaPluginConfigBaseBase-35"><span class="linenos">35</span></a>
-</span><span id="AyakaPluginConfigBaseBase-36"><a href="#AyakaPluginConfigBaseBase-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-</span><span id="AyakaPluginConfigBaseBase-37"><a href="#AyakaPluginConfigBaseBase-37"><span class="linenos">37</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-</span><span id="AyakaPluginConfigBaseBase-38"><a href="#AyakaPluginConfigBaseBase-38"><span class="linenos">38</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
-</span><span id="AyakaPluginConfigBaseBase-39"><a href="#AyakaPluginConfigBaseBase-39"><span class="linenos">39</span></a>
-</span><span id="AyakaPluginConfigBaseBase-40"><a href="#AyakaPluginConfigBaseBase-40"><span class="linenos">40</span></a>    <span class="k">def</span> <span class="nf">force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="AyakaPluginConfigBaseBase-41"><a href="#AyakaPluginConfigBaseBase-41"><span class="linenos">41</span></a>        <span class="n">total_settings</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
-</span><span id="AyakaPluginConfigBaseBase-42"><a href="#AyakaPluginConfigBaseBase-42"><span class="linenos">42</span></a>        <span class="k">with</span> <span class="n">setting_filepath</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="AyakaPluginConfigBaseBase-43"><a href="#AyakaPluginConfigBaseBase-43"><span class="linenos">43</span></a>            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">total_settings</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <a class="headerlink" href="#AyakaPluginConfig"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaPluginConfig-22"><a href="#AyakaPluginConfig-22"><span class="linenos">22</span></a><span class="k">class</span> <span class="nc">AyakaPluginConfig</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="AyakaPluginConfig-23"><a href="#AyakaPluginConfig-23"><span class="linenos">23</span></a>    <span class="nd">@classmethod</span>
+</span><span id="AyakaPluginConfig-24"><a href="#AyakaPluginConfig-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="nf">setup_app_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">app_name</span><span class="p">):</span>
+</span><span id="AyakaPluginConfig-25"><a href="#AyakaPluginConfig-25"><span class="linenos">25</span></a>        <span class="bp">cls</span><span class="o">.</span><span class="n">app_name</span> <span class="o">=</span> <span class="n">app_name</span>
+</span><span id="AyakaPluginConfig-26"><a href="#AyakaPluginConfig-26"><span class="linenos">26</span></a>
+</span><span id="AyakaPluginConfig-27"><a href="#AyakaPluginConfig-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="AyakaPluginConfig-28"><a href="#AyakaPluginConfig-28"><span class="linenos">28</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="AyakaPluginConfig-29"><a href="#AyakaPluginConfig-29"><span class="linenos">29</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">total_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">,</span> <span class="p">{}))</span>
+</span><span id="AyakaPluginConfig-30"><a href="#AyakaPluginConfig-30"><span class="linenos">30</span></a>        <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span id="AyakaPluginConfig-31"><a href="#AyakaPluginConfig-31"><span class="linenos">31</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+</span><span id="AyakaPluginConfig-32"><a href="#AyakaPluginConfig-32"><span class="linenos">32</span></a>                <span class="sa">f</span><span class="s2">&quot;导入配置失败，请检查 ayaka_setting.json 中，</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="si">}</span><span class="s2">的配置是否正确&quot;</span><span class="p">)</span>
+</span><span id="AyakaPluginConfig-33"><a href="#AyakaPluginConfig-33"><span class="linenos">33</span></a>            <span class="k">raise</span> <span class="n">e</span>
+</span><span id="AyakaPluginConfig-34"><a href="#AyakaPluginConfig-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
+</span><span id="AyakaPluginConfig-35"><a href="#AyakaPluginConfig-35"><span class="linenos">35</span></a>
+</span><span id="AyakaPluginConfig-36"><a href="#AyakaPluginConfig-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+</span><span id="AyakaPluginConfig-37"><a href="#AyakaPluginConfig-37"><span class="linenos">37</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+</span><span id="AyakaPluginConfig-38"><a href="#AyakaPluginConfig-38"><span class="linenos">38</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
+</span><span id="AyakaPluginConfig-39"><a href="#AyakaPluginConfig-39"><span class="linenos">39</span></a>
+</span><span id="AyakaPluginConfig-40"><a href="#AyakaPluginConfig-40"><span class="linenos">40</span></a>    <span class="k">def</span> <span class="nf">force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="AyakaPluginConfig-41"><a href="#AyakaPluginConfig-41"><span class="linenos">41</span></a>        <span class="n">total_settings</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+</span><span id="AyakaPluginConfig-42"><a href="#AyakaPluginConfig-42"><span class="linenos">42</span></a>        <span class="k">with</span> <span class="n">setting_filepath</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="AyakaPluginConfig-43"><a href="#AyakaPluginConfig-43"><span class="linenos">43</span></a>            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">total_settings</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 </span></pre></div>
 
 
     
 
-                            <div id="AyakaPluginConfigBaseBase.__init__" class="classattr">
-                                        <input id="AyakaPluginConfigBaseBase.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                            <div id="AyakaPluginConfig.__init__" class="classattr">
+                                        <input id="AyakaPluginConfig.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
-        <span class="name">AyakaPluginConfigBaseBase</span><span class="signature pdoc-code condensed">()</span>
+        <span class="name">AyakaPluginConfig</span><span class="signature pdoc-code condensed">()</span>
 
-                <label class="view-source-button" for="AyakaPluginConfigBaseBase.__init__-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="AyakaPluginConfig.__init__-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#AyakaPluginConfigBaseBase.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaPluginConfigBaseBase.__init__-27"><a href="#AyakaPluginConfigBaseBase.__init__-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="AyakaPluginConfigBaseBase.__init__-28"><a href="#AyakaPluginConfigBaseBase.__init__-28"><span class="linenos">28</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="AyakaPluginConfigBaseBase.__init__-29"><a href="#AyakaPluginConfigBaseBase.__init__-29"><span class="linenos">29</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">total_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">,</span> <span class="p">{}))</span>
-</span><span id="AyakaPluginConfigBaseBase.__init__-30"><a href="#AyakaPluginConfigBaseBase.__init__-30"><span class="linenos">30</span></a>        <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span id="AyakaPluginConfigBaseBase.__init__-31"><a href="#AyakaPluginConfigBaseBase.__init__-31"><span class="linenos">31</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-</span><span id="AyakaPluginConfigBaseBase.__init__-32"><a href="#AyakaPluginConfigBaseBase.__init__-32"><span class="linenos">32</span></a>                <span class="sa">f</span><span class="s2">&quot;导入配置失败，请检查 ayaka_setting.json 中，</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="si">}</span><span class="s2">的配置是否正确&quot;</span><span class="p">)</span>
-</span><span id="AyakaPluginConfigBaseBase.__init__-33"><a href="#AyakaPluginConfigBaseBase.__init__-33"><span class="linenos">33</span></a>            <span class="k">raise</span> <span class="n">e</span>
-</span><span id="AyakaPluginConfigBaseBase.__init__-34"><a href="#AyakaPluginConfigBaseBase.__init__-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
+    <a class="headerlink" href="#AyakaPluginConfig.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaPluginConfig.__init__-27"><a href="#AyakaPluginConfig.__init__-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="AyakaPluginConfig.__init__-28"><a href="#AyakaPluginConfig.__init__-28"><span class="linenos">28</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="AyakaPluginConfig.__init__-29"><a href="#AyakaPluginConfig.__init__-29"><span class="linenos">29</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">total_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">,</span> <span class="p">{}))</span>
+</span><span id="AyakaPluginConfig.__init__-30"><a href="#AyakaPluginConfig.__init__-30"><span class="linenos">30</span></a>        <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span id="AyakaPluginConfig.__init__-31"><a href="#AyakaPluginConfig.__init__-31"><span class="linenos">31</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+</span><span id="AyakaPluginConfig.__init__-32"><a href="#AyakaPluginConfig.__init__-32"><span class="linenos">32</span></a>                <span class="sa">f</span><span class="s2">&quot;导入配置失败，请检查 ayaka_setting.json 中，</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="si">}</span><span class="s2">的配置是否正确&quot;</span><span class="p">)</span>
+</span><span id="AyakaPluginConfig.__init__-33"><a href="#AyakaPluginConfig.__init__-33"><span class="linenos">33</span></a>            <span class="k">raise</span> <span class="n">e</span>
+</span><span id="AyakaPluginConfig.__init__-34"><a href="#AyakaPluginConfig.__init__-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -237,42 +236,42 @@
 
 
                             </div>
-                            <div id="AyakaPluginConfigBaseBase.setup_app_name" class="classattr">
-                                        <input id="AyakaPluginConfigBaseBase.setup_app_name-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                            <div id="AyakaPluginConfig.setup_app_name" class="classattr">
+                                        <input id="AyakaPluginConfig.setup_app_name-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
                     <div class="decorator">@classmethod</div>
 
         <span class="def">def</span>
         <span class="name">setup_app_name</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">app_name</span></span><span class="return-annotation">):</span></span>
 
-                <label class="view-source-button" for="AyakaPluginConfigBaseBase.setup_app_name-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="AyakaPluginConfig.setup_app_name-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#AyakaPluginConfigBaseBase.setup_app_name"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaPluginConfigBaseBase.setup_app_name-23"><a href="#AyakaPluginConfigBaseBase.setup_app_name-23"><span class="linenos">23</span></a>    <span class="nd">@classmethod</span>
-</span><span id="AyakaPluginConfigBaseBase.setup_app_name-24"><a href="#AyakaPluginConfigBaseBase.setup_app_name-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="nf">setup_app_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">app_name</span><span class="p">):</span>
-</span><span id="AyakaPluginConfigBaseBase.setup_app_name-25"><a href="#AyakaPluginConfigBaseBase.setup_app_name-25"><span class="linenos">25</span></a>        <span class="bp">cls</span><span class="o">.</span><span class="n">app_name</span> <span class="o">=</span> <span class="n">app_name</span>
+    <a class="headerlink" href="#AyakaPluginConfig.setup_app_name"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaPluginConfig.setup_app_name-23"><a href="#AyakaPluginConfig.setup_app_name-23"><span class="linenos">23</span></a>    <span class="nd">@classmethod</span>
+</span><span id="AyakaPluginConfig.setup_app_name-24"><a href="#AyakaPluginConfig.setup_app_name-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="nf">setup_app_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">app_name</span><span class="p">):</span>
+</span><span id="AyakaPluginConfig.setup_app_name-25"><a href="#AyakaPluginConfig.setup_app_name-25"><span class="linenos">25</span></a>        <span class="bp">cls</span><span class="o">.</span><span class="n">app_name</span> <span class="o">=</span> <span class="n">app_name</span>
 </span></pre></div>
 
 
     
 
                             </div>
-                            <div id="AyakaPluginConfigBaseBase.force_update" class="classattr">
-                                        <input id="AyakaPluginConfigBaseBase.force_update-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                            <div id="AyakaPluginConfig.force_update" class="classattr">
+                                        <input id="AyakaPluginConfig.force_update-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
         <span class="def">def</span>
         <span class="name">force_update</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">):</span></span>
 
-                <label class="view-source-button" for="AyakaPluginConfigBaseBase.force_update-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="AyakaPluginConfig.force_update-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#AyakaPluginConfigBaseBase.force_update"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaPluginConfigBaseBase.force_update-40"><a href="#AyakaPluginConfigBaseBase.force_update-40"><span class="linenos">40</span></a>    <span class="k">def</span> <span class="nf">force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="AyakaPluginConfigBaseBase.force_update-41"><a href="#AyakaPluginConfigBaseBase.force_update-41"><span class="linenos">41</span></a>        <span class="n">total_settings</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
-</span><span id="AyakaPluginConfigBaseBase.force_update-42"><a href="#AyakaPluginConfigBaseBase.force_update-42"><span class="linenos">42</span></a>        <span class="k">with</span> <span class="n">setting_filepath</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="AyakaPluginConfigBaseBase.force_update-43"><a href="#AyakaPluginConfigBaseBase.force_update-43"><span class="linenos">43</span></a>            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">total_settings</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <a class="headerlink" href="#AyakaPluginConfig.force_update"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaPluginConfig.force_update-40"><a href="#AyakaPluginConfig.force_update-40"><span class="linenos">40</span></a>    <span class="k">def</span> <span class="nf">force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="AyakaPluginConfig.force_update-41"><a href="#AyakaPluginConfig.force_update-41"><span class="linenos">41</span></a>        <span class="n">total_settings</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+</span><span id="AyakaPluginConfig.force_update-42"><a href="#AyakaPluginConfig.force_update-42"><span class="linenos">42</span></a>        <span class="k">with</span> <span class="n">setting_filepath</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="AyakaPluginConfig.force_update-43"><a href="#AyakaPluginConfig.force_update-43"><span class="linenos">43</span></a>            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">total_settings</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -283,18 +282,18 @@
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt>pydantic.main.BaseModel</dt>
-                                <dd id="AyakaPluginConfigBaseBase.dict" class="function">dict</dd>
-                <dd id="AyakaPluginConfigBaseBase.json" class="function">json</dd>
-                <dd id="AyakaPluginConfigBaseBase.parse_obj" class="function">parse_obj</dd>
-                <dd id="AyakaPluginConfigBaseBase.parse_raw" class="function">parse_raw</dd>
-                <dd id="AyakaPluginConfigBaseBase.parse_file" class="function">parse_file</dd>
-                <dd id="AyakaPluginConfigBaseBase.from_orm" class="function">from_orm</dd>
-                <dd id="AyakaPluginConfigBaseBase.construct" class="function">construct</dd>
-                <dd id="AyakaPluginConfigBaseBase.copy" class="function">copy</dd>
-                <dd id="AyakaPluginConfigBaseBase.schema" class="function">schema</dd>
-                <dd id="AyakaPluginConfigBaseBase.schema_json" class="function">schema_json</dd>
-                <dd id="AyakaPluginConfigBaseBase.validate" class="function">validate</dd>
-                <dd id="AyakaPluginConfigBaseBase.update_forward_refs" class="function">update_forward_refs</dd>
+                                <dd id="AyakaPluginConfig.dict" class="function">dict</dd>
+                <dd id="AyakaPluginConfig.json" class="function">json</dd>
+                <dd id="AyakaPluginConfig.parse_obj" class="function">parse_obj</dd>
+                <dd id="AyakaPluginConfig.parse_raw" class="function">parse_raw</dd>
+                <dd id="AyakaPluginConfig.parse_file" class="function">parse_file</dd>
+                <dd id="AyakaPluginConfig.from_orm" class="function">from_orm</dd>
+                <dd id="AyakaPluginConfig.construct" class="function">construct</dd>
+                <dd id="AyakaPluginConfig.copy" class="function">copy</dd>
+                <dd id="AyakaPluginConfig.schema" class="function">schema</dd>
+                <dd id="AyakaPluginConfig.schema_json" class="function">schema_json</dd>
+                <dd id="AyakaPluginConfig.validate" class="function">validate</dd>
+                <dd id="AyakaPluginConfig.update_forward_refs" class="function">update_forward_refs</dd>
 
             </div>
                                 </dl>
@@ -312,10 +311,10 @@
     </div>
     <a class="headerlink" href="#create_ayaka_plugin_config_base"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="create_ayaka_plugin_config_base-46"><a href="#create_ayaka_plugin_config_base-46"><span class="linenos">46</span></a><span class="k">def</span> <span class="nf">create_ayaka_plugin_config_base</span><span class="p">(</span><span class="n">app_name</span><span class="p">):</span>
-</span><span id="create_ayaka_plugin_config_base-47"><a href="#create_ayaka_plugin_config_base-47"><span class="linenos">47</span></a>    <span class="k">class</span> <span class="nc">AyakaPluginConfigBase</span><span class="p">(</span><span class="n">AyakaPluginConfigBaseBase</span><span class="p">):</span>
+</span><span id="create_ayaka_plugin_config_base-47"><a href="#create_ayaka_plugin_config_base-47"><span class="linenos">47</span></a>    <span class="k">class</span> <span class="nc">_AyakaPluginConfig</span><span class="p">(</span><span class="n">AyakaPluginConfig</span><span class="p">):</span>
 </span><span id="create_ayaka_plugin_config_base-48"><a href="#create_ayaka_plugin_config_base-48"><span class="linenos">48</span></a>        <span class="k">pass</span>
-</span><span id="create_ayaka_plugin_config_base-49"><a href="#create_ayaka_plugin_config_base-49"><span class="linenos">49</span></a>    <span class="n">AyakaPluginConfigBase</span><span class="o">.</span><span class="n">setup_app_name</span><span class="p">(</span><span class="n">app_name</span><span class="p">)</span>
-</span><span id="create_ayaka_plugin_config_base-50"><a href="#create_ayaka_plugin_config_base-50"><span class="linenos">50</span></a>    <span class="k">return</span> <span class="n">AyakaPluginConfigBase</span>
+</span><span id="create_ayaka_plugin_config_base-49"><a href="#create_ayaka_plugin_config_base-49"><span class="linenos">49</span></a>    <span class="n">_AyakaPluginConfig</span><span class="o">.</span><span class="n">setup_app_name</span><span class="p">(</span><span class="n">app_name</span><span class="p">)</span>
+</span><span id="create_ayaka_plugin_config_base-50"><a href="#create_ayaka_plugin_config_base-50"><span class="linenos">50</span></a>    <span class="k">return</span> <span class="n">_AyakaPluginConfig</span>
 </span></pre></div>
 
 
@@ -327,7 +326,7 @@
 <div class="attr class">
             
     <span class="def">class</span>
-    <span class="name">Config</span><wbr>(<span class="base"><a href="#create_ayaka_plugin_config_base.<locals>.AyakaPluginConfigBase">create_ayaka_plugin_config_base.<locals>.AyakaPluginConfigBase</a></span>):
+    <span class="name">Config</span><wbr>(<span class="base"><a href="#create_ayaka_plugin_config_base.<locals>._AyakaPluginConfig">create_ayaka_plugin_config_base.<locals>._AyakaPluginConfig</a></span>):
 
                 <label class="view-source-button" for="Config-view-source"><span>View Source</span></label>
 
@@ -388,10 +387,10 @@
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
-                                    <div><dt><a href="#AyakaPluginConfigBaseBase">AyakaPluginConfigBaseBase</a></dt>
-                                <dd id="Config.__init__" class="function"><a href="#AyakaPluginConfigBaseBase.__init__">AyakaPluginConfigBaseBase</a></dd>
-                <dd id="Config.setup_app_name" class="function"><a href="#AyakaPluginConfigBaseBase.setup_app_name">setup_app_name</a></dd>
-                <dd id="Config.force_update" class="function"><a href="#AyakaPluginConfigBaseBase.force_update">force_update</a></dd>
+                                    <div><dt><a href="#AyakaPluginConfig">AyakaPluginConfig</a></dt>
+                                <dd id="Config.__init__" class="function"><a href="#AyakaPluginConfig.__init__">AyakaPluginConfig</a></dd>
+                <dd id="Config.setup_app_name" class="function"><a href="#AyakaPluginConfig.setup_app_name">setup_app_name</a></dd>
+                <dd id="Config.force_update" class="function"><a href="#AyakaPluginConfig.force_update">force_update</a></dd>
 
             </div>
             <div><dt>pydantic.main.BaseModel</dt>
