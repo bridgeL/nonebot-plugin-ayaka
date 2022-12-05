@@ -1,13 +1,16 @@
 {
     "__root__": {
-        "version": "0.4.4b0",
+        "version": "0.4.5",
         "prefix": "",
         "separate": " ",
         "exclude_old_msg": true,
+        "use_playwright": true,
         "owners": [
             1
         ],
-        "admins": []
+        "admins": [],
+        "bot_type": "nonebot",
+        "debug": false
     },
     "签到": {
         "reward_money": 10000
