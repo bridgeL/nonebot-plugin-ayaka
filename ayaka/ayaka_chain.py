@@ -32,13 +32,13 @@ class AyakaChainNode:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self})"
 
-    def dict(self):
-        data = {}
-        for child in self.children:
-            data.update(child.dict())
-        return {self.key: data}
+    # def dict(self):
+    #     data = {}
+    #     for child in self.children:
+    #         data.update(child.dict())
+    #     return {self.key: data}
 
-    def join(self, *keys: str):
+    def join(self, *keys: str) -> Self:
         node = self
         for key in keys:
             node = node[key]

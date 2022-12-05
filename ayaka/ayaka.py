@@ -1,5 +1,6 @@
 '''ayaka核心'''
 import inspect
+import json
 from math import ceil
 from pathlib import Path
 from loguru import logger
@@ -14,7 +15,7 @@ from .group import get_group
 from .storage import AyakaStorage
 from .driver import on_message, MessageSegment, get_driver
 from .state import AyakaState, root_state, AyakaStateBase
-from .on import AyakaOn
+from .on import AyakaOn, AyakaTimer
 
 
 class AyakaApp:
@@ -37,6 +38,7 @@ class AyakaApp:
         self.ayaka_root_config = ayaka_root_config
         self.funcs = []
         self.on = AyakaOn(self)
+        self.timers: List[AyakaTimer] = []
 
         app_list.append(self)
         if ayaka_root_config.debug:
@@ -246,48 +248,49 @@ class AyakaApp:
         return await self.goto(state_or_key, *keys, base=base)
 
     async def goto(self, state_or_key: Union[AyakaState, str], *keys: str, base=AyakaStateBase.PLUGIN):
-        '''当state为字符串或字符串列表时，调用get_state(base=plugin)进行初始化'''
-        if isinstance(state_or_key, str):
-            state = self.get_state(state_or_key, *keys, base=base)
-        else:
+        '''当state_or_key为字符串时，调用get_state(base=plugin)进行初始化(state_or_key.keys1.keys2)，keys可选填'''
+        if isinstance(state_or_key, AyakaState):
             state = state_or_key
+        else:
+            state = self.get_state(state_or_key, *keys, base=base)
         return await self.group.goto(state)
 
     async def back(self):
         return await self.group.back()
 
-    def add_func(self, func):
+    def _add_func(self, func):
         if func not in self.funcs:
             self.funcs.append(func)
 
-    def on_deep(self, deep: Union[int, Literal["all"]] = "all"):
+    def on_deep_all(self, deep: Union[int, Literal["all"]] = "all"):
+        '''注册深度监听'''
         def decorator(func):
             func.deep = deep
-            self.add_func(func)
+            self._add_func(func)
             return func
         return decorator
 
-    def on_block(self, block: bool = False):
+    def on_no_block(self, block: bool = False):
+        '''注册非阻断'''
         def decorator(func):
             func.block = block
-            self.add_func(func)
+            self._add_func(func)
             return func
         return decorator
 
     def on_cmd(self, *cmds: str):
-        '''cmds不可为空'''
-        assert not not cmds
-
+        '''注册命令触发，不填写命令则视为文本消息'''
         def decorator(func):
             func.cmds = cmds
-            self.add_func(func)
+            self._add_func(func)
             return func
         return decorator
 
     def on_state(self, *states: Union[AyakaState, str, List[str]], base=AyakaStateBase.PLUGIN):
-        '''states不可为空'''
-        assert not not states
+        '''注册有状态响应，不填写states则视为plugin状态'''
         _states = []
+        if not states:
+            states = [[]]
         for s in states:
             if isinstance(s, str):
                 s = self.get_state(s, base=base)
@@ -297,14 +300,15 @@ class AyakaApp:
 
         def decorator(func):
             func.states = _states
-            self.add_func(func)
+            self._add_func(func)
             return func
         return decorator
 
     def on_model(self, model: Type[AyakaInputModel]):
+        '''注册解析模型'''
         def decorator(func):
             func.model = model
-            self.add_func(func)
+            self._add_func(func)
             return func
         return decorator
 
@@ -422,12 +426,18 @@ on_message(priority=20, block=False, handlers=[deal_event])
 
 def regist_func(app: AyakaApp, func):
     '''注册回调'''
-    states: List[AyakaState] = getattr(
-        func, "states", [app.get_state()])
+    # 默认是无状态应用，从root开始触发
+    root_state = app.get_state(base=AyakaStateBase.ROOT)
+    states: List[AyakaState] = getattr(func, "states", [root_state])
+    # 默认是消息响应
     cmds: List[str] = getattr(func, "cmds", [])
+    # 默认监听深度为0
     deep: int = getattr(func, "deep", 0)
+    # 默认阻断
     block: bool = getattr(func, "block", True)
+    # 默认没有解析模型
     model: Type[AyakaInputModel] = getattr(func, "model", None)
+    # 注册
     for s in states:
         s.on_cmd(
             *cmds,
@@ -448,3 +458,12 @@ async def startup():
     for app in app_list:
         for func in app.funcs:
             regist_func(app, func)
+
+    if ayaka_root_config.debug:
+        s = json.dumps(
+            root_state.dict(), ensure_ascii=0,
+            indent=4, default=repr
+        )
+        print(s)
+        with open("all_state.json", "w+", encoding="utf8") as f:
+            f.write(s)

@@ -18,10 +18,10 @@ def sub_flag():
 
 
 class AyakaTrigger(BaseModel):
+    app_name: str
+    cmds: List[str]
     func: Callable[..., Awaitable]
     deep: Union[int, Literal["all"]]
-    cmds: List[str]
-    app_name: str
     block: bool
     model: Optional[Type[AyakaInputModel]]
 
@@ -54,19 +54,17 @@ class AyakaStateBase(Enum):
 class AyakaState(AyakaChainNode):
     def __init__(self, key="root", parent: Self = None):
         super().__init__(key, parent)
-
         self.enter_funcs = []
         self.exit_funcs = []
         self.triggers: List[AyakaTrigger] = []
 
     def dict(self):
-        data = {}
-        for child in self.children:
-            data.update(child.dict())
-        return {self.key: {
+        data = [child.dict() for child in self.children]
+        return {
+            "name": self.key,
             "triggers": self.triggers,
             "children": data,
-        }}
+        }
 
     async def enter(self):
         print(">>>", self.key)

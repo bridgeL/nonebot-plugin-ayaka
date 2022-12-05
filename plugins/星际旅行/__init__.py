@@ -1,56 +1,36 @@
-import json
-from ayaka import AyakaApp, AyakaStateBase, AyakaInputModel, msg_type
+from ayaka import AyakaApp
 
 app = AyakaApp("星际旅行")
 # app.help = "xing ji lv xing"
 
-# 状态
-st_root = app.get_state(base=AyakaStateBase.ROOT)
-st_menu = app.get_state()
-st_earth = app.get_state("地球")
-st_moon = app.get_state("月球")
-st_sun = app.get_state("太阳")
-
-# 全部
-all = app.on_deep()
-
-# 星球
-earth = app.on_state(st_earth)
-moon = app.on_state(st_moon)
-sun = app.on_state(st_sun)
-menu = app.on_state(st_menu)
-root = app.on_state(st_root)
-
-# 动作
-hi = app.on_cmd("hi", "你好")
-hit = app.on_cmd("hit", "打")
-jump = app.on_cmd("jump", "跳")
-drink = app.on_cmd("drink", "喝")
-move = app.on_cmd("move", "移动")
-stop = app.on_cmd("退出", "exit")
-
-
-@root
-async def debug_test():
-    print(json.dumps(st_root.dict(), ensure_ascii=0, indent=4, default=repr))
 
 # 启动应用
-app.set_start_cmds("星际旅行")
+@app.on.idle()
+@app.on.command("星际旅行")
+async def app_start():
+    '''打开应用'''
+    await app.start()
+
+# 星球
+earth = app.on.state("地球")
+moon = app.on.state("月球")
+sun = app.on.state("太阳")
+
+
+def all(func):
+    func = app.on.state()(func)
+    func = app.on_deep_all()(func)
+    return func
+
+
+# 动作
+hi = app.on.command("hi", "你好")
+hit = app.on.command("hit", "打")
+jump = app.on.command("jump", "跳")
+drink = app.on.command("drink", "喝")
 
 
 @all
-@stop
-@menu
-async def exit_app():
-    '''退出应用'''
-    if app.state <= st_menu:
-        await app.close()
-    else:
-        await app.back()
-
-
-@all
-@menu
 @hi
 async def handle():
     '''打个招呼'''
@@ -85,9 +65,8 @@ async def handle():
     await app.send("你感觉肚子暖洋洋的")
 
 
-@menu
 @all
-@move
+@app.on.command("goto")
 async def handle():
     '''去其他地方转转'''
     names = [str(arg) for arg in app.args]
@@ -96,9 +75,16 @@ async def handle():
     await app.send(f"你动身前往{state}")
 
 
-# 补充
+# 关闭应用
+@all
+@app.on.command("exit", "quit")
+async def handle():
+    '''退出'''
+    await app.close()
 
-@app.on_state(["太阳", "奶茶店"])
+
+# 补充
+@app.on.state("太阳.奶茶店")
 @drink
 async def handle():
     '''热乎的'''
@@ -106,9 +92,8 @@ async def handle():
 
 
 # 补充2
-
-@app.on_state(["太阳", "售票处"])
-@app.on_cmd("buy")
+@app.on.state("太阳.售票处")
+@app.on.command("buy")
 async def handle():
     '''买门票'''
     ctrl = app.cache.chain("ticket")
@@ -116,9 +101,8 @@ async def handle():
     await app.send("耀斑表演门票+1")
 
 
-@all
-@sun
-@app.on_cmd("watch")
+@app.on.state("太阳")
+@app.on.command("watch")
 async def handle():
     '''去现场'''
     ctrl = app.cache.chain("ticket")
@@ -126,16 +110,15 @@ async def handle():
     if ticket > 0:
         ctrl.set(ticket - 1)
         await app.send("耀斑表演门票-1")
-        app.state = "太阳.耀斑表演"
+        await app.goto("太阳", "耀斑表演")
         await app.send("10分甚至9分的好看")
     else:
         await app.send("你还没买票")
 
 
 # 补充3
-
-@app.on_state(["太阳", "耀斑表演"])
-@app.on_cmd("drink")
+@app.on.state("太阳.耀斑表演")
+@app.on.command("drink")
 async def handle():
     '''令人震惊的事实'''
     await app.send("你发现你的奶茶比表演项目还烫")

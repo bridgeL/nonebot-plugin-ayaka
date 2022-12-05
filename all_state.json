@@ -1,0 +1,63 @@
+{
+    "name": "root",
+    "triggers": [
+        "AyakaTrigger(app_name=星际旅行 cmds=['星际旅行'] func=app_start deep=0 block=True model=None)"
+    ],
+    "children": [
+        {
+            "name": "星际旅行",
+            "triggers": [
+                "AyakaTrigger(app_name=星际旅行 cmds=['hi', '你好'] func=handle deep=all block=True model=None)",
+                "AyakaTrigger(app_name=星际旅行 cmds=['goto'] func=handle deep=all block=True model=None)",
+                "AyakaTrigger(app_name=星际旅行 cmds=['exit', 'quit'] func=handle deep=all block=True model=None)"
+            ],
+            "children": [
+                {
+                    "name": "地球",
+                    "triggers": [
+                        "AyakaTrigger(app_name=星际旅行 cmds=['jump', '跳'] func=handle deep=0 block=True model=None)",
+                        "AyakaTrigger(app_name=星际旅行 cmds=['hit', '打'] func=handle deep=0 block=True model=None)"
+                    ],
+                    "children": []
+                },
+                {
+                    "name": "月球",
+                    "triggers": [
+                        "AyakaTrigger(app_name=星际旅行 cmds=['jump', '跳'] func=handle deep=0 block=True model=None)"
+                    ],
+                    "children": []
+                },
+                {
+                    "name": "太阳",
+                    "triggers": [
+                        "AyakaTrigger(app_name=星际旅行 cmds=['drink', '喝'] func=handle deep=0 block=True model=None)",
+                        "AyakaTrigger(app_name=星际旅行 cmds=['watch'] func=handle deep=0 block=True model=None)"
+                    ],
+                    "children": [
+                        {
+                            "name": "奶茶店",
+                            "triggers": [
+                                "AyakaTrigger(app_name=星际旅行 cmds=['drink', '喝'] func=handle deep=0 block=True model=None)"
+                            ],
+                            "children": []
+                        },
+                        {
+                            "name": "售票处",
+                            "triggers": [
+                                "AyakaTrigger(app_name=星际旅行 cmds=['buy'] func=handle deep=0 block=True model=None)"
+                            ],
+                            "children": []
+                        },
+                        {
+                            "name": "耀斑表演",
+                            "triggers": [
+                                "AyakaTrigger(app_name=星际旅行 cmds=['drink'] func=handle deep=0 block=True model=None)"
+                            ],
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
