@@ -47,15 +47,16 @@ class AyakaGroup:
         self.group_id = group_id
         self.state = root_state
 
-        # 读取forbit列表
-        self.forbid_init()
-        forbid_names = self.forbid_load()
+        # # 读取forbit列表
+        # self.forbid_init()
+        # forbid_names = self.forbid_load()
 
         # 添加app，并分配独立数据空间
         self.apps: List["AyakaApp"] = []
         self.cache_dict: Dict[str, AyakaCacheCtrl] = {}
         for app in app_list:
-            if app.name not in forbid_names:
+            # if app.name not in forbid_names:
+            if 1:
                 self.apps.append(app)
                 self.cache_dict[app.name] = AyakaCacheCtrl()
 
@@ -104,40 +105,40 @@ class AyakaGroup:
             if app.name == name:
                 return app
 
-    def permit_app(self, name: str):
-        '''启用指定app'''
-        if self.get_app(name):
-            return True
+    # def permit_app(self, name: str):
+    #     '''启用指定app'''
+    #     if self.get_app(name):
+    #         return True
 
-        for app in app_list:
-            if app.name == name:
-                self.apps.append(app)
-                # 从forbit列表移除
-                app_names: list = self.forbid_load()
-                if name in app_names:
-                    app_names.remove(name)
-                    self.forbid_save(app_names)
-                return True
+    #     for app in app_list:
+    #         if app.name == name:
+    #             self.apps.append(app)
+    #             # 从forbit列表移除
+    #             app_names: list = self.forbid_load()
+    #             if name in app_names:
+    #                 app_names.remove(name)
+    #                 self.forbid_save(app_names)
+    #             return True
 
-    def forbid_app(self, name: str):
-        '''禁用指定app'''
-        if name == "ayaka_master":
-            return
+    # def forbid_app(self, name: str):
+    #     '''禁用指定app'''
+    #     if name == "ayaka_master":
+    #         return
 
-        app = self.get_app(name)
-        if not app:
-            return
+    #     app = self.get_app(name)
+    #     if not app:
+    #         return
 
-        # 禁用正在运行的应用
-        if self.running_app_name == name:
-            self.running_app = None
+    #     # 禁用正在运行的应用
+    #     if self.running_app_name == name:
+    #         self.running_app = None
 
-        # 移除
-        self.apps.remove(app)
+    #     # 移除
+    #     self.apps.remove(app)
 
-        # 添加到forbit列表
-        app_names: list = self.forbid_load()
-        if name not in app_names:
-            app_names.append(name)
-            self.forbid_save(app_names)
-        return True
+    #     # 添加到forbit列表
+    #     app_names: list = self.forbid_load()
+    #     if name not in app_names:
+    #         app_names.append(name)
+    #         self.forbid_save(app_names)
+    #     return True

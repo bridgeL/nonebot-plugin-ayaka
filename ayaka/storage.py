@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 from typing import TYPE_CHECKING
-from .json_ctrl import AbstractJsonCtrl
+from .ayaka_json import AbstractJsonCtrl
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp

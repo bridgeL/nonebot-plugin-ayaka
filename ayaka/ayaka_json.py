@@ -1,3 +1,6 @@
+from typing_extensions import Self
+
+
 class AbstractJsonCtrl:
     '''JSON控制器'''
 
@@ -10,7 +13,7 @@ class AbstractJsonCtrl:
     def _save(self, data):
         raise NotImplementedError
 
-    def chain(self, *keys) -> "AbstractJsonCtrl":
+    def chain(self, *keys) -> Self:
         raise NotImplementedError
 
     def get(self, default=None):

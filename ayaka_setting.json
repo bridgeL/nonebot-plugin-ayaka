@@ -10,7 +10,7 @@
         ],
         "admins": [],
         "bot_type": "nonebot",
-        "debug": false,
+        "debug": true,
         "ayaka_port": 19901
     }
 }

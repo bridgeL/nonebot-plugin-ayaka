@@ -1,5 +1,5 @@
 '''群组缓存'''
-from .json_ctrl import AbstractJsonCtrl
+from .ayaka_json import AbstractJsonCtrl
 
 
 class AyakaCacheCtrl(AbstractJsonCtrl):
