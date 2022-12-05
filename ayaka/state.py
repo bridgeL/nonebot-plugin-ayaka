@@ -1,81 +1,110 @@
-from typing import List, Literal, Union
+from enum import Enum
+from typing import Awaitable, Callable, List, Literal, Optional, Type, Union
+from typing_extensions import Self
+from pydantic import BaseModel
+
+from .ayaka_input import AyakaInputModel
+from .config import ayaka_root_config
+from .constant import _enter_exit_during
+from .ayaka_chain import AyakaChainNode
 
 
-class AyakaTrigger:
-    def __init__(self, func, cmds: List[str], deep: Union[int, Literal["any"]], app_name: str, block: bool) -> None:
-        self.func = func
-        self.deep = deep
-        self.cmds = cmds
-        self.app_name = app_name
-        self.block = block
+def add_flag():
+    _enter_exit_during.set(_enter_exit_during.get()+1)
+
+
+def sub_flag():
+    _enter_exit_during.set(_enter_exit_during.get()-1)
+
+
+class AyakaTrigger(BaseModel):
+    func: Callable[..., Awaitable]
+    deep: Union[int, Literal["all"]]
+    cmds: List[str]
+    app_name: str
+    block: bool
+    model: Optional[Type[AyakaInputModel]]
+
+    def __init__(self, func, cmds, deep, app_name, block, model):
+        super().__init__(
+            func=func, cmds=cmds, deep=deep,
+            app_name=app_name, block=block, model=model
+        )
+        if ayaka_root_config.debug:
+            print(repr(self))
 
     async def run(self):
         await self.func()
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self})"
 
-class AyakaState:
-    def __init__(self, key: str = "root", parent: "AyakaState" = None):
-        self.key = key
-        self.parent = parent
-        if not parent:
-            self.keys = [key]
-        else:
-            self.keys = [*parent.keys, key]
-        self.children: List["AyakaState"] = []
+    def __str__(self) -> str:
+        data = self.dict()
+        data["func"] = self.func.__name__
+        return " ".join(f"{k}={v}" for k, v in data.items())
+
+
+class AyakaStateBase(Enum):
+    CURRENT = "current"
+    PLUGIN = "plugin"
+    ROOT = "root"
+
+
+class AyakaState(AyakaChainNode):
+    def __init__(self, key="root", parent: Self = None):
+        super().__init__(key, parent)
 
         self.enter_funcs = []
         self.exit_funcs = []
         self.triggers: List[AyakaTrigger] = []
 
-    def __getitem__(self, k):
-        for state in self.children:
-            if state.key == k:
-                return state
-        state = AyakaState(k, self)
-        self.children.append(state)
-        return state
-
-    def __getattr__(self, k):
-        return self[k]
-
-    def __str__(self) -> str:
-        return ".".join(self.keys)
-
-    def __repr__(self) -> str:
-        return str(self)
+    def dict(self):
+        data = {}
+        for child in self.children:
+            data.update(child.dict())
+        return {self.key: {
+            "triggers": self.triggers,
+            "children": data,
+        }}
 
     async def enter(self):
         print(">>>", self.key)
+        add_flag()
         for func in self.enter_funcs:
             await func()
+        sub_flag()
 
     async def exit(self):
         print("<<<", self.key)
+        add_flag()
         for func in self.exit_funcs:
             await func()
+        sub_flag()
 
-    def on_enter(self, func):
-        self.enter_funcs.append(func)
-        return func
-
-    def on_exit(self, func):
-        self.exit_funcs.append(func)
-        return func
-
-    def on_cmd(self, cmds: List[str], app_name: str, deep: Union[int, Literal["any"]] = 0, block=True):
+    def on_enter(self):
         def decorator(func):
-            t = AyakaTrigger(func, cmds, deep, app_name, block)
+            self.enter_funcs.append(func)
+            return func
+        return decorator
+
+    def on_exit(self):
+        def decorator(func):
+            self.exit_funcs.append(func)
+            return func
+        return decorator
+
+    def on_cmd(self, *cmds: str, app_name: str, deep: Union[int, Literal["all"]] = 0, block=True, model: Type[AyakaInputModel] = None):
+        def decorator(func):
+            t = AyakaTrigger(func, cmds, deep, app_name, block, model)
+            # 向ayakaApp内添加该回调的帮助？
+            # []
             self.triggers.append(t)
             return func
         return decorator
 
-    def on_text(self, app_name: str, deep: Union[int, Literal["any"]] = 0, block=True):
-        return self.on_cmd([], app_name, deep, block)
-
-    def dict(self):
-        if not self.children:
-            return
-        return {child.key: child.dict() for child in self.children}
+    def on_text(self, app_name: str, deep: Union[int, Literal["all"]] = 0, block=True, model: Type[AyakaInputModel] = None):
+        return self.on_cmd(app_name=app_name, deep=deep, block=block, model=model)
 
 
 root_state = AyakaState()

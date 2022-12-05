@@ -1,11 +1,12 @@
 '''群组'''
-from typing import List, Dict, TYPE_CHECKING, Union
+from typing import List, Dict, TYPE_CHECKING
 from pathlib import Path
+from loguru import logger
 from .config import ayaka_root_config
 from .storage import AyakaPath
 from .cache import AyakaCacheCtrl
 from .state import root_state, AyakaState
-from .constant import app_list, group_list
+from .constant import app_list, group_list, _enter_exit_during
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp
@@ -23,7 +24,7 @@ def get_group(bot_id: int, group_id: int):
 
 class AyakaGroup:
     def __repr__(self) -> str:
-        return f"AyakaGroup({self.bot_id}, {self.group_id}, {self.apps})"
+        return f"{self.__class__.__name__}({self.bot_id}, {self.group_id}, {self.apps})"
 
     def forbid_init(self):
         names = [
@@ -44,7 +45,6 @@ class AyakaGroup:
     def __init__(self, bot_id: int, group_id: int) -> None:
         self.bot_id = bot_id
         self.group_id = group_id
-
         self.state = root_state
 
         # 读取forbit列表
@@ -71,6 +71,9 @@ class AyakaGroup:
             return self.state
 
     async def goto(self, state: AyakaState):
+        if _enter_exit_during.get() > 0:
+            logger.warning("你正在AyakaState的enter/exit方法中进行状态转移，这可能会导致无法预料的错误")
+
         keys = state.keys
 
         # 找到第一个不同的结点
@@ -89,12 +92,11 @@ class AyakaGroup:
         keys = keys[i:]
 
         # 重新出发
-        state = self.state
         for key in keys:
-            state = state[key]
-            await state.enter()
-        self.state = state
-        return state
+            self.state = self.state[key]
+            await self.state.enter()
+        logger.opt(colors=True).debug(f"状态：<c>{self.state}</c>")
+        return self.state
 
     def get_app(self, name: str):
         '''根据app名获取该group所启用的app，不存在则返回None'''

@@ -2,6 +2,8 @@
 from contextvars import ContextVar
 from collections import defaultdict
 from typing import List, TYPE_CHECKING, Dict
+
+from .ayaka_input import AyakaInputModel
 from .driver import Message, MessageSegment, Bot, MessageEvent, get_driver
 
 if TYPE_CHECKING:
@@ -16,6 +18,9 @@ _arg: ContextVar[Message] = ContextVar("_arg")
 _args: ContextVar[List[MessageSegment]] = ContextVar("_args")
 _message: ContextVar[Message] = ContextVar("_message")
 _cmd: ContextVar[str] = ContextVar("_cmd")
+_enter_exit_during: ContextVar[int] = ContextVar(
+    "_enter_exit_during", default=0)
+_model_data: ContextVar[AyakaInputModel] = ContextVar("_model_data")
 
 app_list: List["AyakaApp"] = []
 group_list: List["AyakaGroup"] = []

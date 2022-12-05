@@ -2,10 +2,12 @@
 import asyncio
 import datetime
 from typing import List
+from loguru import logger
+from pydantic import ValidationError
 
 from .driver import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
 from .config import ayaka_root_config
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, private_listener_dict
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, private_listener_dict, _model_data
 from .group import get_group
 from .state import AyakaState, AyakaTrigger
 
@@ -33,22 +35,6 @@ async def deal_event(bot: Bot, event: MessageEvent):
         await asyncio.gather(*ts)
 
 
-def get_triggers(state: AyakaState, deep: int = 0):
-    # 根据深度筛选funcs
-    ts = [
-        t for t in state.triggers
-        if t.deep == "any" or t.deep >= deep
-    ]
-    total_triggers = [ts]
-
-    # 获取父状态的方法
-    if state.parent:
-        ts = get_triggers(state.parent, deep+1)
-        total_triggers.append(ts)
-
-    return total_triggers
-
-
 async def deal_group(bot_id: int, group_id: int):
     # 群组
     group = get_group(bot_id, group_id)
@@ -62,14 +48,33 @@ async def deal_group(bot_id: int, group_id: int):
     first = get_first(message)
 
     # 从子状态开始向上查找可用的触发
-    total_triggers = get_triggers(group.state, 0)
+    state = group.state
+    cascade_triggers = get_cascade_triggers(state, 0)
 
-    for ts in total_triggers:
-        if await deal_triggers(ts, message, first):
+    for ts in cascade_triggers:
+        if await deal_triggers(ts, message, first, state):
             break
 
 
-async def deal_triggers(triggers: List[AyakaTrigger], message: Message, first: str):
+async def get_model_data(trigger: AyakaTrigger):
+    if not trigger.model:
+        _model_data.set(None)
+        return True
+
+    args = _args.get()
+    try:
+        data = trigger.model(args)
+    except ValidationError as e:
+        bot = _bot.get()
+        group = _group.get()
+        await bot.send_group_msg(group_id=group.group_id, message=str(e))
+        return False
+
+    _model_data.set(data)
+    return True
+
+
+async def deal_triggers(triggers: List[AyakaTrigger], message: Message, first: str, state: AyakaState):
     prefix = ayaka_root_config.prefix
     sep = ayaka_root_config.separate
 
@@ -96,8 +101,11 @@ async def deal_triggers(triggers: List[AyakaTrigger], message: Message, first: s
             _arg.set(arg)
             _args.set(divide_message(arg))
 
-            # 成功触发
-            await t.run()
+            # 触发
+            log_trigger(c, t.app_name, state, t.func.__name__)
+
+            if await get_model_data(t):
+                await t.run()
 
             # 阻断后续
             if t.block:
@@ -112,12 +120,46 @@ async def deal_triggers(triggers: List[AyakaTrigger], message: Message, first: s
     _args.set(divide_message(message))
 
     for t in text_ts:
-        # 成功触发
-        await t.run()
+        # 触发
+        log_trigger("", t.app_name, state, t.func.__name__)
+
+        if await get_model_data(t):
+            await t.run()
 
         # 阻断后续
         if t.block:
             return True
+
+
+def get_cascade_triggers(state: AyakaState, deep: int = 0):
+    # 根据深度筛选funcs
+    ts = [
+        t for t in state.triggers
+        if t.deep == "all" or t.deep >= deep
+    ]
+    cascade_triggers = [ts]
+
+    # 获取父状态的方法
+    if state.parent:
+        cascade_triggers.extend(get_cascade_triggers(state.parent, deep+1))
+
+    # 排除空项
+    cascade_triggers = [ts for ts in cascade_triggers if ts]
+    return cascade_triggers
+
+
+def log_trigger(cmd, app_name, state, func_name):
+    '''日志记录'''
+    items = []
+    items.append(f"状态：<c>{state}</c>")
+    items.append(f"应用：<y>{app_name}</y>")
+    if cmd:
+        items.append(f"命令：<y>{cmd}</y>")
+    else:
+        items.append("命令：<g>无</g>")
+    items.append(f"回调：<c>{func_name}</c>")
+    info = " | ".join(items)
+    logger.opt(colors=True).debug(info)
 
 
 def get_first(message: Message):

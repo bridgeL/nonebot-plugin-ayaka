@@ -10,7 +10,15 @@
         ],
         "admins": [],
         "bot_type": "nonebot",
-        "debug": false,
+        "debug": true,
         "ayaka_port": 19901
+    },
+    "ayaka.config": {
+        "name": "yes",
+        "age": 12
+    },
+    "星际旅行": {
+        "name": "yes",
+        "age": 12
     }
 }

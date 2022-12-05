@@ -6,7 +6,7 @@ class AyakaCacheCtrl(AbstractJsonCtrl):
     '''ayaka缓存控制器，其数据空间在各群组、各插件间相互独立'''
 
     def __repr__(self) -> str:
-        return f"AyakaCacheCtrl({self.get()})"
+        return f"{self.__class__.__name__}({self.get()})"
 
     def __init__(self, data=None, *keys) -> None:
         self._data = {} if data is None else data

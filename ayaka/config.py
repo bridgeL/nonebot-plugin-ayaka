@@ -21,16 +21,14 @@ with setting_filepath.open("r", encoding="utf8") as f:
 
 
 class AyakaPluginConfig(BaseModel):
-    @classmethod
-    def setup_app_name(cls, app_name):
-        cls.app_name = app_name
+    __app_name__ = ""
 
     def __init__(self):
         try:
-            super().__init__(**total_settings.get(self.app_name, {}))
+            super().__init__(**total_settings.get(self.__app_name__, {}))
         except ValidationError as e:
             logger.error(
-                f"导入配置失败，请检查 ayaka_setting.json 中，{self.app_name}的配置是否正确")
+                f"导入配置失败，请检查 ayaka_setting.json 中，{self.__app_name__}的配置是否正确")
             raise e
         self.force_update()
 
@@ -39,15 +37,14 @@ class AyakaPluginConfig(BaseModel):
         self.force_update()
 
     def force_update(self):
-        total_settings[self.app_name] = self.dict()
+        total_settings[self.__app_name__] = self.dict()
         with setting_filepath.open("w+", encoding="utf8") as f:
             json.dump(total_settings, f, ensure_ascii=0, indent=4)
 
 
 def create_ayaka_plugin_config_base(app_name):
     class _AyakaPluginConfig(AyakaPluginConfig):
-        pass
-    _AyakaPluginConfig.setup_app_name(app_name)
+        __app_name__ = app_name
     return _AyakaPluginConfig
 
 

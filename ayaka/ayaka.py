@@ -3,21 +3,23 @@ import inspect
 from math import ceil
 from pathlib import Path
 from loguru import logger
-from typing import List, Dict, Literal, Union
+from typing import List, Dict, Literal, Type, Union
 
+from .ayaka_input import AyakaInputModel
 from .ayaka_parser import parser
 from .config import ayaka_root_config, create_ayaka_plugin_config_base
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot, _model_data
 from .deal import deal_event
 from .group import get_group
 from .storage import AyakaStorage
-from .driver import on_message, MessageSegment
-from .state import AyakaState, root_state
+from .driver import on_message, MessageSegment, get_driver
+from .state import AyakaState, root_state, AyakaStateBase
+from .on import AyakaOn
 
 
 class AyakaApp:
     def __repr__(self) -> str:
-        return f"AyakaApp({self.name}, {self.state})"
+        return f"{self.__class__.__name__}({self.name})"
 
     def __init__(self, name: str) -> None:
         self.path = Path(inspect.stack()[1].filename)
@@ -33,6 +35,8 @@ class AyakaApp:
         self.parser = parser
         self.BaseConfig = create_ayaka_plugin_config_base(name)
         self.ayaka_root_config = ayaka_root_config
+        self.funcs = []
+        self.on = AyakaOn(self)
 
         app_list.append(self)
         if ayaka_root_config.debug:
@@ -201,100 +205,126 @@ class AyakaApp:
         return _message.get()
 
     @property
+    def model_data(self):
+        return _model_data.get()
+
+    @property
     def state(self):
         return self.group.state
 
-    def get_state(self, *keys: str, from_: Literal["current", "plugin", "root"] = "plugin"):
+    def get_state(self, *keys: str, base: AyakaStateBase = AyakaStateBase.PLUGIN):
         '''
             假设当前状态为 root.test.a
 
             - 基于 当前状态
 
-            >>> get_state(key1, key2, from_="current") -> [root.test.a].key1.key2
+            >>> get_state(key1, key2, base=current) -> [root.test.a].key1.key2
 
             - 基于`根状态`
 
-            >>> get_state(key1, key2, from_="root") -> [root].key1.key2
+            >>> get_state(key1, key2, base=root) -> [root].key1.key2
 
             - 基于`插件状态`
 
-            >>> get_state(key1, key2, from_="plugin") -> [root.test].key1.key2
+            >>> get_state(key1, key2) -> [root.test].key1.key2
+
+            特别的，keys可以为空，例如：
+
+            >>> get_state() -> [root.test]
         '''
-        if from_ == "current":
-            keys = [*self.state.keys, *keys]
-        elif from_ == "plugin":
-            keys = ["root", self.name, *keys]
-        elif from_ == "root":
-            keys = ["root", *keys]
+        if base == AyakaStateBase.CURRENT:
+            keys = [*self.state.keys[1:], *keys]
+        elif base == AyakaStateBase.PLUGIN:
+            keys = [self.name, *keys]
+        elif base == AyakaStateBase.ROOT:
+            keys = [*keys]
         else:
             raise
+        return root_state.join(*keys)
 
-        state = root_state
-        for key in keys[1:]:
-            state = state[key]
-        return state
+    async def set_state(self, state_or_key: Union[AyakaState, str], *keys: str, base=AyakaStateBase.PLUGIN):
+        return await self.goto(state_or_key, *keys, base=base)
 
-    def _ensure_state(self, state: Union[AyakaState, str, List[str]]):
-        if isinstance(state, str):
-            state = self.get_state(state, from_="plugin")
-        if isinstance(state, list):
-            state = self.get_state(*state, from_="plugin")
-        return state
-
-    async def goto(self, state: Union[AyakaState, str, List[str]]):
-        state = self._ensure_state(state)
+    async def goto(self, state_or_key: Union[AyakaState, str], *keys: str, base=AyakaStateBase.PLUGIN):
+        '''当state为字符串或字符串列表时，调用get_state(base=plugin)进行初始化'''
+        if isinstance(state_or_key, str):
+            state = self.get_state(state_or_key, *keys, base=base)
+        else:
+            state = state_or_key
         return await self.group.goto(state)
 
     async def back(self):
         return await self.group.back()
 
-    def _on(self, func):
-        states: List[AyakaState] = func.states
-        cmds: List[str] = func.cmds
-        deep: int = func.deep
-        block: bool = func.bool
-        for s in states:
-            s.on_cmd(cmds, self.name, deep, block)(func)
+    def add_func(self, func):
+        if func not in self.funcs:
+            self.funcs.append(func)
 
-    def on_state(self, *states: Union[AyakaState, str, List[str]]):
-        states = [self._ensure_state(s) for s in states]
-
+    def on_deep(self, deep: Union[int, Literal["all"]] = "all"):
         def decorator(func):
-            func.states = states
-            if hasattr(func, "cmds"):
-                self._on(func)
+            func.deep = deep
+            self.add_func(func)
             return func
         return decorator
 
-    def on_cmd(self, cmds: List[str], deep: Union[int, Literal["any"]] = 0, block=True):
+    def on_block(self, block: bool = False):
+        def decorator(func):
+            func.block = block
+            self.add_func(func)
+            return func
+        return decorator
+
+    def on_cmd(self, *cmds: str):
+        '''cmds不可为空'''
+        assert not not cmds
+
         def decorator(func):
             func.cmds = cmds
-            func.deep = deep
-            func.block = block
-            if hasattr(func, "states"):
-                self._on(func)
+            self.add_func(func)
             return func
         return decorator
 
-    def on_text(self, deep: Union[int, Literal["any"]] = 0, block=True):
-        return self.on_cmd([], deep, block)
+    def on_state(self, *states: Union[AyakaState, str, List[str]], base=AyakaStateBase.PLUGIN):
+        '''states不可为空'''
+        assert not not states
+        _states = []
+        for s in states:
+            if isinstance(s, str):
+                s = self.get_state(s, base=base)
+            elif isinstance(s, list):
+                s = self.get_state(*s, base=base)
+            _states.append(s)
+
+        def decorator(func):
+            func.states = _states
+            self.add_func(func)
+            return func
+        return decorator
+
+    def on_model(self, model: Type[AyakaInputModel]):
+        def decorator(func):
+            func.model = model
+            self.add_func(func)
+            return func
+        return decorator
 
     def set_start_cmds(self, *cmds: str):
-        '''设置应用启动命令'''
-        root_state.on_cmd(cmds, self.name)(self.start)
+        '''设置应用启动命令，当然，你也可以通过on_cmd自定义启动方式'''
+        state = self.get_state(base=AyakaStateBase.ROOT)
+        state.on_cmd(*cmds, app_name=self.name)(self.start)
 
     async def start(self):
         '''*timer触发时不可用*
 
         启动应用，并发送提示'''
-        await self.goto(root_state[self.name])
+        await self.goto(self.get_state())
         await self.send(f"已打开应用 [{self.name}]")
 
     async def close(self):
         '''*timer触发时不可用*
 
         关闭应用，并发送提示'''
-        await self.goto(root_state)
+        await self.goto(self.get_state(base=AyakaStateBase.ROOT))
         await self.send(f"已关闭应用 [{self.name}]")
 
     def add_listener(self, user_id: int):
@@ -388,3 +418,33 @@ class AyakaApp:
 
 
 on_message(priority=20, block=False, handlers=[deal_event])
+
+
+def regist_func(app: AyakaApp, func):
+    '''注册回调'''
+    states: List[AyakaState] = getattr(
+        func, "states", [app.get_state()])
+    cmds: List[str] = getattr(func, "cmds", [])
+    deep: int = getattr(func, "deep", 0)
+    block: bool = getattr(func, "block", True)
+    model: Type[AyakaInputModel] = getattr(func, "model", None)
+    for s in states:
+        s.on_cmd(
+            *cmds,
+            app_name=app.name,
+            deep=deep,
+            block=block,
+            model=model
+        )(func)
+    return func
+
+
+driver = get_driver()
+
+
+@driver.on_startup
+async def startup():
+    # 注册所有回调
+    for app in app_list:
+        for func in app.funcs:
+            regist_func(app, func)
