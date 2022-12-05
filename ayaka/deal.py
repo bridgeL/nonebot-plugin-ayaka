@@ -1,16 +1,17 @@
+'''处理收到的消息，将其分割为cmd和args，设置上下文相关变量的值，并将消息传递给对应的群组'''
 import asyncio
 import datetime
 from typing import List
 
 from .driver import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
 from .on import AyakaTrigger
-from .config import sep, prefix, exclude_old
+from .config import ayaka_root_config
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, private_listener_dict
 from .group import get_group
 
 
 async def deal_event(bot: Bot, event: MessageEvent):
-    if exclude_old:
+    if ayaka_root_config.exclude_old_msg:
         time_i = int(datetime.datetime.now().timestamp())
         if event.time < time_i - 60:
             return
@@ -110,20 +111,28 @@ async def deal_triggers(triggers: List[AyakaTrigger]):
 
 def get_cmd(message: Message):
     '''返回命令'''
+    prefix = ayaka_root_config.prefix
+    sep = ayaka_root_config.separate
     first = ""
     for m in message:
         if m.type == "text":
             first += str(m)
         else:
             break
+        
     if not first or not first.startswith(prefix):
         return ""
+
+    if not sep:
+        return first
+    
     first += sep
     return first.split(sep, 1)[0][len(prefix):]
 
 
-def divide_message(message: Message):
-    args: List[MessageSegment] = []
+def divide_message(message: Message) -> List[MessageSegment]:
+    args = []
+    sep = ayaka_root_config.separate
 
     for m in message:
         if m.is_text():
@@ -135,12 +144,14 @@ def divide_message(message: Message):
     return args
 
 
-def remove_cmd(cmd: str, message: Message):
+def remove_cmd(cmd: str, message: Message) -> Message:
+    prefix = ayaka_root_config.prefix
+    sep = ayaka_root_config.separate
     m = message[0]
     if m.is_text():
         m_str = str(m)
         m_str = m_str[len(prefix+cmd):].lstrip(sep)
         if not m_str:
-            return message[1:]
-        return [MessageSegment.text(m_str)] + message[1:]
+            return Message(message[1:])
+        return Message([MessageSegment.text(m_str), *message[1:]])
     return message

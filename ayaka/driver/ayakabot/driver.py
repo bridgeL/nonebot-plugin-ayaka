@@ -2,11 +2,11 @@ from importlib import import_module
 import json
 import asyncio
 import uvicorn
+from loguru import logger
 from fastapi import FastAPI, WebSocket
 from pathlib import Path
 import re
 
-from loguru import logger
 from .bot import Bot
 from .event import json_to_event, MessageEvent
 from .websocket import FastAPIWebSocket
@@ -15,6 +15,7 @@ app = FastAPI()
 
 
 class Config:
+    port = 19900
     ayaka_prefix = "#"
     ayaka_separate = " "
     ayaka_exclude_old = True
@@ -62,7 +63,7 @@ driver = Driver()
 
 
 # 启动服务
-def run(host="127.0.0.1", port=19900, reload=True):
+def run(host="127.0.0.1", port=driver.config.port, reload=True):
     uvicorn.run(
         app=f"{__name__}:app",
         host=host,
@@ -74,15 +75,27 @@ def run(host="127.0.0.1", port=19900, reload=True):
 def load_plugins(path):
     path = Path(path)
     for p in path.iterdir():
-        name = re.sub(r"\\|/", ".", str(p))
-        try:
-            import_module(name)
-            logger.success(f"导入成功 \"{name}\"")
-        except:
-            logger.exception(f"导入失败 \"{name}\"")
+        if p.name.startswith("_"):
+            continue
+
+        load_plugin(p)
 
 
-@app.websocket("/ayakabot")
+def load_plugin(path):
+    if isinstance(path, Path):
+        p = path
+    else:
+        p = Path(path)
+
+    name = re.sub(r"\\|/", ".", str(p))
+    try:
+        import_module(name)
+        logger.opt(colors=True).success(f"导入成功 \"<y>{p.stem}</y>\"")
+    except:
+        logger.opt(colors=True).exception(f"导入失败 \"<y>{p.stem}</y>\"")
+
+
+@app.websocket("/onebot/v11/ws")
 async def endpoint(websocket: WebSocket):
     self_id = websocket.headers.get("x-self-id")
     ws = FastAPIWebSocket(websocket)

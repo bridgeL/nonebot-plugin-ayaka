@@ -5,15 +5,17 @@ import asyncio
 from time import time
 from typing import Callable, Coroutine
 from websockets.legacy.client import Connect
-from nonebot import get_driver
-from ayaka import logger
-from ayaka.config import AYAKA_DEBUG
+from loguru import logger
+from ayaka import get_driver
 
 
 AYAKA_LOGGER_NAME = "AYAKA"
 
+
 driver = get_driver()
 logger.level(AYAKA_LOGGER_NAME, no=26, icon="⚡", color="<blue>")
+port = driver.config.port
+addr = f"ws://127.0.0.1:{port}/onebot/v11/ws"
 
 
 def divide(line):
@@ -120,7 +122,7 @@ class FakeQQ:
             level="DEBUG",
             format="<g>{time:HH:mm:ss}</g> | <level>{level}</level> | {message}",
             filter={
-                "nonebot": "DEBUG" if AYAKA_DEBUG else "WARNING",
+                "nonebot": "WARNING",
                 "uvicorn": "INFO",
                 "websockets": "WARNING"
             },
@@ -134,9 +136,8 @@ class FakeQQ:
         self.print("启动测试环境中...")
 
         # 连接
-        port = driver.config.port
         self.conn = Connect(
-            f"ws://127.0.0.1:{port}/onebot/v11/ws",
+            addr,
             extra_headers={"x-self-id": bot_id}
         )
         self.ws = await self.conn.__aenter__()
@@ -247,7 +248,8 @@ class FakeQQ:
         for line in helps.split("\n"):
             self.print(line)
         self.print("CQ码：https://docs.go-cqhttp.org/cqcode")
-        self.print("ayaka_test：https://bridgel.github.io/ayaka_doc/latest/intro/test/")
+        self.print(
+            "ayaka_test：https://bridgel.github.io/ayaka_doc/latest/intro/test/")
 
 
 fake_qq = FakeQQ()

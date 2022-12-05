@@ -8,7 +8,7 @@ from dataclasses import field, asdict, dataclass
 from pydantic import parse_obj_as
 
 
-from ayaka.logger import logger
+from ayaka import logger
 from .utils import bool_to_str, escape, unescape
 from .template import MessageTemplate
 

@@ -10,7 +10,7 @@ from .websocket import FastAPIWebSocket
 from .message import Message, MessageSegment
 from .model import DataclassEncoder
 
-from ayaka.logger import logger
+from ayaka import logger
 
 
 class _ApiCall(Protocol):

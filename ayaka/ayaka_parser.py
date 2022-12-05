@@ -1,3 +1,4 @@
+'''序列化'''
 import json
 from .driver import Message, MessageSegment, DataclassEncoder
 

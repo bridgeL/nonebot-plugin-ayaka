@@ -1,5 +1,7 @@
+'''ayaka综合管理模块'''
 from .ayaka import app_list, AyakaApp
 from .constant import get_app
+from .config import ayaka_root_config
 
 app = AyakaApp("ayaka_master")
 app.help = '''ayaka综合管理模块'''
@@ -107,3 +109,45 @@ async def force_exit():
     _app = app.group.running_app
     if _app:
         await _app.close()
+
+
+@app.on.idle(super=True)
+@app.on.command("增加ayaka管理者")
+async def add_admin():
+    '''<uid>'''
+    if app.user_id not in ayaka_root_config.owners:
+        await app.send("仅有ayaka所有者有权执行此命令")
+        return
+
+    try:
+        uid = int(str(app.args[0]))
+    except:
+        await app.send("设置失败")
+        return
+
+    if uid not in ayaka_root_config.admins:
+        ayaka_root_config.admins.append(uid)
+        ayaka_root_config.force_update()
+
+    await app.send("设置成功")
+
+
+@app.on.idle(super=True)
+@app.on.command("移除ayaka管理者")
+async def remove_admin():
+    '''<uid>'''
+    if app.user_id not in ayaka_root_config.owners:
+        await app.send("仅有ayaka所有者有权执行此命令")
+        return
+
+    try:
+        uid = int(str(app.args[0]))
+    except:
+        await app.send("设置失败")
+        return
+
+    if uid in ayaka_root_config.admins:
+        ayaka_root_config.admins.remove(uid)
+        ayaka_root_config.force_update()
+
+    await app.send("设置成功")
