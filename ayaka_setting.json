@@ -10,9 +10,7 @@
         ],
         "admins": [],
         "bot_type": "nonebot",
-        "debug": false
-    },
-    "签到": {
-        "reward_money": 10000
+        "debug": false,
+        "ayaka_port": 19901
     }
 }

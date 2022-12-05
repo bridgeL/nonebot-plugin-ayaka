@@ -5,3 +5,4 @@ from .websocket import FastAPIWebSocket
 from .message import Message, MessageSegment
 from .utils import escape
 from .driver import get_driver, on_message, run, load_plugins, load_plugin
+from .model import DataclassEncoder
