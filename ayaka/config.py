@@ -8,6 +8,8 @@ from pydantic import BaseModel, ValidationError, validator
 from typing import List, Literal
 from loguru import logger
 
+AYAKA_VERSION = "0.5.0"
+
 total_settings: dict = {}
 setting_filepath = Path("ayaka_setting.json")
 if not setting_filepath.exists():
@@ -47,10 +49,6 @@ def create_ayaka_plugin_config_base(app_name):
         pass
     _AyakaPluginConfig.setup_app_name(app_name)
     return _AyakaPluginConfig
-
-
-INIT_STATE = "init"
-AYAKA_VERSION = "0.4.5"
 
 
 BaseConfig = create_ayaka_plugin_config_base("__root__")

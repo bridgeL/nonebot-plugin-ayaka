@@ -1,10 +1,10 @@
 {
     "__root__": {
-        "version": "0.4.5",
-        "prefix": "",
+        "version": "0.5.0",
+        "prefix": "#",
         "separate": " ",
         "exclude_old_msg": true,
-        "use_playwright": true,
+        "use_playwright": false,
         "owners": [
             1
         ],

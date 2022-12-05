@@ -1,10 +1,11 @@
 '''群组'''
-from typing import List, Dict, TYPE_CHECKING
+from typing import List, Dict, TYPE_CHECKING, Union
 from pathlib import Path
 from .storage import AyakaPath
 from .config import ayaka_root_config
 from .constant import app_list, group_list
 from .cache import AyakaCacheCtrl
+from .state import root_state, AyakaState
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp
@@ -43,7 +44,8 @@ class AyakaGroup:
     def __init__(self, bot_id: int, group_id: int) -> None:
         self.bot_id = bot_id
         self.group_id = group_id
-        self.running_app: "AyakaApp" = None
+
+        self.state = root_state
 
         # 读取forbit列表
         self.forbid_init()
@@ -62,11 +64,37 @@ class AyakaGroup:
         if ayaka_root_config.debug:
             print(self)
 
-    @property
-    def running_app_name(self):
-        if self.running_app:
-            return self.running_app.name
-        return ""
+    async def back(self):
+        if self.state.parent:
+            await self.state.exit()
+            self.state = self.state.parent
+            return self.state
+
+    async def goto(self, state: AyakaState):
+        keys = state.keys
+
+        # 找到第一个不同的结点
+        n0 = len(keys)
+        n1 = len(self.state.keys)
+        n = min(n0, n1)
+        for i in range(n):
+            if keys[i] != self.state.keys[i]:
+                break
+        else:
+            i += 1
+
+        # 回退
+        for j in range(i, n1):
+            await self.back()
+        keys = keys[i:]
+
+        # 重新出发
+        state = self.state
+        for key in keys:
+            state = state[key]
+            await state.enter()
+        self.state = state
+        return state
 
     def get_app(self, name: str):
         '''根据app名获取该group所启用的app，不存在则返回None'''

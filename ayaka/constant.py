@@ -53,13 +53,13 @@ async def startup():
 async def bot_connect(bot: Bot):
     bot_list.append(bot)
 
-    # 在第一个bot就绪后，开启插件中的定时模块
-    global first_bot_connect
-    if first_bot_connect:
-        first_bot_connect = False
-        for app in app_list:
-            for t in app.timers:
-                t.start()
+    # # 在第一个bot就绪后，开启插件中的定时模块
+    # global first_bot_connect
+    # if first_bot_connect:
+    #     first_bot_connect = False
+    #     for app in app_list:
+    #         for t in app.timers:
+    #             t.start()
 
 
 @driver.on_bot_disconnect

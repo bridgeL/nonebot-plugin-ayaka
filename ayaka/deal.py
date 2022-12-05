@@ -4,10 +4,10 @@ import datetime
 from typing import List
 
 from .driver import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
-from .on import AyakaTrigger
 from .config import ayaka_root_config
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, private_listener_dict
 from .group import get_group
+from .state import AyakaState, AyakaTrigger
 
 
 async def deal_event(bot: Bot, event: MessageEvent):
@@ -33,6 +33,22 @@ async def deal_event(bot: Bot, event: MessageEvent):
         await asyncio.gather(*ts)
 
 
+def get_triggers(state: AyakaState, deep: int = 0):
+    # 根据深度筛选funcs
+    ts = [
+        t for t in state.triggers
+        if t.deep == "any" or t.deep >= deep
+    ]
+    total_triggers = [ts]
+
+    # 获取父状态的方法
+    if state.parent:
+        ts = get_triggers(state.parent, deep+1)
+        total_triggers.append(ts)
+
+    return total_triggers
+
+
 async def deal_group(bot_id: int, group_id: int):
     # 群组
     group = get_group(bot_id, group_id)
@@ -42,92 +58,76 @@ async def deal_group(bot_id: int, group_id: int):
     message = _event.get().message
     _message.set(message)
 
-    # 命令、参数
-    cmd = get_cmd(message)
-    _cmd.set(cmd)
+    # 消息前缀文本
+    first = get_first(message)
 
-    # 让super先来
-    triggers = []
-    for app in group.apps:
-        for t in app.super_triggers:
-            triggers.append(t)
+    # 从子状态开始向上查找可用的触发
+    total_triggers = get_triggers(group.state, 0)
 
-    # 若执行了super命令，则退出
-    if await deal_triggers(triggers):
-        return
-
-    # 普通命令继续
-    triggers = []
-
-    # 当前正在运行
-    app = group.running_app
-    if app:
-        for t in app.state_triggers:
-            if t.state == "*":
-                triggers.append(t)
-            else:
-                # 子状态
-                # s1 = 添加.
-                # s2 = 添加.姓名.
-                s1 = t.state + "."
-                s2 = app.state + "."
-                if s2.startswith(s1):
-                    triggers.append(t)
-
-    # 其他桌面应用
-    else:
-        for app in group.apps:
-            for t in app.no_state_triggers:
-                triggers.append(t)
-
-    await deal_triggers(triggers)
+    for ts in total_triggers:
+        if await deal_triggers(ts, message, first):
+            break
 
 
-async def deal_triggers(triggers: List[AyakaTrigger]):
-    triggers.sort(key=lambda t: str(t.state), reverse=True)
-
-    cmd = _cmd.get()
-    msg = _message.get()
-
-    # 命令
-    if cmd:
-        for t in triggers:
-            if t.cmd == cmd:
-                # 设置去掉命令后的消息
-                arg = remove_cmd(cmd, msg)
-                _arg.set(arg)
-                _args.set(divide_message(arg))
-                await t.run()
-                return True
-
-    _arg.set(msg)
-    _args.set(divide_message(msg))
-
-    # 命令退化成消息
-    for t in triggers:
-        if not t.cmd:
-            await t.run()
-
-
-def get_cmd(message: Message):
-    '''返回命令'''
+async def deal_triggers(triggers: List[AyakaTrigger], message: Message, first: str):
     prefix = ayaka_root_config.prefix
     sep = ayaka_root_config.separate
+
+    # 命令
+    temp = [t for t in triggers if t.cmds]
+    # 根据命令长度排序，长命令优先级更高
+    cmd_ts = [(c, t) for t in temp for c in t.cmds]
+    cmd_ts.sort(key=lambda x: len(x[0]), reverse=1)
+
+    # 消息
+    text_ts = [t for t in triggers if not t.cmds]
+
+    for c, t in cmd_ts:
+        if first.startswith(prefix+c):
+            # 设置上下文
+            # 设置命令
+            _cmd.set(c)
+            # 设置参数
+            left = first[len(prefix+c):].lstrip(sep)
+            if left:
+                arg = Message([MessageSegment.text(left), *message[1:]])
+            else:
+                arg = Message(message[1:])
+            _arg.set(arg)
+            _args.set(divide_message(arg))
+
+            # 成功触发
+            await t.run()
+
+            # 阻断后续
+            if t.block:
+                return True
+
+    # 命令退化成消息
+    # 设置上下文
+    # 设置命令
+    _cmd.set("")
+    # 设置参数
+    _arg.set(message)
+    _args.set(divide_message(message))
+
+    for t in text_ts:
+        # 成功触发
+        await t.run()
+
+        # 阻断后续
+        if t.block:
+            return True
+
+
+def get_first(message: Message):
     first = ""
     for m in message:
         if m.type == "text":
             first += str(m)
         else:
             break
-        
-    if not first or not first.startswith(prefix):
-        return ""
-
-    if not sep:
-        return first
-    
-    first += sep
-    return first.split(sep, 1)[0][len(prefix):]
+    return first
 
 
 def divide_message(message: Message) -> List[MessageSegment]:
@@ -142,16 +142,3 @@ def divide_message(message: Message) -> List[MessageSegment]:
             args.append(m)
 
     return args
-
-
-def remove_cmd(cmd: str, message: Message) -> Message:
-    prefix = ayaka_root_config.prefix
-    sep = ayaka_root_config.separate
-    m = message[0]
-    if m.is_text():
-        m_str = str(m)
-        m_str = m_str[len(prefix+cmd):].lstrip(sep)
-        if not m_str:
-            return Message(message[1:])
-        return Message([MessageSegment.text(m_str), *message[1:]])
-    return message
