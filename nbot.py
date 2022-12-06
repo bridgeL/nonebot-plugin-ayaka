@@ -8,5 +8,6 @@ app = nonebot.get_asgi()
 driver = nonebot.get_driver()
 driver.register_adapter(Adapter)
 nonebot.load_plugins("plugins")
+nonebot.load_plugin("ayaka_test")
 if __name__ == "__main__":
     nonebot.run(app="__mp_main__:app")
