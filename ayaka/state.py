@@ -67,14 +67,16 @@ class AyakaState(AyakaChainNode):
         }
 
     async def enter(self):
-        print(">>>", self.key)
+        if ayaka_root_config.debug:
+            print(">>>", self.key)
         add_flag()
         for func in self.enter_funcs:
             await func()
         sub_flag()
 
     async def exit(self):
-        print("<<<", self.key)
+        if ayaka_root_config.debug:
+            print("<<<", self.key)
         add_flag()
         for func in self.exit_funcs:
             await func()
@@ -95,8 +97,6 @@ class AyakaState(AyakaChainNode):
     def on_cmd(self, *cmds: str, app_name: str, deep: Union[int, Literal["all"]] = 0, block=True, model: Type[AyakaInputModel] = None):
         def decorator(func):
             t = AyakaTrigger(func, cmds, deep, app_name, block, model)
-            # 向ayakaApp内添加该回调的帮助？
-            # []
             self.triggers.append(t)
             return func
         return decorator

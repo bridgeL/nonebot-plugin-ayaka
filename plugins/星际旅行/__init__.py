@@ -1,7 +1,7 @@
 from ayaka import AyakaApp
 
 app = AyakaApp("星际旅行")
-# app.help = "xing ji lv xing"
+app.help = "xing ji lv xing"
 
 
 # 启动应用
@@ -15,12 +15,9 @@ async def app_start():
 earth = app.on.state("地球")
 moon = app.on.state("月球")
 sun = app.on.state("太阳")
+menu = app.on.state()
 
-
-def all(func):
-    func = app.on.state()(func)
-    func = app.on_deep_all()(func)
-    return func
+all = app.on_deep_all()
 
 
 # 动作
@@ -28,8 +25,10 @@ hi = app.on.command("hi", "你好")
 hit = app.on.command("hit", "打")
 jump = app.on.command("jump", "跳")
 drink = app.on.command("drink", "喝")
+move = app.on.command("move", "移动")
 
 
+@menu
 @all
 @hi
 async def handle():
@@ -65,8 +64,9 @@ async def handle():
     await app.send("你感觉肚子暖洋洋的")
 
 
+@menu
 @all
-@app.on.command("goto")
+@move
 async def handle():
     '''去其他地方转转'''
     names = [str(arg) for arg in app.args]
@@ -76,6 +76,7 @@ async def handle():
 
 
 # 关闭应用
+@menu
 @all
 @app.on.command("exit", "quit")
 async def handle():
@@ -103,6 +104,7 @@ async def handle():
 
 @app.on.state("太阳")
 @app.on.command("watch")
+@all
 async def handle():
     '''去现场'''
     ctrl = app.cache.chain("ticket")
@@ -118,7 +120,7 @@ async def handle():
 
 # 补充3
 @app.on.state("太阳.耀斑表演")
-@app.on.command("drink")
+@app.on.text()
 async def handle():
     '''令人震惊的事实'''
     await app.send("你发现你的奶茶比表演项目还烫")

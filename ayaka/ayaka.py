@@ -44,55 +44,63 @@ class AyakaApp:
         if ayaka_root_config.debug:
             print(self)
 
-    # @property
-    # def intro(self):
-    #     '''获取介绍，也就是init状态下的帮助'''
-    #     helps = self._help.get(INIT_STATE, ["没有找到帮助"])
-    #     return "\n".join(helps)
+    @property
+    def intro(self):
+        '''获取介绍，也就是init状态下的帮助'''
+        helps = self._help.get(str(root_state), ["没有找到帮助"])
+        return "\n".join(helps)
 
-    # def get_helps(self, state: str):
-    #     helps = self._help.get(state)
-    #     if not helps:
-    #         return []
-    #     return [f"[{state}]"] + helps
+    def get_helps(self, key: str):
+        helps = self._help.get(key)
+        if not helps:
+            return []
+        return [f"[{key}]"] + helps
 
-    # @property
-    # def help(self):
-    #     '''获取当前状态下的帮助，没有找到则返回介绍'''
-    #     if self.group.running_app_name == self.name:
-    #         helps = []
-    #         state = self.state
-    #         helps.extend(self.get_helps(state))
+    @property
+    def help(self):
+        '''获取当前状态下的帮助，没有找到则返回介绍'''
+        plugin_state = self.get_state()
 
-    #         while "." in state:
-    #             state = state.rsplit(".", 1)[0]
-    #             helps.extend(self.get_helps(state))
+        # 没有运行
+        if not self.state.belong(plugin_state):
+            return self.intro
 
-    #         helps.extend(self.get_helps("*"))
+        helps = []
+        helps.extend(self.get_helps(str(self.state)))
 
-    #         if helps:
-    #             return "\n".join(helps)
+        # [\]
+        # 最好是能排除不生效的方法
+        # 计算父结点的帮助
+        state = self.state
+        while state.parent:
+            state = state.parent
+            helps.extend(self.get_helps(str(state)))
 
-    #     return self.intro
+        if helps:
+            return "\n".join(helps)
 
-    # @property
-    # def all_help(self):
-    #     '''获取介绍以及全部状态下的帮助'''
-    #     info = self.intro
-    #     for k, v in self._help.items():
-    #         v = "\n".join(v)
-    #         if k != INIT_STATE:
-    #             info += f"\n[{k}]\n{v}"
-    #     return info
+        return self.intro
 
-    # @help.setter
-    # def help(self, help: Union[str, Dict[str, str]]):
-    #     '''设置帮助，若help为str，则设置为介绍，若help为dict，则设置为对应状态的帮助'''
-    #     if isinstance(help, dict):
-    #         help = {k: [v.strip()] for k, v in help.items()}
-    #         self._help.update(help)
-    #     else:
-    #         self._help[INIT_STATE] = [help.strip()]
+    @property
+    def all_help(self):
+        '''获取介绍以及全部状态下的帮助'''
+        i = len(str(root_state)) + 1
+        info = self.intro + "\n"
+        for k, v in self._help.items():
+            k = k[i:]
+            v = "\n".join(v)
+            if k:
+                info += f"\n[{k}]\n{v}"
+        return info.strip()
+
+    @help.setter
+    def help(self, help: Union[str, Dict[str, str]]):
+        '''设置帮助，若help为str，则设置为介绍，若help为dict，则设置为对应状态的帮助'''
+        if isinstance(help, dict):
+            help = {k: [v.strip()] for k, v in help.items()}
+            self._help.update(help)
+        else:
+            self._help[str(root_state)] = [help.strip()]
 
     @property
     def valid(self):
@@ -314,8 +322,11 @@ class AyakaApp:
 
     def set_start_cmds(self, *cmds: str):
         '''设置应用启动命令，当然，你也可以通过on_cmd自定义启动方式'''
-        state = self.get_state(base=AyakaStateBase.ROOT)
-        state.on_cmd(*cmds, app_name=self.name)(self.start)
+        async def func():
+            '''打开应用'''
+            await self.start()
+        func.cmds = cmds
+        self.funcs.append(func)
 
     async def start(self):
         '''*timer触发时不可用*
@@ -424,10 +435,8 @@ class AyakaApp:
 on_message(priority=20, block=False, handlers=[deal_event])
 
 
-def regist_func(app: AyakaApp, func):
-    '''注册回调'''
+def get_func_attr(func):
     # 默认是无状态应用，从root开始触发
-    root_state = app.get_state(base=AyakaStateBase.ROOT)
     states: List[AyakaState] = getattr(func, "states", [root_state])
     # 默认是消息响应
     cmds: List[str] = getattr(func, "cmds", [])
@@ -437,6 +446,12 @@ def regist_func(app: AyakaApp, func):
     block: bool = getattr(func, "block", True)
     # 默认没有解析模型
     model: Type[AyakaInputModel] = getattr(func, "model", None)
+    return states, cmds, deep, block, model
+
+
+def regist_func(app: AyakaApp, func):
+    '''注册回调'''
+    states, cmds, deep, block, model = get_func_attr(func)
     # 注册
     for s in states:
         s.on_cmd(
@@ -449,6 +464,35 @@ def regist_func(app: AyakaApp, func):
     return func
 
 
+def add_help(app: AyakaApp, func):
+    # 如果有帮助，自动添加到_help中
+    doc = func.__doc__
+    if not doc:
+        doc = ""
+    if doc.strip():
+        doc = f"| {doc}"
+
+    states, cmds, deep, block, model = get_func_attr(func)
+
+    cmd_str = '/'.join(cmds)
+    if not cmd_str:
+        cmd_str = "*"
+
+    if not model:
+        help = f"- {cmd_str} {doc}"
+    else:
+        data = model.help()
+        keys_str = " ".join(f"<{k}>" for k in data.keys())
+        data_str = "\n".join(f"    <{k}> {v}" for k, v in data.items() if v)
+        help = f"- {cmd_str} {keys_str} {doc}\n{data_str}"
+
+    for s in states:
+        s = str(s)
+        if s not in app._help:
+            app._help[s] = []
+        app._help[s].append(help)
+
+
 driver = get_driver()
 
 
@@ -458,12 +502,13 @@ async def startup():
     for app in app_list:
         for func in app.funcs:
             regist_func(app, func)
+            # 注册帮助
+            add_help(app, func)
 
     if ayaka_root_config.debug:
         s = json.dumps(
             root_state.dict(), ensure_ascii=0,
             indent=4, default=repr
         )
-        print(s)
         with open("all_state.json", "w+", encoding="utf8") as f:
             f.write(s)

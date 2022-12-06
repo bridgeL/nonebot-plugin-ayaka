@@ -46,13 +46,26 @@ class AyakaChainNode:
         return node
 
     def __gt__(self, node: Self):
-        return len(self.keys) > len(node.keys)
+        return self >= node and len(self.keys) > len(node.keys)
 
     def __ge__(self, node: Self):
-        return len(self.keys) >= len(node.keys)
+        return self.belong(node)
 
     def __lt__(self, node: Self):
-        return not self >= node
+        return self <= node and len(self.keys) < len(node.keys)
 
     def __le__(self, node: Self):
-        return not self > node
+        return node.belong(self)
+
+    def __eq__(self, node: Self):
+        return self <= node and len(self.keys) == len(node.keys)
+
+    def belong(self, node: Self):
+        if len(self.keys) < len(node.keys):
+            return False
+
+        for i in range(len(node.keys)):
+            if node.keys[i] != self.keys[i]:
+                return False
+
+        return True

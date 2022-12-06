@@ -43,32 +43,6 @@ class AyakaOn:
     def text(self):
         return self.app.on_no_block()
 
-    # def on_handle(self, cmds: Union[List[str], str], states: Union[List[str], str], super: bool):
-    #     '''注册'''
-    #     cmds = ensure_list(cmds)
-    #     states = ensure_list(states)
-
-    #     def decorator(func: Callable[[], Coroutine]):
-    #         for state in states:
-    #             for cmd in cmds:
-    #                 t = AyakaTrigger(self.app.name, cmd, state, super, func)
-    #                 self.app.triggers.append(t)
-
-    #             # 如果有帮助，自动添加到_help中
-    #             doc = func.__doc__
-    #             if doc:
-    #                 if state is None:
-    #                     state = INIT_STATE
-    #                 if state not in self.app._help:
-    #                     self.app._help[state] = []
-    #                 cmd_str = '/'.join(cmds)
-    #                 if not cmd_str:
-    #                     cmd_str = "*"
-    #                 self.app._help[state].append(f"- {cmd_str} {doc}")
-
-    #         return func
-    #     return decorator
-
     def everyday(self, h: int, m: int, s: int):
         '''每日定时触发'''
         return self.interval(86400, h, m, s)

@@ -1,13 +1,14 @@
 {
     "name": "root",
     "triggers": [
-        "AyakaTrigger(app_name=星际旅行-new cmds=['星际旅行-new'] func=start deep=0 block=True model=None)",
         "AyakaTrigger(app_name=ayaka_master cmds=['插件', 'plugin', 'plugins'] func=show_plugins deep=all block=True model=None)",
         "AyakaTrigger(app_name=ayaka_master cmds=['状态', 'state'] func=show_state deep=all block=True model=None)",
+        "AyakaTrigger(app_name=ayaka_master cmds=['帮助', 'help'] func=show_help deep=all block=True model=None)",
         "AyakaTrigger(app_name=ayaka_master cmds=['强制退出', 'force_exit'] func=force_exit deep=all block=True model=None)",
-        "AyakaTrigger(app_name=ayaka_master cmds=['增加ayaka管理者'] func=add_admin deep=all block=True model=None)",
-        "AyakaTrigger(app_name=ayaka_master cmds=['移除ayaka管理者'] func=remove_admin deep=all block=True model=None)",
-        "AyakaTrigger(app_name=星际旅行 cmds=['星际旅行'] func=app_start deep=0 block=True model=None)"
+        "AyakaTrigger(app_name=ayaka_master cmds=['add_admin'] func=add_admin deep=all block=True model=<class 'ayaka.ayaka_master.UidInput'>)",
+        "AyakaTrigger(app_name=ayaka_master cmds=['remove_admin'] func=remove_admin deep=all block=True model=<class 'ayaka.ayaka_master.UidInput'>)",
+        "AyakaTrigger(app_name=星际旅行 cmds=['星际旅行'] func=app_start deep=0 block=True model=None)",
+        "AyakaTrigger(app_name=星际旅行-new cmds=['星际旅行-new'] func=func deep=0 block=True model=None)"
     ],
     "children": [
         {
@@ -57,7 +58,7 @@
                         {
                             "name": "耀斑表演",
                             "triggers": [
-                                "AyakaTrigger(app_name=星际旅行-new cmds=['drink'] func=handle deep=0 block=True model=None)"
+                                "AyakaTrigger(app_name=星际旅行-new cmds=[] func=handle deep=0 block=True model=None)"
                             ],
                             "children": []
                         }
@@ -69,7 +70,7 @@
             "name": "星际旅行",
             "triggers": [
                 "AyakaTrigger(app_name=星际旅行 cmds=['hi', '你好'] func=handle deep=all block=True model=None)",
-                "AyakaTrigger(app_name=星际旅行 cmds=['goto'] func=handle deep=all block=True model=None)",
+                "AyakaTrigger(app_name=星际旅行 cmds=['move', '移动'] func=handle deep=all block=True model=None)",
                 "AyakaTrigger(app_name=星际旅行 cmds=['exit', 'quit'] func=handle deep=all block=True model=None)"
             ],
             "children": [
@@ -112,7 +113,7 @@
                         {
                             "name": "耀斑表演",
                             "triggers": [
-                                "AyakaTrigger(app_name=星际旅行 cmds=['drink'] func=handle deep=0 block=True model=None)"
+                                "AyakaTrigger(app_name=星际旅行 cmds=[] func=handle deep=0 block=False model=None)"
                             ],
                             "children": []
                         }
