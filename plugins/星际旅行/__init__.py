@@ -3,33 +3,47 @@ from ayaka import AyakaApp
 app = AyakaApp("星际旅行")
 app.help = "xing ji lv xing"
 
+# 状态
+st_menu = app.get_state()
+st_earth = app.get_state("地球")
+st_moon = app.get_state("月球")
+st_sun = app.get_state("太阳")
 
-# 启动应用
-@app.on.idle()
-@app.on.command("星际旅行")
-async def app_start():
-    '''打开应用'''
-    await app.start()
-
-# 星球
-earth = app.on.state("地球")
-moon = app.on.state("月球")
-sun = app.on.state("太阳")
-menu = app.on.state()
-
+# 全部
 all = app.on_deep_all()
 
+# 星球
+earth = app.on_state(st_earth)
+moon = app.on_state(st_moon)
+sun = app.on_state(st_sun)
+menu = app.on_state(st_menu)
 
 # 动作
-hi = app.on.command("hi", "你好")
-hit = app.on.command("hit", "打")
-jump = app.on.command("jump", "跳")
-drink = app.on.command("drink", "喝")
-move = app.on.command("move", "移动")
+hi = app.on_cmd("hi", "你好")
+hit = app.on_cmd("hit", "打")
+jump = app.on_cmd("jump", "跳")
+drink = app.on_cmd("drink", "喝")
+move = app.on_cmd("move", "移动")
+stop = app.on_cmd("退出", "exit")
 
 
-@menu
+# 启动应用
+app.set_start_cmds("星际旅行")
+
+
 @all
+@stop
+@menu
+async def exit_app():
+    '''退出应用'''
+    if app.state <= st_menu:
+        await app.close()
+    else:
+        await app.back()
+
+
+@all
+@menu
 @hi
 async def handle():
     '''打个招呼'''
@@ -75,17 +89,9 @@ async def handle():
     await app.send(f"你动身前往{state}")
 
 
-# 关闭应用
-@menu
-@all
-@app.on.command("exit", "quit")
-async def handle():
-    '''退出'''
-    await app.close()
-
-
 # 补充
-@app.on.state("太阳.奶茶店")
+
+@app.on_state(["太阳", "奶茶店"])
 @drink
 async def handle():
     '''热乎的'''
@@ -93,8 +99,9 @@ async def handle():
 
 
 # 补充2
-@app.on.state("太阳.售票处")
-@app.on.command("buy")
+
+@app.on_state(["太阳", "售票处"])
+@app.on_cmd("buy")
 async def handle():
     '''买门票'''
     ctrl = app.cache.chain("ticket")
@@ -102,9 +109,9 @@ async def handle():
     await app.send("耀斑表演门票+1")
 
 
-@app.on.state("太阳")
-@app.on.command("watch")
 @all
+@sun
+@app.on_cmd("watch")
 async def handle():
     '''去现场'''
     ctrl = app.cache.chain("ticket")
@@ -112,15 +119,14 @@ async def handle():
     if ticket > 0:
         ctrl.set(ticket - 1)
         await app.send("耀斑表演门票-1")
-        await app.goto("太阳", "耀斑表演")
+        app.state = "太阳.耀斑表演"
         await app.send("10分甚至9分的好看")
     else:
         await app.send("你还没买票")
 
 
 # 补充3
-@app.on.state("太阳.耀斑表演")
-@app.on.text()
+@app.on_state(["太阳", "耀斑表演"])
 async def handle():
     '''令人震惊的事实'''
     await app.send("你发现你的奶茶比表演项目还烫")

@@ -469,13 +469,15 @@ def add_help(app: AyakaApp, func):
     doc = func.__doc__
     if not doc:
         doc = ""
-    if doc.strip():
+    else:
         doc = f"| {doc}"
 
     states, cmds, deep, block, model = get_func_attr(func)
 
     cmd_str = '/'.join(cmds)
     if not cmd_str:
+        if not doc:
+            return
         cmd_str = "*"
 
     if not model:

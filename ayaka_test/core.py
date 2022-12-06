@@ -102,7 +102,7 @@ class FakeQQ:
     def print(self, *args):
         '''打印到终端上'''
         # 限制长度
-        text = " ".join(str(a)[:1000] for a in args)
+        text = " ".join(str(a)[:2000] for a in args)
 
         # 保护已闭合的标签
         text = re.sub(r"<(.*)>(.*?)</(\1)>", r"%%%\1%%%\2%%%/\1%%%", text)
