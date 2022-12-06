@@ -328,15 +328,18 @@ class AyakaApp:
         func.cmds = cmds
         self.funcs.append(func)
 
-    async def start(self, state=None):
+    async def start(self, state: str = None):
         '''*timer触发时不可用*
 
         启动应用，并发送提示
-        
+
         state参数为兼容旧API'''
         if not state:
             state = self.get_state()
-        await self.goto(state)
+            await self.goto(state)
+        else:
+            states = state.split(".")
+            await self.goto(*states)
         await self.send(f"已打开应用 [{self.name}]")
 
     async def close(self):
