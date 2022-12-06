@@ -13,3 +13,8 @@ __pycache__
 /test.log
 /db
 /backup
+
+ayaka_setting.json
+all_state.json
+
+
