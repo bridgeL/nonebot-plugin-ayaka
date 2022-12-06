@@ -16,7 +16,7 @@ class UidInput(AyakaInputModel):
 # @app.on.idle(super=True)
 # @app.on.command("启用", "permit")
 # async def permit():
-#     ''' '''
+#     
 #     if not app.args:
 #         await app.send("参数缺失")
 #         return
@@ -32,7 +32,7 @@ class UidInput(AyakaInputModel):
 # @app.on.idle(super=True)
 # @app.on.command("禁用", "forbid")
 # async def forbid():
-#     ''' '''
+#     
 #     if not app.args:
 #         await app.send("参数缺失")
 #         return

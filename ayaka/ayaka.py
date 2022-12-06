@@ -260,7 +260,7 @@ class AyakaApp:
         if isinstance(state_or_key, AyakaState):
             state = state_or_key
         else:
-            state = self.get_state(state_or_key, *keys, base=base)
+            state = self.get_state(*state_or_key.split("."), *keys, base=base)
         return await self.group.goto(state)
 
     async def back(self):

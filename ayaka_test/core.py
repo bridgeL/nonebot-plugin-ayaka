@@ -100,7 +100,7 @@ class FakeQQ:
     terminal_cmds = {}
     cqhttp_acts = {}
 
-    def print(self, *args):
+    def print(self, *args, enter_back=True):
         '''打印到终端上'''
         # 限制长度
         text = " ".join(str(a)[:3000] for a in args)
@@ -115,7 +115,10 @@ class FakeQQ:
             logger.opt(colors=True).log(AYAKA_LOGGER_NAME, text)
         except:
             logger.log(AYAKA_LOGGER_NAME, text)
-            
+
+        if enter_back:
+            print(colorama.Fore.YELLOW)
+
     def init_logger(self):
         logger.remove()
         logger.add(
@@ -134,7 +137,7 @@ class FakeQQ:
     async def connect(self):
         # 初始化
         self.init_logger()
-        self.print("启动测试环境中...")
+        self.print("启动测试环境中...", enter_back=0)
 
         # 连接
         self.conn = Connect(
@@ -185,10 +188,10 @@ class FakeQQ:
 
             # 调用回调
             action = data["action"]
-            self.print(f"<y>{action}</y>")
+            self.print(f"<y>{action}</y>", enter_back=0)
             func = self.cqhttp_acts.get(action)
             if not func:
-                self.print("未定义的假cqhttp动作", data)
+                self.print("未定义的假cqhttp动作", data, enter_back=0)
             else:
                 await func(data["echo"], data["params"])
 
@@ -204,7 +207,7 @@ class FakeQQ:
         # 调用回调
         func = self.terminal_cmds.get(cmd)
         if not func:
-            self.print("未知终端命令", cmd, text)
+            self.print("未知终端命令", cmd, text, enter_back=0)
         else:
             await func(text)
 
@@ -230,7 +233,7 @@ class FakeQQ:
         # 发送假cqhttp消息
         await self.ws.send(json.dumps(data))
         # 回显
-        self.print(f"群聊({gid}) <y>{name}</y>({uid}) 说：\n{text}")
+        self.print(f"群聊({gid}) <y>{name}</y>({uid}) 说：\n{text}", enter_back=0)
 
     async def send_private(self, uid: int, text: str):
         '''向nonebot发送假私聊消息'''
@@ -243,14 +246,16 @@ class FakeQQ:
         # 发送假cqhttp消息
         await self.ws.send(json.dumps(data))
         # 回显
-        self.print(f"私聊({uid}) <y>{name}</y> 说：\n{text}")
+        self.print(f"私聊({uid}) <y>{name}</y> 说：\n{text}", enter_back=0)
 
     def print_help(self):
-        for line in helps.split("\n"):
-            self.print(line)
-        self.print("CQ码：https://docs.go-cqhttp.org/cqcode")
-        self.print(
-            "ayaka_test：https://bridgel.github.io/ayaka_doc/latest/intro/test/")
+        lines = [
+            *helps.split("\n"),
+            "CQ码：https://docs.go-cqhttp.org/cqcode",
+            "ayaka_test：https://bridgel.github.io/ayaka_doc/latest/intro/test/"
+        ]
+        for line in lines:
+            self.print(line, enter_back=0)
 
 
 fake_qq = FakeQQ()

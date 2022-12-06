@@ -18,12 +18,9 @@ class TypedMessageSegment(MessageSegment):
             raise ValueError('invalid MessageSegment format')
         return v
 
-    # @classmethod
-    # def __modify_schema__(cls, field_schema):
-    #     field_schema.update(
-    #         pattern='^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$',
-    #         examples=['SP11 9DG', 'w1j7bu'],
-    #     )
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        field_schema["msg_type"] = cls.__type__
 
 
 def msg_type(type: str):
