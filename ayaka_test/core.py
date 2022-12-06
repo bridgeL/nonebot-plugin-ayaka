@@ -4,6 +4,7 @@ import json
 import asyncio
 from time import time
 from typing import Callable, Coroutine
+import colorama
 from websockets.legacy.client import Connect
 from loguru import logger
 from ayaka import get_driver
@@ -102,7 +103,7 @@ class FakeQQ:
     def print(self, *args):
         '''打印到终端上'''
         # 限制长度
-        text = " ".join(str(a)[:2000] for a in args)
+        text = " ".join(str(a)[:3000] for a in args)
 
         # 保护已闭合的标签
         text = re.sub(r"<(.*)>(.*?)</(\1)>", r"%%%\1%%%\2%%%/\1%%%", text)
@@ -114,7 +115,7 @@ class FakeQQ:
             logger.opt(colors=True).log(AYAKA_LOGGER_NAME, text)
         except:
             logger.log(AYAKA_LOGGER_NAME, text)
-
+            
     def init_logger(self):
         logger.remove()
         logger.add(
@@ -172,8 +173,8 @@ class FakeQQ:
         '''通过终端向nonebot发消息'''
         loop = asyncio.get_event_loop()
         while True:
-            line = await loop.run_in_executor(None, input)
-            print()
+            line = await loop.run_in_executor(None, input, colorama.Fore.YELLOW)
+            print(colorama.Fore.RESET)
             await self.deal_line(line)
 
     async def nonebot_loop(self):

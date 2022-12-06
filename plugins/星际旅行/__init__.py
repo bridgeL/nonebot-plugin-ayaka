@@ -119,7 +119,7 @@ async def handle():
     if ticket > 0:
         ctrl.set(ticket - 1)
         await app.send("耀斑表演门票-1")
-        app.state = "太阳.耀斑表演"
+        await app.goto("太阳", "耀斑表演")
         await app.send("10分甚至9分的好看")
     else:
         await app.send("你还没买票")

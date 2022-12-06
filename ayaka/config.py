@@ -8,7 +8,7 @@ from pydantic import BaseModel, ValidationError, validator
 from typing import List, Literal
 from loguru import logger
 
-AYAKA_VERSION = "0.4.10b0"
+AYAKA_VERSION = "0.5.0"
 
 total_settings: dict = {}
 setting_filepath = Path("ayaka_setting.json")
