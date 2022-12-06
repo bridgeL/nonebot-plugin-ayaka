@@ -7,7 +7,6 @@ from loguru import logger
 from typing import List, Dict, Literal, Type, Union
 
 from .ayaka_input import AyakaInputModel
-from .ayaka_parser import parser
 from .config import ayaka_root_config, create_ayaka_plugin_config_base
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot, _model_data
 from .deal import deal_event
@@ -33,7 +32,6 @@ class AyakaApp:
         self.name = name
         self._help: Dict[str, List[str]] = {}
         self.storage = AyakaStorage(self)
-        self.parser = parser
         self.BaseConfig = create_ayaka_plugin_config_base(name)
         self.ayaka_root_config = ayaka_root_config
         self.funcs = []
@@ -224,7 +222,7 @@ class AyakaApp:
 
     def get_state(self, *keys: str, base: AyakaStateBase = AyakaStateBase.PLUGIN):
         '''
-            假设当前状态为 root.test.a
+            假设当前状态为 `root.test.a` 即 `根.插件名.一级菜单项`
 
             - 基于 当前状态
 
