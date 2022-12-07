@@ -3,8 +3,6 @@ import asyncio
 import datetime
 from typing import TYPE_CHECKING
 from loguru import logger
-
-from .state import AyakaStateBase
 from .config import ayaka_root_config
 
 if TYPE_CHECKING:
@@ -28,7 +26,7 @@ class AyakaOn:
 
     def idle(self, super=False):
         '''注册无状态回调'''
-        root_state = self.app.get_state(base=AyakaStateBase.ROOT)
+        root_state = self.app.get_state(base="root")
         if super:
             def decorator(func):
                 func = self.app.on_state(root_state)(func)

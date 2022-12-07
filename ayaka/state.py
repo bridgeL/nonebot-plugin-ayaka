@@ -1,13 +1,12 @@
-from enum import Enum
-import inspect
-from typing import Awaitable, Callable, List, Literal, Union
+from typing import TYPE_CHECKING, List, Literal, Union
 from typing_extensions import Self
-from pydantic import BaseModel, ValidationError
 
-from .ayaka_input import AyakaInputModel
 from .config import ayaka_root_config
-from .constant import _enter_exit_during, _args, _bot, _group
-from .ayaka_chain import AyakaChainNode
+from .constant import _enter_exit_during
+from .trigger import AyakaTrigger
+
+if TYPE_CHECKING:
+    from .ayaka import AyakaApp
 
 
 def add_flag():
@@ -18,66 +17,70 @@ def sub_flag():
     _enter_exit_during.set(_enter_exit_during.get()-1)
 
 
-class AyakaTrigger(BaseModel):
-    app_name: str
-    cmds: List[str]
-    func: Callable[..., Awaitable]
-    deep: Union[int, Literal["all"]]
-    block: bool
+class AyakaState:
+    def __init__(self, key="root", parent: Self = None):
+        self.key = key
+        self.parent = parent
+        if not parent:
+            self.keys = [key]
+        else:
+            self.keys = [*parent.keys, key]
+        self.children: List[Self] = []
 
-    def __init__(self, func, cmds, deep, app_name, block):
-        super().__init__(
-            func=func, cmds=cmds, deep=deep,
-            app_name=app_name, block=block
-        )
-        if ayaka_root_config.debug:
-            print(repr(self))
+        self.enter_funcs = []
+        self.exit_funcs = []
+        self.triggers: List[AyakaTrigger] = []
 
-    async def run(self):
-        sig = inspect.signature(self.func)
-        model = None
-        for k, v in sig.parameters.items():
-            cls = v.annotation
-            if issubclass(cls, AyakaInputModel):
-                model = [k, cls]
-                break
+    def __getitem__(self, k):
+        for node in self.children:
+            if node.key == k:
+                return node
+        node = self.__class__(k, self)
+        self.children.append(node)
+        return node
 
-        if not model:
-            await self.func()
+    def __getattr__(self, k):
+        return self[k]
 
-        k, cls = model
-        args = _args.get()
-        try:
-            data = cls(args)
-        except ValidationError as e:
-            bot = _bot.get()
-            group = _group.get()
-            await bot.send_group_msg(group_id=group.group_id, message=str(e))
-            return
+    def __iter__(self):
+        return iter(self.children)
 
-        await self.func(**{k: data})
+    def __str__(self) -> str:
+        return ".".join(self.keys)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self})"
 
-    def __str__(self) -> str:
-        data = self.dict()
-        data["func"] = self.func.__name__
-        return " ".join(f"{k}={v}" for k, v in data.items())
+    def join(self, *keys: str) -> Self:
+        node = self
+        for key in keys:
+            node = node[key]
+        return node
 
+    def __gt__(self, node: Self):
+        return self >= node and len(self.keys) > len(node.keys)
 
-class AyakaStateBase(Enum):
-    CURRENT = "current"
-    PLUGIN = "plugin"
-    ROOT = "root"
+    def __ge__(self, node: Self):
+        return self.belong(node)
 
+    def __lt__(self, node: Self):
+        return self <= node and len(self.keys) < len(node.keys)
 
-class AyakaState(AyakaChainNode):
-    def __init__(self, key="root", parent: Self = None):
-        super().__init__(key, parent)
-        self.enter_funcs = []
-        self.exit_funcs = []
-        self.triggers: List[AyakaTrigger] = []
+    def __le__(self, node: Self):
+        return node.belong(self)
+
+    def __eq__(self, node: Self):
+        return self <= node and len(self.keys) == len(node.keys)
+
+    def belong(self, node: Self):
+        if len(self.keys) < len(node.keys):
+            return False
+
+        for i in range(len(node.keys)):
+            if node.keys[i] != self.keys[i]:
+                return False
+
+        return True
 
     def dict(self):
         data = [child.dict() for child in self.children]
@@ -115,15 +118,15 @@ class AyakaState(AyakaChainNode):
             return func
         return decorator
 
-    def on_cmd(self, *cmds: str, app_name: str, deep: Union[int, Literal["all"]] = 0, block=True):
+    def on_cmd(self, *cmds: str, app: "AyakaApp", deep: Union[int, Literal["all"]] = 0, block=True):
         def decorator(func):
-            t = AyakaTrigger(func, cmds, deep, app_name, block)
+            t = AyakaTrigger(func, cmds, deep, app, block)
             self.triggers.append(t)
             return func
         return decorator
 
-    def on_text(self, app_name: str, deep: Union[int, Literal["all"]] = 0, block=True):
-        return self.on_cmd(app_name=app_name, deep=deep, block=block)
+    def on_text(self, app: "AyakaApp", deep: Union[int, Literal["all"]] = 0, block=True):
+        return self.on_cmd(app=app, deep=deep, block=block)
 
 
 root_state = AyakaState()

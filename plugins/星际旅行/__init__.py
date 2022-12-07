@@ -1,4 +1,4 @@
-from ayaka import AyakaApp
+from ayaka import AyakaApp, AyakaCache
 
 app = AyakaApp("星际旅行")
 app.help = "xing ji lv xing"
@@ -90,7 +90,6 @@ async def handle():
 
 
 # 补充
-
 @app.on_state(["太阳", "奶茶店"])
 @drink
 async def handle():
@@ -99,25 +98,25 @@ async def handle():
 
 
 # 补充2
+class Ticket(AyakaCache):
+    ticket = 0
+
 
 @app.on_state(["太阳", "售票处"])
 @app.on_cmd("buy")
-async def handle():
+async def handle(cache: Ticket):
     '''买门票'''
-    ctrl = app.cache.chain("ticket")
-    ctrl.set(ctrl.get(0) + 1)
+    cache.ticket += 1
     await app.send("耀斑表演门票+1")
 
 
 @all
 @sun
 @app.on_cmd("watch")
-async def handle():
+async def handle(cache: Ticket):
     '''去现场'''
-    ctrl = app.cache.chain("ticket")
-    ticket = ctrl.get(0)
-    if ticket > 0:
-        ctrl.set(ticket - 1)
+    if cache.ticket > 0:
+        cache.ticket -= 1
         await app.send("耀斑表演门票-1")
         await app.goto("太阳", "耀斑表演")
         await app.send("10分甚至9分的好看")

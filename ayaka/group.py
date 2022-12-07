@@ -1,10 +1,9 @@
 '''群组'''
 from typing import List, Dict, TYPE_CHECKING
-from pathlib import Path
 from loguru import logger
+
+from .cache import AyakaCache
 from .config import ayaka_root_config
-from .storage import AyakaPath
-from .cache import AyakaCacheCtrl
 from .state import root_state, AyakaState
 from .constant import app_list, group_list, _enter_exit_during
 
@@ -26,21 +25,21 @@ class AyakaGroup:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.bot_id}, {self.group_id}, {self.apps})"
 
-    def forbid_init(self):
-        names = [
-            "data", "groups",
-            self.bot_id,
-            self.group_id
-        ]
-        names = [str(name) for name in names]
-        path = Path(*names)
-        self.store_forbid = AyakaPath(path).json("forbid", [])
+    # def forbid_init(self):
+    #     names = [
+    #         "data", "groups",
+    #         self.bot_id,
+    #         self.group_id
+    #     ]
+    #     names = [str(name) for name in names]
+    #     path = Path(*names)
+    #     self.store_forbid = AyakaPath(path).json("forbid", [])
 
-    def forbid_load(self):
-        return self.store_forbid.load()
+    # def forbid_load(self):
+    #     return self.store_forbid.load()
 
-    def forbid_save(self, data):
-        return self.store_forbid.save(data)
+    # def forbid_save(self, data):
+    #     return self.store_forbid.save(data)
 
     def __init__(self, bot_id: int, group_id: int) -> None:
         self.bot_id = bot_id
@@ -53,12 +52,11 @@ class AyakaGroup:
 
         # 添加app，并分配独立数据空间
         self.apps: List["AyakaApp"] = []
-        self.cache_dict: Dict[str, AyakaCacheCtrl] = {}
+        self.cache_dict: Dict[str, Dict[str, AyakaCache]] = {}
         for app in app_list:
             # if app.name not in forbid_names:
-            if 1:
-                self.apps.append(app)
-                self.cache_dict[app.name] = AyakaCacheCtrl()
+            self.apps.append(app)
+            self.cache_dict[app.name] = {}
 
         group_list.append(self)
 

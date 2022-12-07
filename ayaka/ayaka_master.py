@@ -1,6 +1,6 @@
 '''ayaka综合管理模块'''
 from pydantic import Field
-from .ayaka_input import AyakaInputModel
+from .input import AyakaInput
 from .ayaka import app_list, AyakaApp
 from .constant import get_app
 from .config import ayaka_root_config
@@ -10,11 +10,11 @@ app = AyakaApp("ayaka_master")
 app.help = '''ayaka综合管理模块'''
 
 
-class UidInput(AyakaInputModel):
+class UidInput(AyakaInput):
     uid: int = Field(description="QQ号", gt=0)
 
 
-class AppnameInput(AyakaInputModel):
+class AppnameInput(AyakaInput):
     name: str = Field("", description="应用名")
 
 # @app.on.idle(super=True)

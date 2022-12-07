@@ -3,7 +3,6 @@ import asyncio
 import datetime
 from typing import List
 from loguru import logger
-from pydantic import ValidationError
 
 from .driver import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
 from .config import ayaka_root_config
@@ -89,7 +88,7 @@ async def deal_cmd_triggers(triggers: List[AyakaTrigger], message: Message, firs
             _args.set(divide_message(arg))
 
             # 触发
-            log_trigger(c, t.app_name, state, t.func.__name__)
+            log_trigger(c, t.app.name, state, t.func.__name__)
             await t.run()
 
             # 阻断后续
@@ -110,7 +109,7 @@ async def deal_text_triggers(triggers: List[AyakaTrigger], message: Message, sta
 
     for t in text_ts:
         # 触发
-        log_trigger("", t.app_name, state, t.func.__name__)
+        log_trigger("", t.app.name, state, t.func.__name__)
         await t.run()
 
         # 阻断后续

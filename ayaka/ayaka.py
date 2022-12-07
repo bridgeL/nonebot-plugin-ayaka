@@ -4,16 +4,15 @@ import json
 from math import ceil
 from pathlib import Path
 from loguru import logger
-from typing import List, Dict, Literal, Type, Union
+from typing import List, Dict, Literal, Union
 
-from .ayaka_input import AyakaInputModel
+from .input import AyakaInput
 from .config import ayaka_root_config
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
 from .deal import deal_event
 from .group import get_group
-from .storage import AyakaStorage
 from .driver import on_message, MessageSegment, get_driver
-from .state import AyakaState, root_state, AyakaStateBase
+from .state import AyakaState, root_state
 from .on import AyakaOn, AyakaTimer
 
 
@@ -31,7 +30,6 @@ class AyakaApp:
 
         self.name = name
         self._help: Dict[str, List[str]] = {}
-        self.storage = AyakaStorage(self)
         self.ayaka_root_config = ayaka_root_config
         self.funcs = []
         self.on = AyakaOn(self)
@@ -108,14 +106,6 @@ class AyakaApp:
         return self.group.get_app(self.name)
 
     @property
-    def cache(self):
-        '''*timer触发时不可用*
-
-        当前群组、当前app的独立数据空间
-        '''
-        return self.group.cache_dict.get(self.name)
-
-    @property
     def user_name(self):
         '''*timer触发时不可用*
 
@@ -148,6 +138,13 @@ class AyakaApp:
         当前消息
         '''
         return _event.get()
+
+    @property
+    def cache(self):
+        '''*timer触发时不可用*
+
+        当前群组的缓存空间'''
+        return self.group.cache_dict[self.name]
 
     @property
     def group_id(self):
@@ -215,19 +212,15 @@ class AyakaApp:
     def state(self):
         return self.group.state
 
-    def get_state(self, *keys: str, base: AyakaStateBase = AyakaStateBase.PLUGIN):
+    def get_state(self, *keys: str, base: str = "plugin"):
         '''
             假设当前状态为 `root.test.a` 即 `根.插件名.一级菜单项`
 
-            - 基于 当前状态
-
-            >>> get_state(key1, key2, base=current) -> [root.test.a].key1.key2
-
-            - 基于`根状态`
+            - 基于`根`
 
             >>> get_state(key1, key2, base=root) -> [root].key1.key2
 
-            - 基于`插件状态`
+            - 基于`插件名`
 
             >>> get_state(key1, key2) -> [root.test].key1.key2
 
@@ -235,20 +228,18 @@ class AyakaApp:
 
             >>> get_state() -> [root.test]
         '''
-        if base == AyakaStateBase.CURRENT:
-            keys = [*self.state.keys[1:], *keys]
-        elif base == AyakaStateBase.PLUGIN:
+        if base == "plugin":
             keys = [self.name, *keys]
-        elif base == AyakaStateBase.ROOT:
+        elif base == "root":
             keys = [*keys]
         else:
             raise
         return root_state.join(*keys)
 
-    async def set_state(self, state_or_key: Union[AyakaState, str], *keys: str, base=AyakaStateBase.PLUGIN):
+    async def set_state(self, state_or_key: Union[AyakaState, str], *keys: str, base="plugin"):
         return await self.goto(state_or_key, *keys, base=base)
 
-    async def goto(self, state_or_key: Union[AyakaState, str], *keys: str, base=AyakaStateBase.PLUGIN):
+    async def goto(self, state_or_key: Union[AyakaState, str], *keys: str, base="plugin"):
         '''当state_or_key为字符串时，调用get_state(base=plugin)进行初始化(state_or_key.keys1.keys2)，keys可选填'''
         if isinstance(state_or_key, AyakaState):
             state = state_or_key
@@ -287,7 +278,7 @@ class AyakaApp:
             return func
         return decorator
 
-    def on_state(self, *states: Union[AyakaState, str, List[str]], base=AyakaStateBase.PLUGIN):
+    def on_state(self, *states: Union[AyakaState, str, List[str]], base="plugin"):
         '''注册有状态响应，不填写states则视为plugin状态'''
         _states = []
         if not states:
@@ -331,7 +322,7 @@ class AyakaApp:
         '''*timer触发时不可用*
 
         关闭应用，并发送提示'''
-        await self.goto(self.get_state(base=AyakaStateBase.ROOT))
+        await self.goto(self.get_state(base="root"))
         await self.send(f"已关闭应用 [{self.name}]")
 
     def add_listener(self, user_id: int):
@@ -441,7 +432,7 @@ def get_func_attr(func):
     sig = inspect.signature(func)
     for k, v in sig.parameters.items():
         cls = v.annotation
-        if issubclass(cls, AyakaInputModel):
+        if issubclass(cls, AyakaInput):
             model = cls
             break
     return states, cmds, deep, block, model
@@ -454,7 +445,7 @@ def regist_func(app: AyakaApp, func):
     for s in states:
         s.on_cmd(
             *cmds,
-            app_name=app.name,
+            app=app,
             deep=deep,
             block=block
         )(func)

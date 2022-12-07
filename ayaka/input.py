@@ -3,7 +3,7 @@ from pydantic import BaseModel, validator
 from .driver import MessageSegment
 
 
-class AyakaInputModel(BaseModel):
+class AyakaInput(BaseModel):
     def __init__(self, args: List[MessageSegment]) -> None:
         props = self.schema()["properties"]
         data = {k: v for k, v in zip(props, args)}
