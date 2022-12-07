@@ -5,6 +5,10 @@ from .ayaka import app_list, AyakaApp
 from .constant import get_app
 from .config import ayaka_root_config
 from .state import root_state
+from .driver import get_driver
+from .db import commit
+
+driver = get_driver()
 
 app = AyakaApp("ayaka_master")
 app.help = '''ayaka综合管理模块'''
@@ -145,3 +149,15 @@ async def remove_admin(data: UidInput):
         ayaka_root_config.force_update()
 
     await app.send("设置成功")
+
+
+# 定时提交
+@app.on.interval(60)
+async def _():
+    commit()
+
+
+# 退出提交
+@driver.on_shutdown
+async def _():
+    commit()

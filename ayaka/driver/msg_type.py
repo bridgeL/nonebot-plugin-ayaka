@@ -6,7 +6,7 @@ class TypedMessageSegment(MessageSegment):
 
     @classmethod
     def check_type(cls, v: MessageSegment):
-        return v.type != cls.__type__
+        return v.type == cls.__type__
 
     @classmethod
     def __get_validators__(cls):

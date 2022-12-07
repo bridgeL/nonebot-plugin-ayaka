@@ -34,6 +34,7 @@ class AyakaApp:
         self.funcs = []
         self.on = AyakaOn(self)
         self.timers: List[AyakaTimer] = []
+        self.root_state = root_state
 
         logger.opt(colors=True).success(f"应用加载成功 \"<c>{name}</c>\"")
         app_list.append(self)
@@ -64,7 +65,7 @@ class AyakaApp:
         helps = []
         helps.extend(self.get_helps(str(self.state)))
 
-        # [\]
+        # [-]
         # 最好是能排除不生效的方法
         # 计算父结点的帮助
         state = self.state
@@ -213,39 +214,28 @@ class AyakaApp:
     def state(self):
         return self.group.state
 
-    def get_state(self, *keys: str, base: str = "plugin"):
+    def get_state(self, *keys: str):
         '''
             假设当前状态为 `root.test.a` 即 `根.插件名.一级菜单项`
 
-            - 基于`插件名`（默认）
-
             >>> get_state(key1, key2) -> [root.test].key1.key2
-            
-            - 基于`根`
-
-            >>> get_state(key1, key2, base=root) -> [root].key1.key2
 
             特别的，keys可以为空，例如：
 
             >>> get_state() -> [root.test]
         '''
-        if base == "plugin":
-            keys = [self.name, *keys]
-        elif base == "root":
-            keys = [*keys]
-        else:
-            raise
+        keys = [self.name, *keys]
         return root_state.join(*keys)
 
-    async def set_state(self, state_or_key: Union[AyakaState, str], *keys: str, base="plugin"):
-        return await self.goto(state_or_key, *keys, base=base)
+    async def set_state(self, state_or_key: Union[AyakaState, str], *keys: str):
+        return await self.goto(state_or_key, *keys)
 
-    async def goto(self, state_or_key: Union[AyakaState, str], *keys: str, base="plugin"):
-        '''当state_or_key为字符串时，调用get_state(base=plugin)进行初始化(state_or_key.keys1.keys2)，keys可选填'''
+    async def goto(self, state_or_key: Union[AyakaState, str], *keys: str):
+        '''当state_or_key为字符串时，调用get_state进行初始化(state_or_key.keys1.keys2)，keys可选填'''
         if isinstance(state_or_key, AyakaState):
             state = state_or_key
         else:
-            state = self.get_state(*state_or_key.split("."), *keys, base=base)
+            state = self.get_state(*state_or_key.split("."), *keys)
         return await self.group.goto(state)
 
     async def back(self):
@@ -279,16 +269,16 @@ class AyakaApp:
             return func
         return decorator
 
-    def on_state(self, *states: Union[AyakaState, str, List[str]], base="plugin"):
-        '''注册有状态响应，不填写states则视为plugin状态'''
+    def on_state(self, *states: Union[AyakaState, str, List[str]]):
+        '''注册有状态响应，不填写states则为root.插件名状态'''
         _states = []
         if not states:
             states = [[]]
         for s in states:
             if isinstance(s, str):
-                s = self.get_state(s, base=base)
+                s = self.get_state(s)
             elif isinstance(s, list):
-                s = self.get_state(*s, base=base)
+                s = self.get_state(*s)
             _states.append(s)
 
         def decorator(func):
@@ -323,7 +313,7 @@ class AyakaApp:
         '''*timer触发时不可用*
 
         关闭应用，并发送提示'''
-        await self.goto(self.get_state(base="root"))
+        await self.goto(root_state)
         await self.send(f"已关闭应用 [{self.name}]")
 
     def add_listener(self, user_id: int):

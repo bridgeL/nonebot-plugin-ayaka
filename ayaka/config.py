@@ -8,7 +8,7 @@ from pydantic import BaseModel, ValidationError, validator
 from typing import List, Literal
 from loguru import logger
 
-AYAKA_VERSION = "0.5.0"
+AYAKA_VERSION = "0.5.1b1"
 
 total_settings: dict = {}
 setting_filepath = Path("ayaka_setting.json")
@@ -20,19 +20,43 @@ with setting_filepath.open("r", encoding="utf8") as f:
     total_settings = json.load(f)
 
 
-class AyakaPluginConfig(BaseModel):
-    '''继承时请填写__app_name__'''
+class AyakaConfig(BaseModel):
+    '''继承时请填写`__app_name__`和`__separate__`
+
+    `__separate__`默认为False，即该配置保存在ayaka_setting.json中字典的`__app_name__`键下
+
+    `__separate__`设置为True时，该配置保存在ayaka_setting/`__app_name__`.json下
+    '''
     __app_name__ = ""
+    __separate__ = False
 
     def __init__(self):
         if not self.__app_name__:
             raise Exception("__app_name__不可为空")
-        try:
-            super().__init__(**total_settings.get(self.__app_name__, {}))
-        except ValidationError as e:
-            logger.error(
-                f"导入配置失败，请检查 ayaka_setting.json 中，{self.__app_name__}的配置是否正确")
-            raise e
+
+        if self.__separate__:
+            path = Path("ayaka_setting")
+            if not path.exists():
+                path.mkdir()
+            path = path / f"{self.__app_name__}.json"
+            if not path.exists():
+                super().__init__()
+            else:
+                try:
+                    with path.open("r", encoding="utf8") as f:
+                        data = json.load(f)
+                    super().__init__(**data)
+                except ValidationError as e:
+                    logger.error(
+                        f"导入配置失败，请检查 ayaka_setting/{self.__app_name__}.json的配置是否正确")
+                    raise e
+        else:
+            try:
+                super().__init__(**total_settings.get(self.__app_name__, {}))
+            except ValidationError as e:
+                logger.error(
+                    f"导入配置失败，请检查 ayaka_setting.json 中，{self.__app_name__}的配置是否正确")
+                raise e
         self.force_update()
 
     def __setattr__(self, name, value):
@@ -40,12 +64,18 @@ class AyakaPluginConfig(BaseModel):
         self.force_update()
 
     def force_update(self):
-        total_settings[self.__app_name__] = self.dict()
-        with setting_filepath.open("w+", encoding="utf8") as f:
-            json.dump(total_settings, f, ensure_ascii=0, indent=4)
+        if self.__separate__:
+            data = self.dict()
+            path = Path("ayaka_setting") / f"{self.__app_name__}.json"
+            with path.open("w+", encoding="utf8") as f:
+                json.dump(data, f, ensure_ascii=0, indent=4)
+        else:
+            total_settings[self.__app_name__] = self.dict()
+            with setting_filepath.open("w+", encoding="utf8") as f:
+                json.dump(total_settings, f, ensure_ascii=0, indent=4)
 
 
-class Config(AyakaPluginConfig):
+class Config(AyakaConfig):
     __app_name__ = "__root__"
     version: str = AYAKA_VERSION
     # 命令抬头

@@ -6,7 +6,8 @@ from .playwright import get_new_page
 from .driver import *
 from .input import AyakaInput
 from .cache import AyakaCache
-from .config import AyakaPluginConfig
+from .config import AyakaConfig
+from .db import AyakaDB
 
 # 初始化内置插件
 from . import ayaka_master

@@ -4,6 +4,7 @@ import datetime
 from typing import TYPE_CHECKING
 from loguru import logger
 from .config import ayaka_root_config
+from .state import root_state
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp
@@ -26,7 +27,6 @@ class AyakaOn:
 
     def idle(self, super=False):
         '''注册无状态回调'''
-        root_state = self.app.get_state(base="root")
         if super:
             def decorator(func):
                 func = self.app.on_state(root_state)(func)
@@ -94,6 +94,7 @@ class AyakaTimer:
             await asyncio.sleep(gap)
 
         while True:
-            logger.opt(colors=True).debug(f"触发定时任务 <y>{self.name}</y>")
+            logger.opt(colors=True).debug(
+                f"定时任务 | 插件：<y>{self.name}</y> | 回调：<c>{self.func.__name__}</c>")
             asyncio.create_task(self.func())
             await asyncio.sleep(self.gap)
