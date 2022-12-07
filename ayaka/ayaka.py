@@ -7,7 +7,7 @@ from loguru import logger
 from typing import List, Dict, Literal, Union
 
 from .input import AyakaInput
-from .config import ayaka_root_config
+from .config import ayaka_root_config, ayaka_data_path
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
 from .deal import deal_event
 from .group import get_group
@@ -494,5 +494,6 @@ async def startup():
             root_state.dict(), ensure_ascii=0,
             indent=4, default=repr
         )
-        with open("all_state.json", "w+", encoding="utf8") as f:
+        path = ayaka_data_path / "all_state.json"
+        with path.open("w+", encoding="utf8") as f:
             f.write(s)

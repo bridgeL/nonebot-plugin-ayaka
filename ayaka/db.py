@@ -2,8 +2,10 @@ import sqlite3
 from typing import List, Type, Union
 from typing_extensions import Self
 from pydantic import BaseModel
+from .config import ayaka_data_path
 
-db = sqlite3.connect("ayaka.db")
+path = ayaka_data_path / "ayaka.db"
+db = sqlite3.connect(path)
 
 
 def create_table(name: str, cls: Type[BaseModel]):
