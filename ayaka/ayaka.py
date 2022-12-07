@@ -35,6 +35,7 @@ class AyakaApp:
         self.on = AyakaOn(self)
         self.timers: List[AyakaTimer] = []
 
+        logger.opt(colors=True).success(f"应用加载成功 \"<c>{name}</c>\"")
         app_list.append(self)
         if ayaka_root_config.debug:
             print(self)
@@ -216,13 +217,13 @@ class AyakaApp:
         '''
             假设当前状态为 `root.test.a` 即 `根.插件名.一级菜单项`
 
+            - 基于`插件名`（默认）
+
+            >>> get_state(key1, key2) -> [root.test].key1.key2
+            
             - 基于`根`
 
             >>> get_state(key1, key2, base=root) -> [root].key1.key2
-
-            - 基于`插件名`
-
-            >>> get_state(key1, key2) -> [root.test].key1.key2
 
             特别的，keys可以为空，例如：
 

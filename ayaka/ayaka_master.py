@@ -52,7 +52,7 @@ class AppnameInput(AyakaInput):
 @app.on.idle(super=True)
 @app.on.command("插件", "plugin", "plugins")
 async def show_plugins():
-    '''展示所有ayaka衍生插件'''
+    '''展示所有应用'''
     items = []
     for _app in app_list:
         s = "[已禁用] " if not _app.valid else ""

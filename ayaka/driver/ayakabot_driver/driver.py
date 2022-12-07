@@ -96,6 +96,7 @@ def load_plugin(path):
         p = Path(path)
 
     name = re.sub(r"\\|/", ".", str(p))
+    name = re.sub(r".py$", "", name)
     try:
         import_module(name)
         logger.opt(colors=True).success(f"导入成功 \"<y>{p.stem}</y>\"")
