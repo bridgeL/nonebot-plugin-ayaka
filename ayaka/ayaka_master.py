@@ -11,12 +11,16 @@ app.help = '''ayaka综合管理模块'''
 
 
 class UidInput(AyakaInputModel):
-    uid: int = Field(description="QQ号")
+    uid: int = Field(description="QQ号", gt=0)
+
+
+class AppnameInput(AyakaInputModel):
+    name: str = Field("", description="应用名")
 
 # @app.on.idle(super=True)
 # @app.on.command("启用", "permit")
 # async def permit():
-#     
+#
 #     if not app.args:
 #         await app.send("参数缺失")
 #         return
@@ -32,7 +36,7 @@ class UidInput(AyakaInputModel):
 # @app.on.idle(super=True)
 # @app.on.command("禁用", "forbid")
 # async def forbid():
-#     
+#
 #     if not app.args:
 #         await app.send("参数缺失")
 #         return
@@ -48,7 +52,7 @@ class UidInput(AyakaInputModel):
 @app.on.idle(super=True)
 @app.on.command("插件", "plugin", "plugins")
 async def show_plugins():
-    # 展示所有应用
+    '''展示所有ayaka衍生插件'''
     items = []
     for _app in app_list:
         s = "[已禁用] " if not _app.valid else ""
@@ -69,7 +73,7 @@ async def show_state():
 
 @app.on.idle(super=True)
 @app.on.command("帮助", "help")
-async def show_help():
+async def show_help(data: AppnameInput):
     # 展示当前应用当前状态的帮助
     if app.state > root_state:
         _app = get_app(app.state.keys[1])
@@ -78,8 +82,8 @@ async def show_help():
 
     # 没有应用正在运行
     # 查询指定应用的详细帮助
-    if app.args:
-        name = str(app.args[0])
+    name = data.name
+    if name:
         _app = get_app(name)
         if not _app:
             await app.send(f"应用不存在 [{name}]")
@@ -111,18 +115,13 @@ async def force_exit():
 
 @app.on.idle(super=True)
 @app.on.command("add_admin")
-@app.on_model(UidInput)
-async def add_admin():
+async def add_admin(data: UidInput):
     '''增加ayaka管理者'''
     if app.user_id not in ayaka_root_config.owners:
         await app.send("仅有ayaka所有者有权执行此命令")
         return
 
-    try:
-        uid = int(str(app.args[0]))
-    except:
-        await app.send("设置失败")
-        return
+    uid = data.uid
 
     if uid not in ayaka_root_config.admins:
         ayaka_root_config.admins.append(uid)
@@ -133,18 +132,13 @@ async def add_admin():
 
 @app.on.idle(super=True)
 @app.on.command("remove_admin")
-@app.on_model(UidInput)
-async def remove_admin():
+async def remove_admin(data: UidInput):
     '''移除ayaka管理者'''
     if app.user_id not in ayaka_root_config.owners:
         await app.send("仅有ayaka所有者有权执行此命令")
         return
 
-    try:
-        uid = int(str(app.args[0]))
-    except:
-        await app.send("设置失败")
-        return
+    uid = data.uid
 
     if uid in ayaka_root_config.admins:
         ayaka_root_config.admins.remove(uid)

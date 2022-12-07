@@ -1,11 +1,12 @@
 from enum import Enum
-from typing import Awaitable, Callable, List, Literal, Optional, Type, Union
+import inspect
+from typing import Awaitable, Callable, List, Literal, Union
 from typing_extensions import Self
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from .ayaka_input import AyakaInputModel
 from .config import ayaka_root_config
-from .constant import _enter_exit_during
+from .constant import _enter_exit_during, _args, _bot, _group
 from .ayaka_chain import AyakaChainNode
 
 
@@ -23,18 +24,38 @@ class AyakaTrigger(BaseModel):
     func: Callable[..., Awaitable]
     deep: Union[int, Literal["all"]]
     block: bool
-    model: Optional[Type[AyakaInputModel]]
 
-    def __init__(self, func, cmds, deep, app_name, block, model):
+    def __init__(self, func, cmds, deep, app_name, block):
         super().__init__(
             func=func, cmds=cmds, deep=deep,
-            app_name=app_name, block=block, model=model
+            app_name=app_name, block=block
         )
         if ayaka_root_config.debug:
             print(repr(self))
 
     async def run(self):
-        await self.func()
+        sig = inspect.signature(self.func)
+        model = None
+        for k, v in sig.parameters.items():
+            cls = v.annotation
+            if issubclass(cls, AyakaInputModel):
+                model = [k, cls]
+                break
+
+        if not model:
+            await self.func()
+
+        k, cls = model
+        args = _args.get()
+        try:
+            data = cls(args)
+        except ValidationError as e:
+            bot = _bot.get()
+            group = _group.get()
+            await bot.send_group_msg(group_id=group.group_id, message=str(e))
+            return
+
+        await self.func(**{k: data})
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self})"
@@ -94,15 +115,15 @@ class AyakaState(AyakaChainNode):
             return func
         return decorator
 
-    def on_cmd(self, *cmds: str, app_name: str, deep: Union[int, Literal["all"]] = 0, block=True, model: Type[AyakaInputModel] = None):
+    def on_cmd(self, *cmds: str, app_name: str, deep: Union[int, Literal["all"]] = 0, block=True):
         def decorator(func):
-            t = AyakaTrigger(func, cmds, deep, app_name, block, model)
+            t = AyakaTrigger(func, cmds, deep, app_name, block)
             self.triggers.append(t)
             return func
         return decorator
 
-    def on_text(self, app_name: str, deep: Union[int, Literal["all"]] = 0, block=True, model: Type[AyakaInputModel] = None):
-        return self.on_cmd(app_name=app_name, deep=deep, block=block, model=model)
+    def on_text(self, app_name: str, deep: Union[int, Literal["all"]] = 0, block=True):
+        return self.on_cmd(app_name=app_name, deep=deep, block=block)
 
 
 root_state = AyakaState()

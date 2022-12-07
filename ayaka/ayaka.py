@@ -7,8 +7,8 @@ from loguru import logger
 from typing import List, Dict, Literal, Type, Union
 
 from .ayaka_input import AyakaInputModel
-from .config import ayaka_root_config, create_ayaka_plugin_config_base
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot, _model_data
+from .config import ayaka_root_config
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
 from .deal import deal_event
 from .group import get_group
 from .storage import AyakaStorage
@@ -32,7 +32,6 @@ class AyakaApp:
         self.name = name
         self._help: Dict[str, List[str]] = {}
         self.storage = AyakaStorage(self)
-        self.BaseConfig = create_ayaka_plugin_config_base(name)
         self.ayaka_root_config = ayaka_root_config
         self.funcs = []
         self.on = AyakaOn(self)
@@ -213,10 +212,6 @@ class AyakaApp:
         return _message.get()
 
     @property
-    def model_data(self):
-        return _model_data.get()
-
-    @property
     def state(self):
         return self.group.state
 
@@ -306,14 +301,6 @@ class AyakaApp:
 
         def decorator(func):
             func.states = _states
-            self._add_func(func)
-            return func
-        return decorator
-
-    def on_model(self, model: Type[AyakaInputModel]):
-        '''注册解析模型'''
-        def decorator(func):
-            func.model = model
             self._add_func(func)
             return func
         return decorator
@@ -450,7 +437,13 @@ def get_func_attr(func):
     # 默认阻断
     block: bool = getattr(func, "block", True)
     # 默认没有解析模型
-    model: Type[AyakaInputModel] = getattr(func, "model", None)
+    model = None
+    sig = inspect.signature(func)
+    for k, v in sig.parameters.items():
+        cls = v.annotation
+        if issubclass(cls, AyakaInputModel):
+            model = cls
+            break
     return states, cmds, deep, block, model
 
 
@@ -463,8 +456,7 @@ def regist_func(app: AyakaApp, func):
             *cmds,
             app_name=app.name,
             deep=deep,
-            block=block,
-            model=model
+            block=block
         )(func)
     return func
 
@@ -490,7 +482,10 @@ def add_help(app: AyakaApp, func):
     else:
         data = model.help()
         keys_str = " ".join(f"<{k}>" for k in data.keys())
-        data_str = "\n".join(f"    <{k}> {v}" for k, v in data.items() if v)
+
+        def handle(v):
+            return "" if not v else v
+        data_str = "\n".join(f"    <{k}> {handle(v)}" for k, v in data.items())
         help = f"- {cmd_str} {keys_str} {doc}\n{data_str}"
 
     for s in states:

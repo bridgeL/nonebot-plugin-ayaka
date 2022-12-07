@@ -2,6 +2,7 @@ import json
 from typing import Any, Callable, Awaitable, List, Union
 from functools import partial
 from typing_extensions import Protocol
+from loguru import logger
 
 # from .utils import safe_cqhttp_utf8
 from .result import ResultStore
@@ -10,7 +11,6 @@ from .websocket import FastAPIWebSocket
 from .message import Message, MessageSegment
 from .model import DataclassEncoder
 
-from ayaka import logger
 
 
 class _ApiCall(Protocol):

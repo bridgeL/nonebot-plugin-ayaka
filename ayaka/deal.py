@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from .driver import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
 from .config import ayaka_root_config
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, private_listener_dict, _model_data
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, private_listener_dict
 from .group import get_group
 from .state import AyakaState, AyakaTrigger
 
@@ -36,6 +36,8 @@ async def deal_event(bot: Bot, event: MessageEvent):
 
 
 async def deal_group(bot_id: int, group_id: int):
+    prefix = ayaka_root_config.prefix
+
     # 群组
     group = get_group(bot_id, group_id)
     _group.set(group)
@@ -44,38 +46,26 @@ async def deal_group(bot_id: int, group_id: int):
     message = _event.get().message
     _message.set(message)
 
-    # 消息前缀文本
-    first = get_first(message)
-
     # 从子状态开始向上查找可用的触发
     state = group.state
     cascade_triggers = get_cascade_triggers(state, 0)
 
+    # 命令
+    # 消息前缀文本
+    first = get_first(message)
+    if first.startswith(prefix):
+        first = first[len(prefix):]
+        for ts in cascade_triggers:
+            if await deal_cmd_triggers(ts, message, first, state):
+                return
+
+    # 命令退化成消息
     for ts in cascade_triggers:
-        if await deal_triggers(ts, message, first, state):
-            break
+        if await deal_text_triggers(ts, message, state):
+            return
 
 
-async def get_model_data(trigger: AyakaTrigger):
-    if not trigger.model:
-        _model_data.set(None)
-        return True
-
-    args = _args.get()
-    try:
-        data = trigger.model(args)
-    except ValidationError as e:
-        bot = _bot.get()
-        group = _group.get()
-        await bot.send_group_msg(group_id=group.group_id, message=str(e))
-        return False
-
-    _model_data.set(data)
-    return True
-
-
-async def deal_triggers(triggers: List[AyakaTrigger], message: Message, first: str, state: AyakaState):
-    prefix = ayaka_root_config.prefix
+async def deal_cmd_triggers(triggers: List[AyakaTrigger], message: Message, first: str, state: AyakaState):
     sep = ayaka_root_config.separate
 
     # 命令
@@ -84,16 +74,13 @@ async def deal_triggers(triggers: List[AyakaTrigger], message: Message, first: s
     cmd_ts = [(c, t) for t in temp for c in t.cmds]
     cmd_ts.sort(key=lambda x: len(x[0]), reverse=1)
 
-    # 消息
-    text_ts = [t for t in triggers if not t.cmds]
-
     for c, t in cmd_ts:
-        if first.startswith(prefix+c):
+        if first.startswith(c):
             # 设置上下文
             # 设置命令
             _cmd.set(c)
             # 设置参数
-            left = first[len(prefix+c):].lstrip(sep)
+            left = first[len(c):].lstrip(sep)
             if left:
                 arg = Message([MessageSegment.text(left), *message[1:]])
             else:
@@ -103,15 +90,17 @@ async def deal_triggers(triggers: List[AyakaTrigger], message: Message, first: s
 
             # 触发
             log_trigger(c, t.app_name, state, t.func.__name__)
-
-            if await get_model_data(t):
-                await t.run()
+            await t.run()
 
             # 阻断后续
             if t.block:
                 return True
 
-    # 命令退化成消息
+
+async def deal_text_triggers(triggers: List[AyakaTrigger], message: Message, state: AyakaState):
+    # 消息
+    text_ts = [t for t in triggers if not t.cmds]
+
     # 设置上下文
     # 设置命令
     _cmd.set("")
@@ -122,9 +111,7 @@ async def deal_triggers(triggers: List[AyakaTrigger], message: Message, first: s
     for t in text_ts:
         # 触发
         log_trigger("", t.app_name, state, t.func.__name__)
-
-        if await get_model_data(t):
-            await t.run()
+        await t.run()
 
         # 阻断后续
         if t.block:

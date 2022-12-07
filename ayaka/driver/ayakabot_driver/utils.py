@@ -1,5 +1,5 @@
 from typing import Optional
-from ayaka import logger
+from loguru import logger
 
 
 def bool_to_str(b: Optional[bool]) -> Optional[str]:

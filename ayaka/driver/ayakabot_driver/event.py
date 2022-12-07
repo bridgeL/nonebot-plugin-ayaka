@@ -9,7 +9,7 @@ from .result import ResultStore
 from .model import DataclassEncoder
 from .message import Message
 
-from ayaka import logger
+from loguru import logger
 
 if TYPE_CHECKING:
     from .bot import Bot

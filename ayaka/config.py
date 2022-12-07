@@ -21,9 +21,12 @@ with setting_filepath.open("r", encoding="utf8") as f:
 
 
 class AyakaPluginConfig(BaseModel):
+    '''继承时请填写__app_name__'''
     __app_name__ = ""
 
     def __init__(self):
+        if not self.__app_name__:
+            raise Exception("__app_name__不可为空")
         try:
             super().__init__(**total_settings.get(self.__app_name__, {}))
         except ValidationError as e:
@@ -42,16 +45,8 @@ class AyakaPluginConfig(BaseModel):
             json.dump(total_settings, f, ensure_ascii=0, indent=4)
 
 
-def create_ayaka_plugin_config_base(app_name):
-    class _AyakaPluginConfig(AyakaPluginConfig):
-        __app_name__ = app_name
-    return _AyakaPluginConfig
-
-
-BaseConfig = create_ayaka_plugin_config_base("__root__")
-
-
-class Config(BaseConfig):
+class Config(AyakaPluginConfig):
+    __app_name__ = "__root__"
     version: str = AYAKA_VERSION
     # 命令抬头
     prefix: str = "#"
