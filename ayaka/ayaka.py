@@ -5,12 +5,10 @@ from math import ceil
 from pathlib import Path
 from loguru import logger
 from typing import List, Dict, Literal, Union
-
-from .input import AyakaInput
+from .depend import AyakaInput
 from .config import ayaka_root_config, ayaka_data_path
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
 from .deal import deal_event
-from .group import get_group
 from .driver import on_message, MessageSegment, get_driver
 from .state import AyakaState, root_state
 from .on import AyakaOn, AyakaTimer
@@ -98,14 +96,6 @@ class AyakaApp:
             self._help.update(help)
         else:
             self._help[str(root_state)] = [help.strip()]
-
-    @property
-    def valid(self):
-        '''*timer触发时不可用*
-
-        当前app是否被当前群组启用
-        '''
-        return self.group.get_app(self.name)
 
     @property
     def user_name(self):
@@ -365,25 +355,18 @@ class AyakaApp:
             )
             await self.bot.call_api("send_group_forward_msg", group_id=self.group_id, messages=msgs)
 
-    def t_check(self, bot_id: int, group_id: int):
+    def t_check(self, bot_id: int):
         # 未连接
         bot = get_bot(bot_id)
         if not bot:
             logger.warning(f"BOT({bot_id}) 未连接")
             return
 
-        # 已禁用
-        group = get_group(bot_id, group_id)
-        app = group.get_app(self.name)
-        if not app:
-            logger.warning(f"群聊({group_id}) 已禁用 {self.name}")
-            return
-
         return bot
 
     async def t_send(self, bot_id: int, group_id: int, message):
         '''timer触发回调时，想要发送消息必须使用该方法，一些上下文亦无法使用'''
-        bot = self.t_check(bot_id, group_id)
+        bot = self.t_check(bot_id)
         if not bot:
             return
 
@@ -391,7 +374,7 @@ class AyakaApp:
 
     async def t_send_many(self, bot_id: int, group_id: int, messages):
         '''timer触发回调时，想要发送消息必须使用该方法，一些上下文亦无法使用'''
-        bot = self.t_check(bot_id, group_id)
+        bot = self.t_check(bot_id)
         if not bot:
             return
 

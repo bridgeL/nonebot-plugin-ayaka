@@ -1,10 +1,7 @@
 import inspect
 from typing import TYPE_CHECKING, Awaitable, Callable, List, Literal, Union
-from pydantic import ValidationError
-
-from .input import AyakaInput
+from .depend import AyakaDepend
 from .config import ayaka_root_config
-from .cache import AyakaCache
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp
@@ -27,22 +24,11 @@ class AyakaTrigger:
 
         for k, v in sig.parameters.items():
             cls = v.annotation
-            if issubclass(cls, AyakaInput):
-                try:
-                    params[k] = cls(self.app.args)
-                except ValidationError as e:
-                    await self.app.bot.send_group_msg(group_id=self.app.group_id, message=str(e))
+            if issubclass(cls, AyakaDepend):
+                d = await cls.create(app=self.app)
+                if not d:
                     return
-            elif issubclass(cls, AyakaCache):
-                cache = self.app.cache
-                name = cls.__name__
-                if name not in cache:
-                    cache[name] = cls()
-                params[k] = cache[name]
-            else:
-                # [-]
-                # 不断更新
-                pass
+                params[k] = d
 
         await self.func(**params)
 

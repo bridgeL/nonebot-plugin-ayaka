@@ -1,12 +1,11 @@
 '''ayaka综合管理模块'''
 from pydantic import Field
-from .input import AyakaInput
 from .ayaka import app_list, AyakaApp
 from .constant import get_app
-from .config import ayaka_root_config
+from .config import ayaka_root_config, save
 from .state import root_state
 from .driver import get_driver
-from .db import commit
+from .depend import commit, AyakaInput
 
 driver = get_driver()
 
@@ -21,37 +20,6 @@ class UidInput(AyakaInput):
 class AppnameInput(AyakaInput):
     name: str = Field("", description="应用名")
 
-# @app.on.idle(super=True)
-# @app.on.command("启用", "permit")
-# async def permit():
-#
-#     if not app.args:
-#         await app.send("参数缺失")
-#         return
-
-#     name = str(app.args[0])
-#     f = app.group.permit_app(name)
-#     if f:
-#         await app.send(f"已启用应用 [{name}]")
-#     else:
-#         await app.send(f"应用不存在 [{name}]")
-
-
-# @app.on.idle(super=True)
-# @app.on.command("禁用", "forbid")
-# async def forbid():
-#
-#     if not app.args:
-#         await app.send("参数缺失")
-#         return
-
-#     name = str(app.args[0])
-#     f = app.group.forbid_app(name)
-#     if f:
-#         await app.send(f"已禁用应用 [{name}]")
-#     else:
-#         await app.send(f"应用不存在 [{name}]")
-
 
 @app.on.idle(super=True)
 @app.on.command("插件", "plugin", "plugins")
@@ -59,8 +27,7 @@ async def show_plugins():
     '''展示所有应用'''
     items = []
     for _app in app_list:
-        s = "[已禁用] " if not _app.valid else ""
-        info = f"[{_app.name}] {s}"
+        info = f"[{_app.name}]"
         items.append(info)
     await app.send("\n".join(items))
 
@@ -94,16 +61,14 @@ async def show_help(data: AppnameInput):
             return
 
         # 详细帮助
-        s = "[已禁用] " if not _app.valid else ""
-        info = f"[{_app.name}] {s}\n{_app.all_help}"
+        info = f"[{_app.name}]\n{_app.all_help}"
         await app.send(info)
         return
 
     # 展示所有应用介绍
     items = ["所有应用介绍一览"]
     for _app in app_list:
-        s = "[已禁用] " if not _app.valid else ""
-        info = f"[{_app.name}] {s}\n{_app.intro}"
+        info = f"[{_app.name}]\n{_app.intro}"
         items.append(info)
 
     await app.send_many(items)
@@ -135,6 +100,13 @@ async def add_admin(data: UidInput):
 
 
 @app.on.idle(super=True)
+@app.on.command("查看缓存")
+async def show_cache():
+    '''查看当前群组的所有缓存'''
+    print(app.group.cache_dict)
+
+
+@app.on.idle(super=True)
 @app.on.command("remove_admin")
 async def remove_admin(data: UidInput):
     '''移除ayaka管理者'''
@@ -151,13 +123,15 @@ async def remove_admin(data: UidInput):
     await app.send("设置成功")
 
 
-# 定时提交
+# 定时提交db、保存setting
 @app.on.interval(60)
-async def _():
+async def update_data():
     commit()
+    save()
 
 
 # 退出提交
 @driver.on_shutdown
-async def _():
+async def update_data():
     commit()
+    save()

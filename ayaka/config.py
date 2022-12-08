@@ -14,51 +14,64 @@ ayaka_data_path = Path("ayaka_data")
 if not ayaka_data_path.exists():
     ayaka_data_path.mkdir()
 
-
-total_settings: dict = {}
 setting_filepath = ayaka_data_path / "ayaka_setting.json"
-if not setting_filepath.exists():
-    with setting_filepath.open("w+", encoding="utf8") as f:
-        f.write("{}")
+total_settings: dict = {}
+dirty_flag = False
 
-with setting_filepath.open("r", encoding="utf8") as f:
-    total_settings = json.load(f)
+
+def load():
+    global total_settings
+    if not setting_filepath.exists():
+        with setting_filepath.open("w+", encoding="utf8") as f:
+            f.write("{}")
+        total_settings = {}
+    else:
+        logger.debug("加载配置文件")
+        with setting_filepath.open("r", encoding="utf8") as f:
+            total_settings = json.load(f)
+
+
+def save():
+    global dirty_flag
+    if dirty_flag:
+        logger.debug("更新配置文件")
+        with setting_filepath.open("w+", encoding="utf8") as f:
+            json.dump(total_settings, f, ensure_ascii=0, indent=4)
+        dirty_flag = False
+
+
+load()
 
 
 class AyakaConfig(BaseModel):
-    '''继承时请填写`__app_name__`和`__separate__`
+    '''继承时请填写`__app_name__`
+    
+    该配置保存在ayaka_data/ayaka_setting.json中字典的`__app_name__`键下
 
-    `__separate__`默认为False，即该配置保存在ayaka_data/ayaka_setting.json中字典的`__app_name__`键下
-
-    `__separate__`设置为True时，该配置保存在ayaka_data/`__app_name__`.json下
+    当配置项较多时（超过100行），建议使用`AyakaLargeConfig`
     '''
     __app_name__ = ""
     __separate__ = False
 
     def __init__(self):
-        if not self.__app_name__:
+        name = self.__app_name__
+        if not name:
             raise Exception("__app_name__不可为空")
 
-        if self.__separate__:
-            path = ayaka_data_path / f"{self.__app_name__}.json"
-            if not path.exists():
-                super().__init__()
-            else:
-                try:
+        data = {}
+        try:
+            if self.__separate__:
+                path = ayaka_data_path / f"{name}.json"
+                if path.exists():
                     with path.open("r", encoding="utf8") as f:
                         data = json.load(f)
-                    super().__init__(**data)
-                except ValidationError as e:
-                    logger.error(
-                        f"导入配置失败，请检查 ayaka_data/{self.__app_name__}.json的配置是否正确")
-                    raise e
-        else:
-            try:
-                super().__init__(**total_settings.get(self.__app_name__, {}))
-            except ValidationError as e:
-                logger.error(
-                    f"导入配置失败，请检查 ayaka_data/ayaka_setting.json 中，{self.__app_name__}的配置是否正确")
-                raise e
+            elif name in total_settings:
+                data = total_settings[name]
+            super().__init__(**data)
+        except ValidationError as e:
+            logger.error(
+                f"导入配置失败，请检查{name}的配置是否正确")
+            raise e
         self.force_update()
 
     def __setattr__(self, name, value):
@@ -73,8 +86,17 @@ class AyakaConfig(BaseModel):
                 json.dump(data, f, ensure_ascii=0, indent=4)
         else:
             total_settings[self.__app_name__] = self.dict()
-            with setting_filepath.open("w+", encoding="utf8") as f:
-                json.dump(total_settings, f, ensure_ascii=0, indent=4)
+            global dirty_flag
+            dirty_flag = True
+
+
+class AyakaLargeConfig(AyakaConfig):
+    '''继承时请填写`__app_name__`
+
+    该配置保存在ayaka_data/ayaka_setting.json中字典的`__app_name__`键下
+    '''
+    __app_name__ = ""
+    __separate__ = True
 
 
 class Config(AyakaConfig):
