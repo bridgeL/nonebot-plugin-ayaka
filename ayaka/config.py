@@ -8,16 +8,25 @@ from pydantic import BaseModel, ValidationError, validator
 from typing import List, Literal
 from loguru import logger
 
-AYAKA_VERSION = "0.5.1b1"
+AYAKA_VERSION = "0.5.1b2"
 
-ayaka_data_path = Path("ayaka_data")
+# 总文件夹
+ayaka_data_path = Path("data", "ayaka")
 if not ayaka_data_path.exists():
-    ayaka_data_path.mkdir()
-
+    ayaka_data_path.mkdir(parents=1)
+    
+# 分文件夹
+ayaka_data_separate_path = ayaka_data_path / "separate"
+if not ayaka_data_separate_path.exists():
+    ayaka_data_separate_path.mkdir(parents=1)
+ 
+# 总配置文件
 setting_filepath = ayaka_data_path / "ayaka_setting.json"
+# 总配置
 total_settings: dict = {}
+# 数据脏标志
 dirty_flag = False
-
+    
 
 def load():
     global total_settings
@@ -45,10 +54,12 @@ load()
 
 class AyakaConfig(BaseModel):
     '''继承时请填写`__app_name__`
-    
-    该配置保存在ayaka_data/ayaka_setting.json中字典的`__app_name__`键下
+
+    该配置保存在data/ayaka/ayaka_setting.json中字典的`__app_name__`键下
 
     当配置项较多时（超过100行），建议使用`AyakaLargeConfig`
+    
+    在修改不可变成员属性时，`AyakaConfig`会自动写入到本地文件，但修改可变成员属性时，需要手动执行save函数
     '''
     __app_name__ = ""
     __separate__ = False
@@ -58,34 +69,49 @@ class AyakaConfig(BaseModel):
         if not name:
             raise Exception("__app_name__不可为空")
 
+        # 默认空数据
         data = {}
+        
         try:
             if self.__separate__:
-                path = ayaka_data_path / f"{name}.json"
+                path = ayaka_data_separate_path / f"{name}.json"
+                # 存在则读取
                 if path.exists():
                     with path.open("r", encoding="utf8") as f:
                         data = json.load(f)
+                        
+            # 存在则读取
             elif name in total_settings:
                 data = total_settings[name]
+            
+            # 载入数据
             super().__init__(**data)
+            
         except ValidationError as e:
             logger.error(
                 f"导入配置失败，请检查{name}的配置是否正确")
             raise e
+        
+        # 强制更新（更新默认值）
         self.force_update()
 
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
         self.force_update()
 
+    def save(self):
+        self.force_update()
+
     def force_update(self):
+        '''修改可变成员变量后，需要使用该方法才能保存其值到文件'''
+        name = self.__app_name__
         if self.__separate__:
             data = self.dict()
-            path = ayaka_data_path / f"{self.__app_name__}.json"
+            path = ayaka_data_separate_path / f"{name}.json"
             with path.open("w+", encoding="utf8") as f:
                 json.dump(data, f, ensure_ascii=0, indent=4)
         else:
-            total_settings[self.__app_name__] = self.dict()
+            total_settings[name] = self.dict()
             global dirty_flag
             dirty_flag = True
 
@@ -93,7 +119,9 @@ class AyakaConfig(BaseModel):
 class AyakaLargeConfig(AyakaConfig):
     '''继承时请填写`__app_name__`
 
-    该配置保存在ayaka_data/ayaka_setting.json中字典的`__app_name__`键下
+    该配置保存在data/ayaka/separate/`__app_name__`.json下
+    
+    在修改不可变成员属性时，`AyakaLargeConfig`会自动写入到本地文件，但修改可变成员属性时，需要手动执行save函数
     '''
     __app_name__ = ""
     __separate__ = True

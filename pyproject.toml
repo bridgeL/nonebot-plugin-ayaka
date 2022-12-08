@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot_plugin_ayaka"
-version = "0.5.1b1"
+version = "0.5.1b2"
 description = "a useful plugin providing convinient tools for the development of textual game on QQ"
 authors = ["Su <wxlxy316@163.com>"]
 license = "MIT"
