@@ -5,6 +5,12 @@ from pathlib import Path
 from loguru import logger
 
 
+def record(text: str):
+    path = Path("ayaka_test.log")
+    with path.open("a+", encoding="utf8") as f:
+        f.write(text + "\n")
+
+
 def init_logger():
     logger.remove()
     logger.add(

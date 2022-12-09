@@ -1,131 +1,100 @@
-from ayaka import AyakaApp, AyakaCache
+from pydantic import Field
+from ayaka import AyakaApp, AyakaInput, AyakaCache
 
 app = AyakaApp("星际旅行")
 app.help = "xing ji lv xing"
 
-# 状态
-st_menu = app.get_state()
-st_earth = app.get_state("地球")
-st_moon = app.get_state("月球")
-st_sun = app.get_state("太阳")
-
-# 全部
-all = app.on_deep_all()
-
-# 星球
-earth = app.on_state(st_earth)
-moon = app.on_state(st_moon)
-sun = app.on_state(st_sun)
-menu = app.on_state(st_menu)
-
-# 动作
-hi = app.on_cmd("hi", "你好")
-hit = app.on_cmd("hit", "打")
-jump = app.on_cmd("jump", "跳")
-drink = app.on_cmd("drink", "喝")
-move = app.on_cmd("move", "移动")
-stop = app.on_cmd("退出", "exit")
-
 
 # 启动应用
-app.set_start_cmds("星际旅行")
+app.set_start_cmds("星际旅行", "travel")
+
+# 装饰器的顺序没有强制要求，随便写
 
 
-@all
-@stop
-@menu
+# 关闭应用
+@app.on_state()
+@app.on_deep_all()
+@app.on_cmd("退出", "exit")
 async def exit_app():
-    '''退出应用'''
-    if app.state <= st_menu:
-        await app.close()
-    else:
-        await app.back()
+    await app.close()
 
 
-@all
-@menu
-@hi
-async def handle():
-    '''打个招呼'''
-    await app.send(f"你好, {app.state}!")
+# 注册各种行动
+@app.on_cmd("drink")
+@app.on_state("地球")
+async def drink():
+    '''喝水'''
+    await app.send("喝水")
 
 
-@earth
-@jump
-async def handle():
-    '''跳一跳'''
-    await app.send("一跳两米高")
+@app.on_state("月球")
+@app.on_cmd("drink")
+async def drink():
+    '''喝土'''
+    await app.send("喝土")
 
 
-@earth
-@hit
-async def handle():
-    '''打一打'''
-    await app.send("你全力一击，制造了大地震")
+@app.on_deep_all()
+@app.on_cmd("drink")
+@app.on_state("太阳")
+async def drink():
+    '''喝太阳风'''
+    await app.send("喝太阳风")
 
 
-@moon
-@jump
-async def handle():
-    '''跳一跳'''
-    await app.send("你离开了月球...永远的...")
-
-
-@sun
-@drink
-async def handle():
-    '''drink 1 drink'''
-    await app.send("你感觉肚子暖洋洋的")
-
-
-@menu
-@all
-@move
-async def handle():
-    '''去其他地方转转'''
-    names = [str(arg) for arg in app.args]
-    state = app.get_state(*names)
-    await app.goto(state)
-    await app.send(f"你动身前往{state}")
-
-
-# 补充
+@app.on_cmd("drink")
 @app.on_state(["太阳", "奶茶店"])
-@drink
-async def handle():
-    '''热乎的'''
+async def drink():
+    '''喝奶茶'''
     await app.send("喝了一口3000度的奶茶")
 
 
-# 补充2
-class Ticket(AyakaCache):
-    ticket = 0
+class UserInput(AyakaInput):
+    where: str = Field(description="你要去的地方")
+
+
+@app.on_deep_all()
+@app.on_state()
+@app.on_cmd("move")
+async def move(userinput: UserInput):
+    '''移动'''
+    await app.set_state(userinput.where)
+    await app.send(f"前往 {userinput.where}")
+
+
+@app.on_cmd("hi")
+@app.on_deep_all()
+@app.on_state()
+async def say_hi():
+    '''打招呼'''
+    await app.send(f"hi I'm in {app.state.keys[2:]}")
+
+
+class Cache(AyakaCache):
+    ticket: int = 0
 
 
 @app.on_state(["太阳", "售票处"])
-@app.on_cmd("buy")
-async def handle(cache: Ticket):
+@app.on_cmd("buy", "买票")
+async def buy_ticket(cache: Cache):
     '''买门票'''
     cache.ticket += 1
     await app.send("耀斑表演门票+1")
 
 
-@all
-@sun
-@app.on_cmd("watch")
-async def handle(cache: Ticket):
-    '''去现场'''
-    if cache.ticket > 0:
-        cache.ticket -= 1
-        await app.send("耀斑表演门票-1")
-        await app.goto("太阳", "耀斑表演")
-        await app.send("10分甚至9分的好看")
+@app.on_deep_all()
+@app.on_state("太阳")
+@app.on_cmd("watch", "看表演")
+async def watch(cache: Cache):
+    '''看表演'''
+    if cache.ticket <= 0:
+        await app.send("先去售票处买票！")
     else:
-        await app.send("你还没买票")
+        cache.ticket -= 1
+        await app.send("10分甚至9分的好看")
 
 
-# 补充3
-@app.on_state(["太阳", "耀斑表演"])
+@app.on_state(["太阳", "奶茶店"])
 async def handle():
     '''令人震惊的事实'''
-    await app.send("你发现你的奶茶比表演项目还烫")
+    await app.send("你发现这里只卖热饮")

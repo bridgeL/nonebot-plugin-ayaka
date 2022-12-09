@@ -83,6 +83,13 @@ async def force_exit():
 
 
 @app.on.idle(super=True)
+@app.on.command("查看缓存")
+async def show_cache():
+    '''查看当前群组的所有缓存'''
+    print(app.group.cache_dict)
+
+
+@app.on.idle(super=True)
 @app.on.command("add_admin")
 async def add_admin(data: UidInput):
     '''增加ayaka管理者'''
@@ -97,13 +104,6 @@ async def add_admin(data: UidInput):
         ayaka_root_config.force_update()
 
     await app.send("设置成功")
-
-
-@app.on.idle(super=True)
-@app.on.command("查看缓存")
-async def show_cache():
-    '''查看当前群组的所有缓存'''
-    print(app.group.cache_dict)
 
 
 @app.on.idle(super=True)

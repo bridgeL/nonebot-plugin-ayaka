@@ -8,7 +8,7 @@ from pydantic import BaseModel, ValidationError, validator
 from typing import List, Literal
 from loguru import logger
 
-AYAKA_VERSION = "0.5.1b2"
+AYAKA_VERSION = "0.5.1"
 
 # 总文件夹
 ayaka_data_path = Path("data", "ayaka")
@@ -93,16 +93,17 @@ class AyakaConfig(BaseModel):
             raise e
         
         # 强制更新（更新默认值）
-        self.force_update()
+        self.save()
 
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
-        self.force_update()
-
-    def save(self):
-        self.force_update()
+        self.save()
 
     def force_update(self):
+        '''修改可变成员变量后，需要使用该方法才能保存其值到文件'''
+        self.save()
+
+    def save(self):
         '''修改可变成员变量后，需要使用该方法才能保存其值到文件'''
         name = self.__app_name__
         if self.__separate__:

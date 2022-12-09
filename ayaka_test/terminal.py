@@ -1,5 +1,7 @@
 import asyncio
 from pathlib import Path
+
+from .utils import record
 from .core import fake_qq, divide
 from .sample import open_sample, close_sample
 
@@ -26,6 +28,7 @@ async def _(text: str):
     '''<group_id> <user_id> <text> | 发送群聊消息'''
     items = text.split(" ", maxsplit=2)
     if len(items) == 3:
+        record(f"<<< \"user\" 说：{items[2]}")
         await fake_qq.send_group(*items)
 
 
@@ -40,13 +43,8 @@ async def dd_(text: str):
 @fake_qq.on_terminal("s")
 async def _(text: str):
     '''<name> | 执行 script/<name>.ini自动化脚本'''
-    items = text.split(" ")
-
-    if len(items) < 2:
-        return
-
     # 脚本名称
-    script_name = items[1]
+    script_name = text
     path = Path("script", script_name)
 
     path = path.with_suffix(".ini")
