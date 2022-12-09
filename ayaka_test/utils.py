@@ -1,6 +1,44 @@
-import base64
 import re
+import sys
+import base64
 from pathlib import Path
+from loguru import logger
+
+
+def init_logger():
+    logger.remove()
+    logger.add(
+        sys.stdout,
+        level="DEBUG",
+        format="<g>{time:HH:mm:ss}</g> | <level>{level}</level> | {message}",
+        filter={
+            "nonebot": "WARNING",
+            "uvicorn": "INFO",
+            "websockets": "WARNING"
+        },
+        backtrace=False,
+        diagnose=False
+    )
+
+
+def divide(line):
+    if " " not in line:
+        line += " "
+    cmd, text = line.split(" ", maxsplit=1)
+    return cmd, text
+
+
+def shorten(args):
+    # 限制长度
+    text = " ".join(str(a)[:3000] for a in args)
+
+    # 保护已闭合的标签
+    text = re.sub(r"<(.*)>(.*?)</(\1)>", r"%%%\1%%%\2%%%/\1%%%", text)
+    # 注释未闭合的标签
+    text = re.sub(r"<.*?>", r"\\\g<0>", text)
+    # 恢复已闭合的标签
+    text = re.sub(r"%%%(.*)%%%(.*?)%%%/(\1)%%%", r"<\1>\2</\1>", text)
+    return text
 
 
 def base64_to_pic(base64_str):

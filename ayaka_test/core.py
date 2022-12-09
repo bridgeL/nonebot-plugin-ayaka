@@ -1,17 +1,11 @@
-import re
-import sys
 import json
 import asyncio
 from time import time
 from typing import Callable, Coroutine
-import colorama
 from websockets.legacy.client import Connect
-from loguru import logger
-from ayaka import get_driver
-
-
-AYAKA_LOGGER_NAME = "AYAKA"
-
+from ayaka import get_driver, logger
+from .constant import AYAKA_LOGGER_NAME, bot_id, private_temp, group_temp
+from .utils import divide, shorten, init_logger
 
 driver = get_driver()
 logger.level(AYAKA_LOGGER_NAME, no=26, icon="⚡", color="<blue>")
@@ -19,125 +13,34 @@ port = driver.config.port
 addr = f"ws://127.0.0.1:{port}/onebot/v11/ws"
 
 
-def divide(line):
-    if " " not in line:
-        line += " "
-    cmd, text = line.split(" ", maxsplit=1)
-    return cmd, text
-
-
-bot_id = 123
-
-helps = f'''
-============================
-FAKE CQHTTP | UID:{bot_id}
-
-<y>h</y>                             | 帮助
-<y>g</y> <group_id> <user_id> <text> | 发送群聊消息
-<y>p</y> <user_id> <text>            | 发送私聊消息
-<y>sa</y> on/off                     | 打开/关闭nonebot采样
-
-<y>d</y> <float>                     | 延时x秒
-<y>dn</y> <float>                    | 延时x秒后空一行
-
-<y>s</y> [-p echo] -n 1 测试一下aa   | 执行[plugins/echo]/script/1.ini自动化脚本
-<y>before</y>                        | 在运行每一命令前执行命令
-<y>after</y>                         | 在运行每一命令后执行命令
-<y># ;</y>                           | 注释
-<y>$1 $2 $3</y>                      | 脚本变量
-============================
-'''.strip()
-
-private_temp = {
-    "post_type": "message",
-    "message_type": "private",
-    "time": 0,
-    "self_id": bot_id,
-    "sub_type": "friend",
-    "user_id": 0,
-    "target_id": bot_id,
-    "message": "",
-    "raw_message": "",
-    "font": 0,
-    "sender": {
-        "age": 0,
-        "nickname": "",
-        "sex": "unknown",
-        "user_id": 0
-    },
-    "message_id": -1
-}
-
-group_temp = {
-    "post_type": "message",
-    "message_type": "group",
-    "time": 0,
-    "self_id": bot_id,
-    "sub_type": "normal",
-    "sender": {
-        "age": 0,
-        "area": "",
-        "card": "",
-        "level": "",
-        "nickname": "",
-        "role": "owner",
-        "sex": "unknown",
-        "title": "",
-        "user_id": 0
-    },
-    "message_id": -1,
-    "anonymous": None,
-    "font": 0,
-    "raw_message": "",
-    "user_id": 0,
-    "group_id": 0,
-    "message": "",
-    "message_seq": 0
-}
-
-
 class FakeQQ:
     terminal_cmds = {}
     cqhttp_acts = {}
+    helps = [
+        "============================",
+        f"FAKE CQHTTP | UID:{bot_id}",
+        "============================"
+    ]
 
-    def print(self, *args, enter_back=True):
+    def print(self, *args):
         '''打印到终端上'''
-        # 限制长度
-        text = " ".join(str(a)[:3000] for a in args)
-
-        # 保护已闭合的标签
-        text = re.sub(r"<(.*)>(.*?)</(\1)>", r"%%%\1%%%\2%%%/\1%%%", text)
-        # 注释未闭合的标签
-        text = re.sub(r"<.*?>", r"\\\g<0>", text)
-        # 恢复已闭合的标签
-        text = re.sub(r"%%%(.*)%%%(.*?)%%%/(\1)%%%", r"<\1>\2</\1>", text)
+        text = shorten(args)
         try:
             logger.opt(colors=True).log(AYAKA_LOGGER_NAME, text)
         except:
             logger.log(AYAKA_LOGGER_NAME, text)
 
-        if enter_back:
-            print(colorama.Fore.YELLOW)
-
-    def init_logger(self):
-        logger.remove()
-        logger.add(
-            sys.stdout,
-            level="DEBUG",
-            format="<g>{time:HH:mm:ss}</g> | <level>{level}</level> | {message}",
-            filter={
-                "nonebot": "WARNING",
-                "uvicorn": "INFO",
-                "websockets": "WARNING"
-            },
-            backtrace=False,
-            diagnose=False
-        )
+    def print_help(self):
+        lines = [
+            *self.helps,
+            "CQ码：https://docs.go-cqhttp.org/cqcode",
+            "ayaka_test：https://bridgel.github.io/ayaka_doc/latest/intro/test/"
+        ]
+        for line in lines:
+            self.print(line)
 
     async def connect(self):
-        # 初始化
-        self.init_logger()
-        self.print("启动测试环境中...", enter_back=0)
+        self.print("启动测试环境中...")
 
         # 连接
         self.conn = Connect(
@@ -146,6 +49,7 @@ class FakeQQ:
         )
         self.ws = await self.conn.__aenter__()
 
+        init_logger()
         self.print_help()
 
         # 启动收发循环
@@ -153,12 +57,14 @@ class FakeQQ:
         asyncio.create_task(self.nonebot_loop())
 
     async def disconnect(self):
-        # 断开连接
         await self.ws.close()
 
     def on_terminal(self, *cmds: str):
         '''注册终端命令回调'''
         def decorator(func: Callable[[str], Coroutine]):
+            cmd_str = "/".join(cmds)
+            doc = func.__doc__ if func.__doc__ else func.__name__
+            self.helps.append(f"{cmd_str} | {doc}")
             for cmd in cmds:
                 self.terminal_cmds[cmd] = func
             return func
@@ -176,8 +82,7 @@ class FakeQQ:
         '''通过终端向nonebot发消息'''
         loop = asyncio.get_event_loop()
         while True:
-            line = await loop.run_in_executor(None, input, colorama.Fore.YELLOW)
-            print(colorama.Fore.RESET)
+            line = await loop.run_in_executor(None, input)
             await self.deal_line(line)
 
     async def nonebot_loop(self):
@@ -188,10 +93,10 @@ class FakeQQ:
 
             # 调用回调
             action = data["action"]
-            self.print(f"<y>{action}</y>", enter_back=0)
+            self.print(f"<y>{action}</y>")
             func = self.cqhttp_acts.get(action)
             if not func:
-                self.print("未定义的假cqhttp动作", data, enter_back=0)
+                self.print("未定义的假cqhttp动作", data)
             else:
                 await func(data["echo"], data["params"])
 
@@ -207,7 +112,7 @@ class FakeQQ:
         # 调用回调
         func = self.terminal_cmds.get(cmd)
         if not func:
-            self.print("未知终端命令", cmd, text, enter_back=0)
+            self.print("未知终端命令", cmd, text)
         else:
             await func(text)
 
@@ -233,7 +138,7 @@ class FakeQQ:
         # 发送假cqhttp消息
         await self.ws.send(json.dumps(data))
         # 回显
-        self.print(f"群聊({gid}) <y>{name}</y>({uid}) 说：\n{text}", enter_back=0)
+        self.print(f"群聊({gid}) <y>{name}</y>({uid}) 说：\n{text}")
 
     async def send_private(self, uid: int, text: str):
         '''向nonebot发送假私聊消息'''
@@ -246,16 +151,7 @@ class FakeQQ:
         # 发送假cqhttp消息
         await self.ws.send(json.dumps(data))
         # 回显
-        self.print(f"私聊({uid}) <y>{name}</y> 说：\n{text}", enter_back=0)
-
-    def print_help(self):
-        lines = [
-            *helps.split("\n"),
-            "CQ码：https://docs.go-cqhttp.org/cqcode",
-            "ayaka_test：https://bridgel.github.io/ayaka_doc/latest/intro/test/"
-        ]
-        for line in lines:
-            self.print(line, enter_back=0)
+        self.print(f"私聊({uid}) <y>{name}</y> 说：\n{text}")
 
 
 fake_qq = FakeQQ()

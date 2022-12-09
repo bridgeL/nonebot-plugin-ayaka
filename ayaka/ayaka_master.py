@@ -124,7 +124,7 @@ async def remove_admin(data: UidInput):
 
 
 # 定时提交db、保存setting
-@app.on.interval(60)
+@app.on.interval(60, show=False)
 async def update_data():
     commit()
     save()

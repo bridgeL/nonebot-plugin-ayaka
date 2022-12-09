@@ -45,14 +45,14 @@ class AyakaOn:
         '''每日定时触发'''
         return self.interval(86400, h, m, s)
 
-    def interval(self, gap: int, h=-1, m=-1, s=-1):
+    def interval(self, gap: int, h=-1, m=-1, s=-1, show=True):
         '''在指定的时间点后循环触发'''
-        return self.on_timer(gap, h, m, s)
+        return self.on_timer(gap, h, m, s, show)
 
-    def on_timer(self, gap: int, h: int, m: int, s: int):
+    def on_timer(self, gap: int, h: int, m: int, s: int, show=True):
         '''在指定的时间点后循环触发'''
         def decorator(func):
-            t = AyakaTimer(self.app.name, gap, h, m, s, func)
+            t = AyakaTimer(self.app.name, gap, h, m, s, func, show)
             self.app.timers.append(t)
             return func
         return decorator
@@ -62,13 +62,14 @@ class AyakaTimer:
     def __repr__(self) -> str:
         return f"AyakaTimer({self.name}, {self.gap}, {self.func.__name__})"
 
-    def __init__(self, name: str, gap: int, h: int, m: int, s: int, func) -> None:
+    def __init__(self, name: str, gap: int, h: int, m: int, s: int, func, show=True) -> None:
         self.name = name
         self.h = h
         self.m = m
         self.s = s
         self.gap = gap
         self.func = func
+        self.show = show
         if ayaka_root_config.debug:
             print(self)
 
@@ -94,7 +95,8 @@ class AyakaTimer:
             await asyncio.sleep(gap)
 
         while True:
-            logger.opt(colors=True).debug(
-                f"定时任务 | 插件：<y>{self.name}</y> | 回调：<c>{self.func.__name__}</c>")
+            if self.show:
+                logger.opt(colors=True).debug(
+                    f"定时任务 | 插件：<y>{self.name}</y> | 回调：<c>{self.func.__name__}</c>")
             asyncio.create_task(self.func())
             await asyncio.sleep(self.gap)
