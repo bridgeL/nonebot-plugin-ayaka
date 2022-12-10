@@ -28,14 +28,11 @@
                 <li><a href="ayaka/ayaka_master.html">ayaka_master</a></li>
                 <li><a href="ayaka/config.html">config</a></li>
                 <li><a href="ayaka/constant.html">constant</a></li>
-                <li><a href="ayaka/deal.html">deal</a></li>
                 <li><a href="ayaka/depend.html">depend</a></li>
                 <li><a href="ayaka/driver.html">driver</a></li>
-                <li><a href="ayaka/group.html">group</a></li>
                 <li><a href="ayaka/on.html">on</a></li>
                 <li><a href="ayaka/playwright.html">playwright</a></li>
                 <li><a href="ayaka/state.html">state</a></li>
-                <li><a href="ayaka/trigger.html">trigger</a></li>
         </ul>
 
 
@@ -62,7 +59,7 @@ ayaka    </h1>
 </span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">loguru</span> <span class="kn">import</span> <span class="n">logger</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">from</span> <span class="nn">.ayaka</span> <span class="kn">import</span> <span class="n">AyakaApp</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span> <span class="nn">.playwright</span> <span class="kn">import</span> <span class="n">get_new_page</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span> <span class="nn">.driver</span> <span class="kn">import</span> <span class="o">*</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span> <span class="nn">.driver</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">MessageSegment</span><span class="p">,</span> <span class="n">Bot</span><span class="p">,</span> <span class="n">MessageEvent</span><span class="p">,</span> <span class="n">GroupMessageEvent</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">DataclassEncoder</span><span class="p">,</span> <span class="n">msg_type</span><span class="p">,</span> <span class="n">get_driver</span><span class="p">,</span> <span class="n">on_message</span><span class="p">,</span> <span class="n">load_plugin</span><span class="p">,</span> <span class="n">load_plugins</span><span class="p">,</span> <span class="n">run</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">AyakaConfig</span><span class="p">,</span> <span class="n">AyakaLargeConfig</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="kn">from</span> <span class="nn">.depend</span> <span class="kn">import</span> <span class="n">AyakaDB</span><span class="p">,</span> <span class="n">AyakaUserDB</span><span class="p">,</span> <span class="n">AyakaGroupDB</span><span class="p">,</span> <span class="n">AyakaCache</span><span class="p">,</span> <span class="n">AyakaInput</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>

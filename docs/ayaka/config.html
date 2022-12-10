@@ -43,10 +43,10 @@
                                 <a class="function" href="#AyakaConfig.__init__">AyakaConfig</a>
                         </li>
                         <li>
-                                <a class="function" href="#AyakaConfig.save">save</a>
+                                <a class="function" href="#AyakaConfig.force_update">force_update</a>
                         </li>
                         <li>
-                                <a class="function" href="#AyakaConfig.force_update">force_update</a>
+                                <a class="function" href="#AyakaConfig.save">save</a>
                         </li>
                 </ul>
 
@@ -99,7 +99,7 @@
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Literal</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">loguru</span> <span class="kn">import</span> <span class="n">logger</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="n">AYAKA_VERSION</span> <span class="o">=</span> <span class="s2">&quot;0.5.1b2&quot;</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="n">AYAKA_VERSION</span> <span class="o">=</span> <span class="s2">&quot;0.5.2b0&quot;</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="c1"># 总文件夹</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="n">ayaka_data_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;ayaka&quot;</span><span class="p">)</span>
@@ -184,71 +184,72 @@
 </span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>            <span class="k">raise</span> <span class="n">e</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>        
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>        <span class="c1"># 强制更新（更新默认值）</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
 </span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>    <span class="k">def</span> <span class="nf">force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>        <span class="sd">&#39;&#39;&#39;修改可变成员变量后，需要使用该方法才能保存其值到文件&#39;&#39;&#39;</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__app_name__</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__separate__</span><span class="p">:</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>            <span class="n">path</span> <span class="o">=</span> <span class="n">ayaka_data_separate_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.json&quot;</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>            <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>            <span class="n">total_settings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>            <span class="k">global</span> <span class="n">dirty_flag</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>            <span class="n">dirty_flag</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="k">def</span> <span class="nf">force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>        <span class="sd">&#39;&#39;&#39;修改可变成员变量后，需要使用该方法才能保存其值到文件&#39;&#39;&#39;</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>        <span class="sd">&#39;&#39;&#39;修改可变成员变量后，需要使用该方法才能保存其值到文件&#39;&#39;&#39;</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__app_name__</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__separate__</span><span class="p">:</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>            <span class="n">path</span> <span class="o">=</span> <span class="n">ayaka_data_separate_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.json&quot;</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>            <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>            <span class="n">total_settings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>            <span class="k">global</span> <span class="n">dirty_flag</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>            <span class="n">dirty_flag</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="k">class</span> <span class="nc">AyakaLargeConfig</span><span class="p">(</span><span class="n">AyakaConfig</span><span class="p">):</span>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>    <span class="sd">&#39;&#39;&#39;继承时请填写`__app_name__`</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="sd">    该配置保存在data/ayaka/separate/`__app_name__`.json下</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">    </span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">    在修改不可变成员属性时，`AyakaLargeConfig`会自动写入到本地文件，但修改可变成员属性时，需要手动执行save函数</span>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">    &#39;&#39;&#39;</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="n">__app_name__</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="n">__separate__</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="k">class</span> <span class="nc">AyakaLargeConfig</span><span class="p">(</span><span class="n">AyakaConfig</span><span class="p">):</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="sd">&#39;&#39;&#39;继承时请填写`__app_name__`</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">    该配置保存在data/ayaka/separate/`__app_name__`.json下</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">    </span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">    在修改不可变成员属性时，`AyakaLargeConfig`会自动写入到本地文件，但修改可变成员属性时，需要手动执行save函数</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">    &#39;&#39;&#39;</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="n">__app_name__</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    <span class="n">__separate__</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="n">AyakaConfig</span><span class="p">):</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="n">__app_name__</span> <span class="o">=</span> <span class="s2">&quot;__root__&quot;</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">AYAKA_VERSION</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="c1"># 命令抬头</span>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="c1"># 参数分割符</span>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="n">separate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="c1"># 是否排除go-cqhttp缓存的过期消息</span>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="n">exclude_old_msg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="c1"># 是否使用playwright</span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>    <span class="n">use_playwright</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    <span class="c1"># ayaka插件的所有者</span>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="n">owners</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="c1"># ayaka插件的管理者</span>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="n">admins</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="c1"># 切换bot类型</span>
-</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>    <span class="n">bot_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;nonebot&quot;</span><span class="p">,</span> <span class="s2">&quot;ayakabot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;nonebot&quot;</span>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>    <span class="c1"># 是否处于调试模式</span>
-</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>    <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="c1"># 端口号</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>    <span class="n">ayaka_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">19900</span>
-</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>
-</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;separate&#39;</span><span class="p">)</span>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>    <span class="k">def</span> <span class="nf">name_must_contain_space</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">v</span><span class="p">:</span>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;ayaka的分割符被设置为空字符串，这会使得ayaka无法正确分割参数&quot;</span><span class="p">)</span>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>        <span class="k">return</span> <span class="n">v</span>
-</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="n">AyakaConfig</span><span class="p">):</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    <span class="n">__app_name__</span> <span class="o">=</span> <span class="s2">&quot;__root__&quot;</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">AYAKA_VERSION</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="c1"># 命令抬头</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="c1"># 参数分割符</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="n">separate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="c1"># 是否排除go-cqhttp缓存的过期消息</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="n">exclude_old_msg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>    <span class="c1"># 是否使用playwright</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    <span class="n">use_playwright</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="c1"># ayaka插件的所有者</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="n">owners</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="c1"># ayaka插件的管理者</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="n">admins</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>    <span class="c1"># 切换bot类型</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>    <span class="n">bot_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;nonebot&quot;</span><span class="p">,</span> <span class="s2">&quot;ayakabot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;nonebot&quot;</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>    <span class="c1"># 是否处于调试模式</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>    <span class="c1"># 端口号</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="n">ayaka_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">19900</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;separate&#39;</span><span class="p">)</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>    <span class="k">def</span> <span class="nf">name_must_contain_space</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">v</span><span class="p">:</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;ayaka的分割符被设置为空字符串，这会使得ayaka无法正确分割参数&quot;</span><span class="p">)</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>        <span class="k">return</span> <span class="n">v</span>
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>
-</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a><span class="n">ayaka_root_config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
-</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="n">ayaka_root_config</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">AYAKA_VERSION</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="n">ayaka_root_config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a><span class="n">ayaka_root_config</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">AYAKA_VERSION</span>
 </span></pre></div>
 
 
@@ -356,27 +357,28 @@
 </span><span id="AyakaConfig-94"><a href="#AyakaConfig-94"><span class="linenos"> 94</span></a>            <span class="k">raise</span> <span class="n">e</span>
 </span><span id="AyakaConfig-95"><a href="#AyakaConfig-95"><span class="linenos"> 95</span></a>        
 </span><span id="AyakaConfig-96"><a href="#AyakaConfig-96"><span class="linenos"> 96</span></a>        <span class="c1"># 强制更新（更新默认值）</span>
-</span><span id="AyakaConfig-97"><a href="#AyakaConfig-97"><span class="linenos"> 97</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
+</span><span id="AyakaConfig-97"><a href="#AyakaConfig-97"><span class="linenos"> 97</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </span><span id="AyakaConfig-98"><a href="#AyakaConfig-98"><span class="linenos"> 98</span></a>
 </span><span id="AyakaConfig-99"><a href="#AyakaConfig-99"><span class="linenos"> 99</span></a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 </span><span id="AyakaConfig-100"><a href="#AyakaConfig-100"><span class="linenos">100</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-</span><span id="AyakaConfig-101"><a href="#AyakaConfig-101"><span class="linenos">101</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
+</span><span id="AyakaConfig-101"><a href="#AyakaConfig-101"><span class="linenos">101</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </span><span id="AyakaConfig-102"><a href="#AyakaConfig-102"><span class="linenos">102</span></a>
-</span><span id="AyakaConfig-103"><a href="#AyakaConfig-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="AyakaConfig-104"><a href="#AyakaConfig-104"><span class="linenos">104</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
-</span><span id="AyakaConfig-105"><a href="#AyakaConfig-105"><span class="linenos">105</span></a>
-</span><span id="AyakaConfig-106"><a href="#AyakaConfig-106"><span class="linenos">106</span></a>    <span class="k">def</span> <span class="nf">force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="AyakaConfig-107"><a href="#AyakaConfig-107"><span class="linenos">107</span></a>        <span class="sd">&#39;&#39;&#39;修改可变成员变量后，需要使用该方法才能保存其值到文件&#39;&#39;&#39;</span>
-</span><span id="AyakaConfig-108"><a href="#AyakaConfig-108"><span class="linenos">108</span></a>        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__app_name__</span>
-</span><span id="AyakaConfig-109"><a href="#AyakaConfig-109"><span class="linenos">109</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__separate__</span><span class="p">:</span>
-</span><span id="AyakaConfig-110"><a href="#AyakaConfig-110"><span class="linenos">110</span></a>            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
-</span><span id="AyakaConfig-111"><a href="#AyakaConfig-111"><span class="linenos">111</span></a>            <span class="n">path</span> <span class="o">=</span> <span class="n">ayaka_data_separate_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.json&quot;</span>
-</span><span id="AyakaConfig-112"><a href="#AyakaConfig-112"><span class="linenos">112</span></a>            <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="AyakaConfig-113"><a href="#AyakaConfig-113"><span class="linenos">113</span></a>                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-</span><span id="AyakaConfig-114"><a href="#AyakaConfig-114"><span class="linenos">114</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="AyakaConfig-115"><a href="#AyakaConfig-115"><span class="linenos">115</span></a>            <span class="n">total_settings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
-</span><span id="AyakaConfig-116"><a href="#AyakaConfig-116"><span class="linenos">116</span></a>            <span class="k">global</span> <span class="n">dirty_flag</span>
-</span><span id="AyakaConfig-117"><a href="#AyakaConfig-117"><span class="linenos">117</span></a>            <span class="n">dirty_flag</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="AyakaConfig-103"><a href="#AyakaConfig-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="AyakaConfig-104"><a href="#AyakaConfig-104"><span class="linenos">104</span></a>        <span class="sd">&#39;&#39;&#39;修改可变成员变量后，需要使用该方法才能保存其值到文件&#39;&#39;&#39;</span>
+</span><span id="AyakaConfig-105"><a href="#AyakaConfig-105"><span class="linenos">105</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</span><span id="AyakaConfig-106"><a href="#AyakaConfig-106"><span class="linenos">106</span></a>
+</span><span id="AyakaConfig-107"><a href="#AyakaConfig-107"><span class="linenos">107</span></a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="AyakaConfig-108"><a href="#AyakaConfig-108"><span class="linenos">108</span></a>        <span class="sd">&#39;&#39;&#39;修改可变成员变量后，需要使用该方法才能保存其值到文件&#39;&#39;&#39;</span>
+</span><span id="AyakaConfig-109"><a href="#AyakaConfig-109"><span class="linenos">109</span></a>        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__app_name__</span>
+</span><span id="AyakaConfig-110"><a href="#AyakaConfig-110"><span class="linenos">110</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__separate__</span><span class="p">:</span>
+</span><span id="AyakaConfig-111"><a href="#AyakaConfig-111"><span class="linenos">111</span></a>            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+</span><span id="AyakaConfig-112"><a href="#AyakaConfig-112"><span class="linenos">112</span></a>            <span class="n">path</span> <span class="o">=</span> <span class="n">ayaka_data_separate_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.json&quot;</span>
+</span><span id="AyakaConfig-113"><a href="#AyakaConfig-113"><span class="linenos">113</span></a>            <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="AyakaConfig-114"><a href="#AyakaConfig-114"><span class="linenos">114</span></a>                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</span><span id="AyakaConfig-115"><a href="#AyakaConfig-115"><span class="linenos">115</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="AyakaConfig-116"><a href="#AyakaConfig-116"><span class="linenos">116</span></a>            <span class="n">total_settings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+</span><span id="AyakaConfig-117"><a href="#AyakaConfig-117"><span class="linenos">117</span></a>            <span class="k">global</span> <span class="n">dirty_flag</span>
+</span><span id="AyakaConfig-118"><a href="#AyakaConfig-118"><span class="linenos">118</span></a>            <span class="n">dirty_flag</span> <span class="o">=</span> <span class="kc">True</span>
 </span></pre></div>
 
 
@@ -429,13 +431,35 @@
 </span><span id="AyakaConfig.__init__-94"><a href="#AyakaConfig.__init__-94"><span class="linenos">94</span></a>            <span class="k">raise</span> <span class="n">e</span>
 </span><span id="AyakaConfig.__init__-95"><a href="#AyakaConfig.__init__-95"><span class="linenos">95</span></a>        
 </span><span id="AyakaConfig.__init__-96"><a href="#AyakaConfig.__init__-96"><span class="linenos">96</span></a>        <span class="c1"># 强制更新（更新默认值）</span>
-</span><span id="AyakaConfig.__init__-97"><a href="#AyakaConfig.__init__-97"><span class="linenos">97</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
+</span><span id="AyakaConfig.__init__-97"><a href="#AyakaConfig.__init__-97"><span class="linenos">97</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>Create a new model by parsing and validating input data from keyword arguments.</p>
 
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p>
+</div>
+
+
+                            </div>
+                            <div id="AyakaConfig.force_update" class="classattr">
+                                        <input id="AyakaConfig.force_update-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">force_update</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="AyakaConfig.force_update-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#AyakaConfig.force_update"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaConfig.force_update-103"><a href="#AyakaConfig.force_update-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="AyakaConfig.force_update-104"><a href="#AyakaConfig.force_update-104"><span class="linenos">104</span></a>        <span class="sd">&#39;&#39;&#39;修改可变成员变量后，需要使用该方法才能保存其值到文件&#39;&#39;&#39;</span>
+</span><span id="AyakaConfig.force_update-105"><a href="#AyakaConfig.force_update-105"><span class="linenos">105</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>修改可变成员变量后，需要使用该方法才能保存其值到文件</p>
 </div>
 
 
@@ -451,37 +475,18 @@
 
     </div>
     <a class="headerlink" href="#AyakaConfig.save"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaConfig.save-103"><a href="#AyakaConfig.save-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="AyakaConfig.save-104"><a href="#AyakaConfig.save-104"><span class="linenos">104</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">force_update</span><span class="p">()</span>
-</span></pre></div>
-
-
-    
-
-                            </div>
-                            <div id="AyakaConfig.force_update" class="classattr">
-                                        <input id="AyakaConfig.force_update-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">force_update</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">):</span></span>
-
-                <label class="view-source-button" for="AyakaConfig.force_update-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#AyakaConfig.force_update"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaConfig.force_update-106"><a href="#AyakaConfig.force_update-106"><span class="linenos">106</span></a>    <span class="k">def</span> <span class="nf">force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="AyakaConfig.force_update-107"><a href="#AyakaConfig.force_update-107"><span class="linenos">107</span></a>        <span class="sd">&#39;&#39;&#39;修改可变成员变量后，需要使用该方法才能保存其值到文件&#39;&#39;&#39;</span>
-</span><span id="AyakaConfig.force_update-108"><a href="#AyakaConfig.force_update-108"><span class="linenos">108</span></a>        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__app_name__</span>
-</span><span id="AyakaConfig.force_update-109"><a href="#AyakaConfig.force_update-109"><span class="linenos">109</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__separate__</span><span class="p">:</span>
-</span><span id="AyakaConfig.force_update-110"><a href="#AyakaConfig.force_update-110"><span class="linenos">110</span></a>            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
-</span><span id="AyakaConfig.force_update-111"><a href="#AyakaConfig.force_update-111"><span class="linenos">111</span></a>            <span class="n">path</span> <span class="o">=</span> <span class="n">ayaka_data_separate_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.json&quot;</span>
-</span><span id="AyakaConfig.force_update-112"><a href="#AyakaConfig.force_update-112"><span class="linenos">112</span></a>            <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="AyakaConfig.force_update-113"><a href="#AyakaConfig.force_update-113"><span class="linenos">113</span></a>                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-</span><span id="AyakaConfig.force_update-114"><a href="#AyakaConfig.force_update-114"><span class="linenos">114</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="AyakaConfig.force_update-115"><a href="#AyakaConfig.force_update-115"><span class="linenos">115</span></a>            <span class="n">total_settings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
-</span><span id="AyakaConfig.force_update-116"><a href="#AyakaConfig.force_update-116"><span class="linenos">116</span></a>            <span class="k">global</span> <span class="n">dirty_flag</span>
-</span><span id="AyakaConfig.force_update-117"><a href="#AyakaConfig.force_update-117"><span class="linenos">117</span></a>            <span class="n">dirty_flag</span> <span class="o">=</span> <span class="kc">True</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaConfig.save-107"><a href="#AyakaConfig.save-107"><span class="linenos">107</span></a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="AyakaConfig.save-108"><a href="#AyakaConfig.save-108"><span class="linenos">108</span></a>        <span class="sd">&#39;&#39;&#39;修改可变成员变量后，需要使用该方法才能保存其值到文件&#39;&#39;&#39;</span>
+</span><span id="AyakaConfig.save-109"><a href="#AyakaConfig.save-109"><span class="linenos">109</span></a>        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__app_name__</span>
+</span><span id="AyakaConfig.save-110"><a href="#AyakaConfig.save-110"><span class="linenos">110</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__separate__</span><span class="p">:</span>
+</span><span id="AyakaConfig.save-111"><a href="#AyakaConfig.save-111"><span class="linenos">111</span></a>            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+</span><span id="AyakaConfig.save-112"><a href="#AyakaConfig.save-112"><span class="linenos">112</span></a>            <span class="n">path</span> <span class="o">=</span> <span class="n">ayaka_data_separate_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.json&quot;</span>
+</span><span id="AyakaConfig.save-113"><a href="#AyakaConfig.save-113"><span class="linenos">113</span></a>            <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="AyakaConfig.save-114"><a href="#AyakaConfig.save-114"><span class="linenos">114</span></a>                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</span><span id="AyakaConfig.save-115"><a href="#AyakaConfig.save-115"><span class="linenos">115</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="AyakaConfig.save-116"><a href="#AyakaConfig.save-116"><span class="linenos">116</span></a>            <span class="n">total_settings</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+</span><span id="AyakaConfig.save-117"><a href="#AyakaConfig.save-117"><span class="linenos">117</span></a>            <span class="k">global</span> <span class="n">dirty_flag</span>
+</span><span id="AyakaConfig.save-118"><a href="#AyakaConfig.save-118"><span class="linenos">118</span></a>            <span class="n">dirty_flag</span> <span class="o">=</span> <span class="kc">True</span>
 </span></pre></div>
 
 
@@ -522,15 +527,15 @@
 
     </div>
     <a class="headerlink" href="#AyakaLargeConfig"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaLargeConfig-120"><a href="#AyakaLargeConfig-120"><span class="linenos">120</span></a><span class="k">class</span> <span class="nc">AyakaLargeConfig</span><span class="p">(</span><span class="n">AyakaConfig</span><span class="p">):</span>
-</span><span id="AyakaLargeConfig-121"><a href="#AyakaLargeConfig-121"><span class="linenos">121</span></a>    <span class="sd">&#39;&#39;&#39;继承时请填写`__app_name__`</span>
-</span><span id="AyakaLargeConfig-122"><a href="#AyakaLargeConfig-122"><span class="linenos">122</span></a>
-</span><span id="AyakaLargeConfig-123"><a href="#AyakaLargeConfig-123"><span class="linenos">123</span></a><span class="sd">    该配置保存在data/ayaka/separate/`__app_name__`.json下</span>
-</span><span id="AyakaLargeConfig-124"><a href="#AyakaLargeConfig-124"><span class="linenos">124</span></a><span class="sd">    </span>
-</span><span id="AyakaLargeConfig-125"><a href="#AyakaLargeConfig-125"><span class="linenos">125</span></a><span class="sd">    在修改不可变成员属性时，`AyakaLargeConfig`会自动写入到本地文件，但修改可变成员属性时，需要手动执行save函数</span>
-</span><span id="AyakaLargeConfig-126"><a href="#AyakaLargeConfig-126"><span class="linenos">126</span></a><span class="sd">    &#39;&#39;&#39;</span>
-</span><span id="AyakaLargeConfig-127"><a href="#AyakaLargeConfig-127"><span class="linenos">127</span></a>    <span class="n">__app_name__</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span id="AyakaLargeConfig-128"><a href="#AyakaLargeConfig-128"><span class="linenos">128</span></a>    <span class="n">__separate__</span> <span class="o">=</span> <span class="kc">True</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaLargeConfig-121"><a href="#AyakaLargeConfig-121"><span class="linenos">121</span></a><span class="k">class</span> <span class="nc">AyakaLargeConfig</span><span class="p">(</span><span class="n">AyakaConfig</span><span class="p">):</span>
+</span><span id="AyakaLargeConfig-122"><a href="#AyakaLargeConfig-122"><span class="linenos">122</span></a>    <span class="sd">&#39;&#39;&#39;继承时请填写`__app_name__`</span>
+</span><span id="AyakaLargeConfig-123"><a href="#AyakaLargeConfig-123"><span class="linenos">123</span></a>
+</span><span id="AyakaLargeConfig-124"><a href="#AyakaLargeConfig-124"><span class="linenos">124</span></a><span class="sd">    该配置保存在data/ayaka/separate/`__app_name__`.json下</span>
+</span><span id="AyakaLargeConfig-125"><a href="#AyakaLargeConfig-125"><span class="linenos">125</span></a><span class="sd">    </span>
+</span><span id="AyakaLargeConfig-126"><a href="#AyakaLargeConfig-126"><span class="linenos">126</span></a><span class="sd">    在修改不可变成员属性时，`AyakaLargeConfig`会自动写入到本地文件，但修改可变成员属性时，需要手动执行save函数</span>
+</span><span id="AyakaLargeConfig-127"><a href="#AyakaLargeConfig-127"><span class="linenos">127</span></a><span class="sd">    &#39;&#39;&#39;</span>
+</span><span id="AyakaLargeConfig-128"><a href="#AyakaLargeConfig-128"><span class="linenos">128</span></a>    <span class="n">__app_name__</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="AyakaLargeConfig-129"><a href="#AyakaLargeConfig-129"><span class="linenos">129</span></a>    <span class="n">__separate__</span> <span class="o">=</span> <span class="kc">True</span>
 </span></pre></div>
 
 
@@ -547,8 +552,8 @@
                                 <dl>
                                     <div><dt><a href="#AyakaConfig">AyakaConfig</a></dt>
                                 <dd id="AyakaLargeConfig.__init__" class="function"><a href="#AyakaConfig.__init__">AyakaConfig</a></dd>
-                <dd id="AyakaLargeConfig.save" class="function"><a href="#AyakaConfig.save">save</a></dd>
                 <dd id="AyakaLargeConfig.force_update" class="function"><a href="#AyakaConfig.force_update">force_update</a></dd>
+                <dd id="AyakaLargeConfig.save" class="function"><a href="#AyakaConfig.save">save</a></dd>
 
             </div>
             <div><dt>pydantic.main.BaseModel</dt>
@@ -580,33 +585,33 @@
 
     </div>
     <a class="headerlink" href="#Config"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Config-131"><a href="#Config-131"><span class="linenos">131</span></a><span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="n">AyakaConfig</span><span class="p">):</span>
-</span><span id="Config-132"><a href="#Config-132"><span class="linenos">132</span></a>    <span class="n">__app_name__</span> <span class="o">=</span> <span class="s2">&quot;__root__&quot;</span>
-</span><span id="Config-133"><a href="#Config-133"><span class="linenos">133</span></a>    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">AYAKA_VERSION</span>
-</span><span id="Config-134"><a href="#Config-134"><span class="linenos">134</span></a>    <span class="c1"># 命令抬头</span>
-</span><span id="Config-135"><a href="#Config-135"><span class="linenos">135</span></a>    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span>
-</span><span id="Config-136"><a href="#Config-136"><span class="linenos">136</span></a>    <span class="c1"># 参数分割符</span>
-</span><span id="Config-137"><a href="#Config-137"><span class="linenos">137</span></a>    <span class="n">separate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
-</span><span id="Config-138"><a href="#Config-138"><span class="linenos">138</span></a>    <span class="c1"># 是否排除go-cqhttp缓存的过期消息</span>
-</span><span id="Config-139"><a href="#Config-139"><span class="linenos">139</span></a>    <span class="n">exclude_old_msg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span id="Config-140"><a href="#Config-140"><span class="linenos">140</span></a>    <span class="c1"># 是否使用playwright</span>
-</span><span id="Config-141"><a href="#Config-141"><span class="linenos">141</span></a>    <span class="n">use_playwright</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="Config-142"><a href="#Config-142"><span class="linenos">142</span></a>    <span class="c1"># ayaka插件的所有者</span>
-</span><span id="Config-143"><a href="#Config-143"><span class="linenos">143</span></a>    <span class="n">owners</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Config-144"><a href="#Config-144"><span class="linenos">144</span></a>    <span class="c1"># ayaka插件的管理者</span>
-</span><span id="Config-145"><a href="#Config-145"><span class="linenos">145</span></a>    <span class="n">admins</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Config-146"><a href="#Config-146"><span class="linenos">146</span></a>    <span class="c1"># 切换bot类型</span>
-</span><span id="Config-147"><a href="#Config-147"><span class="linenos">147</span></a>    <span class="n">bot_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;nonebot&quot;</span><span class="p">,</span> <span class="s2">&quot;ayakabot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;nonebot&quot;</span>
-</span><span id="Config-148"><a href="#Config-148"><span class="linenos">148</span></a>    <span class="c1"># 是否处于调试模式</span>
-</span><span id="Config-149"><a href="#Config-149"><span class="linenos">149</span></a>    <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="Config-150"><a href="#Config-150"><span class="linenos">150</span></a>    <span class="c1"># 端口号</span>
-</span><span id="Config-151"><a href="#Config-151"><span class="linenos">151</span></a>    <span class="n">ayaka_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">19900</span>
-</span><span id="Config-152"><a href="#Config-152"><span class="linenos">152</span></a>
-</span><span id="Config-153"><a href="#Config-153"><span class="linenos">153</span></a>    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;separate&#39;</span><span class="p">)</span>
-</span><span id="Config-154"><a href="#Config-154"><span class="linenos">154</span></a>    <span class="k">def</span> <span class="nf">name_must_contain_space</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-</span><span id="Config-155"><a href="#Config-155"><span class="linenos">155</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">v</span><span class="p">:</span>
-</span><span id="Config-156"><a href="#Config-156"><span class="linenos">156</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;ayaka的分割符被设置为空字符串，这会使得ayaka无法正确分割参数&quot;</span><span class="p">)</span>
-</span><span id="Config-157"><a href="#Config-157"><span class="linenos">157</span></a>        <span class="k">return</span> <span class="n">v</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Config-132"><a href="#Config-132"><span class="linenos">132</span></a><span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="n">AyakaConfig</span><span class="p">):</span>
+</span><span id="Config-133"><a href="#Config-133"><span class="linenos">133</span></a>    <span class="n">__app_name__</span> <span class="o">=</span> <span class="s2">&quot;__root__&quot;</span>
+</span><span id="Config-134"><a href="#Config-134"><span class="linenos">134</span></a>    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">AYAKA_VERSION</span>
+</span><span id="Config-135"><a href="#Config-135"><span class="linenos">135</span></a>    <span class="c1"># 命令抬头</span>
+</span><span id="Config-136"><a href="#Config-136"><span class="linenos">136</span></a>    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span>
+</span><span id="Config-137"><a href="#Config-137"><span class="linenos">137</span></a>    <span class="c1"># 参数分割符</span>
+</span><span id="Config-138"><a href="#Config-138"><span class="linenos">138</span></a>    <span class="n">separate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+</span><span id="Config-139"><a href="#Config-139"><span class="linenos">139</span></a>    <span class="c1"># 是否排除go-cqhttp缓存的过期消息</span>
+</span><span id="Config-140"><a href="#Config-140"><span class="linenos">140</span></a>    <span class="n">exclude_old_msg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="Config-141"><a href="#Config-141"><span class="linenos">141</span></a>    <span class="c1"># 是否使用playwright</span>
+</span><span id="Config-142"><a href="#Config-142"><span class="linenos">142</span></a>    <span class="n">use_playwright</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="Config-143"><a href="#Config-143"><span class="linenos">143</span></a>    <span class="c1"># ayaka插件的所有者</span>
+</span><span id="Config-144"><a href="#Config-144"><span class="linenos">144</span></a>    <span class="n">owners</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Config-145"><a href="#Config-145"><span class="linenos">145</span></a>    <span class="c1"># ayaka插件的管理者</span>
+</span><span id="Config-146"><a href="#Config-146"><span class="linenos">146</span></a>    <span class="n">admins</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Config-147"><a href="#Config-147"><span class="linenos">147</span></a>    <span class="c1"># 切换bot类型</span>
+</span><span id="Config-148"><a href="#Config-148"><span class="linenos">148</span></a>    <span class="n">bot_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;nonebot&quot;</span><span class="p">,</span> <span class="s2">&quot;ayakabot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;nonebot&quot;</span>
+</span><span id="Config-149"><a href="#Config-149"><span class="linenos">149</span></a>    <span class="c1"># 是否处于调试模式</span>
+</span><span id="Config-150"><a href="#Config-150"><span class="linenos">150</span></a>    <span class="n">debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="Config-151"><a href="#Config-151"><span class="linenos">151</span></a>    <span class="c1"># 端口号</span>
+</span><span id="Config-152"><a href="#Config-152"><span class="linenos">152</span></a>    <span class="n">ayaka_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">19900</span>
+</span><span id="Config-153"><a href="#Config-153"><span class="linenos">153</span></a>
+</span><span id="Config-154"><a href="#Config-154"><span class="linenos">154</span></a>    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;separate&#39;</span><span class="p">)</span>
+</span><span id="Config-155"><a href="#Config-155"><span class="linenos">155</span></a>    <span class="k">def</span> <span class="nf">name_must_contain_space</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+</span><span id="Config-156"><a href="#Config-156"><span class="linenos">156</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">v</span><span class="p">:</span>
+</span><span id="Config-157"><a href="#Config-157"><span class="linenos">157</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;ayaka的分割符被设置为空字符串，这会使得ayaka无法正确分割参数&quot;</span><span class="p">)</span>
+</span><span id="Config-158"><a href="#Config-158"><span class="linenos">158</span></a>        <span class="k">return</span> <span class="n">v</span>
 </span></pre></div>
 
 
@@ -632,11 +637,11 @@
 
     </div>
     <a class="headerlink" href="#Config.name_must_contain_space"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Config.name_must_contain_space-153"><a href="#Config.name_must_contain_space-153"><span class="linenos">153</span></a>    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;separate&#39;</span><span class="p">)</span>
-</span><span id="Config.name_must_contain_space-154"><a href="#Config.name_must_contain_space-154"><span class="linenos">154</span></a>    <span class="k">def</span> <span class="nf">name_must_contain_space</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-</span><span id="Config.name_must_contain_space-155"><a href="#Config.name_must_contain_space-155"><span class="linenos">155</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">v</span><span class="p">:</span>
-</span><span id="Config.name_must_contain_space-156"><a href="#Config.name_must_contain_space-156"><span class="linenos">156</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;ayaka的分割符被设置为空字符串，这会使得ayaka无法正确分割参数&quot;</span><span class="p">)</span>
-</span><span id="Config.name_must_contain_space-157"><a href="#Config.name_must_contain_space-157"><span class="linenos">157</span></a>        <span class="k">return</span> <span class="n">v</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Config.name_must_contain_space-154"><a href="#Config.name_must_contain_space-154"><span class="linenos">154</span></a>    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;separate&#39;</span><span class="p">)</span>
+</span><span id="Config.name_must_contain_space-155"><a href="#Config.name_must_contain_space-155"><span class="linenos">155</span></a>    <span class="k">def</span> <span class="nf">name_must_contain_space</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+</span><span id="Config.name_must_contain_space-156"><a href="#Config.name_must_contain_space-156"><span class="linenos">156</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">v</span><span class="p">:</span>
+</span><span id="Config.name_must_contain_space-157"><a href="#Config.name_must_contain_space-157"><span class="linenos">157</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;ayaka的分割符被设置为空字符串，这会使得ayaka无法正确分割参数&quot;</span><span class="p">)</span>
+</span><span id="Config.name_must_contain_space-158"><a href="#Config.name_must_contain_space-158"><span class="linenos">158</span></a>        <span class="k">return</span> <span class="n">v</span>
 </span></pre></div>
 
 
@@ -648,8 +653,8 @@
                                 <dl>
                                     <div><dt><a href="#AyakaConfig">AyakaConfig</a></dt>
                                 <dd id="Config.__init__" class="function"><a href="#AyakaConfig.__init__">AyakaConfig</a></dd>
-                <dd id="Config.save" class="function"><a href="#AyakaConfig.save">save</a></dd>
                 <dd id="Config.force_update" class="function"><a href="#AyakaConfig.force_update">force_update</a></dd>
+                <dd id="Config.save" class="function"><a href="#AyakaConfig.save">save</a></dd>
 
             </div>
             <div><dt>pydantic.main.BaseModel</dt>
