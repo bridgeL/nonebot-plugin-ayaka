@@ -12,7 +12,7 @@ class AyakaInput(AyakaDepend):
 
     注意：每个成员属性都必须标注类型，否则可能解析顺序出错'''
     @classmethod
-    async def create(cls, app: "AyakaApp"):
+    async def _create_by_app(cls, app: "AyakaApp"):
         args = app.args
         props = cls.props()
         data = {k: v for k, v in zip(props, args)}

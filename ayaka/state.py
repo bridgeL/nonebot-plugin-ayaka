@@ -186,7 +186,7 @@ class AyakaTrigger:
         for k, v in sig.parameters.items():
             cls = v.annotation
             if issubclass(cls, AyakaDepend):
-                d = await cls.create(app=self.app)
+                d = await cls._create_by_app(self.app)
                 if not d:
                     return
                 params[k] = d

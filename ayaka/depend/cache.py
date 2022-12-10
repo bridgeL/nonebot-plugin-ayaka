@@ -13,7 +13,7 @@ class AyakaCache(AyakaDepend):
         arbitrary_types_allowed = True
 
     @classmethod
-    async def create(cls, app: "AyakaApp"):
+    async def _create_by_app(cls, app: "AyakaApp"):
         cache = app.cache
         name = cls.__name__
         if name not in cache:

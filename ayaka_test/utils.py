@@ -25,6 +25,10 @@ def init_logger():
         backtrace=False,
         diagnose=False
     )
+    logger.add(
+        open("error.log", "a+", encoding="utf8"),
+        level="ERROR", backtrace=False, diagnose=False
+    )
 
 
 def divide(line):

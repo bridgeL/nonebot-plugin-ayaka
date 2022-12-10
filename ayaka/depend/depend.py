@@ -1,10 +1,13 @@
-from typing import Dict
+from typing import TYPE_CHECKING, Dict
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from ..ayaka import AyakaApp
 
 
 class AyakaDepend(BaseModel):
     @classmethod
-    async def create(cls, **kwargs):
+    async def _create_by_app(cls, app: "AyakaApp"):
         raise NotImplementedError
 
     @classmethod

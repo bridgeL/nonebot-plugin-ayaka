@@ -1,7 +1,9 @@
 import sqlite3
-from typing import List, Type
-from .depend import AyakaDepend
+from typing import TYPE_CHECKING, List, Type
 from ..config import ayaka_data_path, ayaka_root_config
+
+if TYPE_CHECKING:
+    from .db import AyakaDB
 
 PrimaryKey = {"primary": True}
 JsonKey = {"json": True}
@@ -34,7 +36,7 @@ def executemany(query, values=None):
     cursor.close()
 
 
-def fetchall(query):
+def fetchall(query: str):
     cursor = db.execute(query)
     values = cursor.fetchall()
     cursor.close()
@@ -44,7 +46,7 @@ def fetchall(query):
     return values
 
 
-def create_table(name: str, cls: Type[AyakaDepend]):
+def create_table(name: str, cls: Type["AyakaDB"]):
     props = cls.props()
     args = []
     primarys = []
@@ -68,7 +70,7 @@ def create_table(name: str, cls: Type[AyakaDepend]):
     execute(query)
 
 
-def insert_or_replace(name: str, data: AyakaDepend, action: str):
+def insert_or_replace(name: str, data: "AyakaDB", action: str):
     keys = list(data.dict().keys())
     values = list(data.dict().values())
     keys_str = ",".join(keys)
@@ -77,7 +79,7 @@ def insert_or_replace(name: str, data: AyakaDepend, action: str):
     execute(query, values)
 
 
-def insert_or_replace_many(name: str, datas: List[AyakaDepend], action: str):
+def insert_or_replace_many(name: str, datas: List["AyakaDB"], action: str):
     data = datas[0]
     keys = list(data.dict().keys())
     values = [[getattr(data, k) for k in keys] for data in datas]
@@ -87,17 +89,20 @@ def insert_or_replace_many(name: str, datas: List[AyakaDepend], action: str):
     executemany(query, values)
 
 
-def select_many(name: str, cls: Type[AyakaDepend], where: str = "1"):
+def select_many(name: str, cls: Type["AyakaDB"], where: str = "1"):
     props = cls.props()
     keys = list(props.keys())
-    
+
     # 本来想用*，不过为了保险起见（后续更新的兼容性），还是老老实实写key吧
     keys_str = ",".join(keys)
     query = f"select {keys_str} from \"{name}\" where {where}"
     values = fetchall(query)
 
     # 组装为字典
-    datas = [cls(**{k: v for k, v in zip(keys, vs)}) for vs in values]
+    datas = [
+        cls._create_by_db_data({k: v for k, v in zip(keys, vs)})
+        for vs in values
+    ]
     return datas
 
 
