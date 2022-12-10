@@ -34,9 +34,6 @@
                     <a class="class" href="#AyakaInput">AyakaInput</a>
                             <ul class="memberlist">
                         <li>
-                                <a class="function" href="#AyakaInput.create">create</a>
-                        </li>
-                        <li>
                                 <a class="function" href="#AyakaInput.help">help</a>
                         </li>
                 </ul>
@@ -77,7 +74,7 @@
 </span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="sd">    注意：每个成员属性都必须标注类型，否则可能解析顺序出错&#39;&#39;&#39;</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="nd">@classmethod</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="s2">&quot;AyakaApp&quot;</span><span class="p">):</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">_create_by_app</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="s2">&quot;AyakaApp&quot;</span><span class="p">):</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>        <span class="n">args</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">args</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>        <span class="n">props</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">props</span><span class="p">()</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">args</span><span class="p">)}</span>
@@ -117,7 +114,7 @@
 </span><span id="AyakaInput-13"><a href="#AyakaInput-13"><span class="linenos">13</span></a>
 </span><span id="AyakaInput-14"><a href="#AyakaInput-14"><span class="linenos">14</span></a><span class="sd">    注意：每个成员属性都必须标注类型，否则可能解析顺序出错&#39;&#39;&#39;</span>
 </span><span id="AyakaInput-15"><a href="#AyakaInput-15"><span class="linenos">15</span></a>    <span class="nd">@classmethod</span>
-</span><span id="AyakaInput-16"><a href="#AyakaInput-16"><span class="linenos">16</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="s2">&quot;AyakaApp&quot;</span><span class="p">):</span>
+</span><span id="AyakaInput-16"><a href="#AyakaInput-16"><span class="linenos">16</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">_create_by_app</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="s2">&quot;AyakaApp&quot;</span><span class="p">):</span>
 </span><span id="AyakaInput-17"><a href="#AyakaInput-17"><span class="linenos">17</span></a>        <span class="n">args</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">args</span>
 </span><span id="AyakaInput-18"><a href="#AyakaInput-18"><span class="linenos">18</span></a>        <span class="n">props</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">props</span><span class="p">()</span>
 </span><span id="AyakaInput-19"><a href="#AyakaInput-19"><span class="linenos">19</span></a>        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">args</span><span class="p">)}</span>
@@ -146,33 +143,6 @@
 </div>
 
 
-                            <div id="AyakaInput.create" class="classattr">
-                                        <input id="AyakaInput.create-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-                    <div class="decorator">@classmethod</div>
-
-        <span class="def">async def</span>
-        <span class="name">create</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">app</span><span class="p">:</span> <span class="n"><a href="../ayaka.html#AyakaApp">ayaka.ayaka.AyakaApp</a></span></span><span class="return-annotation">):</span></span>
-
-                <label class="view-source-button" for="AyakaInput.create-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#AyakaInput.create"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="AyakaInput.create-15"><a href="#AyakaInput.create-15"><span class="linenos">15</span></a>    <span class="nd">@classmethod</span>
-</span><span id="AyakaInput.create-16"><a href="#AyakaInput.create-16"><span class="linenos">16</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="s2">&quot;AyakaApp&quot;</span><span class="p">):</span>
-</span><span id="AyakaInput.create-17"><a href="#AyakaInput.create-17"><span class="linenos">17</span></a>        <span class="n">args</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">args</span>
-</span><span id="AyakaInput.create-18"><a href="#AyakaInput.create-18"><span class="linenos">18</span></a>        <span class="n">props</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">props</span><span class="p">()</span>
-</span><span id="AyakaInput.create-19"><a href="#AyakaInput.create-19"><span class="linenos">19</span></a>        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">args</span><span class="p">)}</span>
-</span><span id="AyakaInput.create-20"><a href="#AyakaInput.create-20"><span class="linenos">20</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="AyakaInput.create-21"><a href="#AyakaInput.create-21"><span class="linenos">21</span></a>            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span>
-</span><span id="AyakaInput.create-22"><a href="#AyakaInput.create-22"><span class="linenos">22</span></a>        <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span id="AyakaInput.create-23"><a href="#AyakaInput.create-23"><span class="linenos">23</span></a>            <span class="k">await</span> <span class="n">app</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">send_group_msg</span><span class="p">(</span><span class="n">group_id</span><span class="o">=</span><span class="n">app</span><span class="o">.</span><span class="n">group_id</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-</span></pre></div>
-
-
-    
-
-                            </div>
                             <div id="AyakaInput.help" class="classattr">
                                         <input id="AyakaInput.help-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">

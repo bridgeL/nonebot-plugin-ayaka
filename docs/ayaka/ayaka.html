@@ -858,36 +858,31 @@
 </span><span id="L-641"><a href="#L-641"><span class="linenos">641</span></a>
 </span><span id="L-642"><a href="#L-642"><span class="linenos">642</span></a>    <span class="c1"># 注册</span>
 </span><span id="L-643"><a href="#L-643"><span class="linenos">643</span></a>    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
-</span><span id="L-644"><a href="#L-644"><span class="linenos">644</span></a>        <span class="n">s</span><span class="o">.</span><span class="n">on_cmd</span><span class="p">(</span>
-</span><span id="L-645"><a href="#L-645"><span class="linenos">645</span></a>            <span class="o">*</span><span class="n">cmds</span><span class="p">,</span>
-</span><span id="L-646"><a href="#L-646"><span class="linenos">646</span></a>            <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">,</span>
-</span><span id="L-647"><a href="#L-647"><span class="linenos">647</span></a>            <span class="n">deep</span><span class="o">=</span><span class="n">deep</span><span class="p">,</span>
-</span><span id="L-648"><a href="#L-648"><span class="linenos">648</span></a>            <span class="n">block</span><span class="o">=</span><span class="n">block</span>
-</span><span id="L-649"><a href="#L-649"><span class="linenos">649</span></a>        <span class="p">)(</span><span class="n">func</span><span class="p">)</span>
+</span><span id="L-644"><a href="#L-644"><span class="linenos">644</span></a>        <span class="n">s</span><span class="o">.</span><span class="n">on_cmd</span><span class="p">(</span><span class="n">cmds</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">deep</span><span class="p">,</span> <span class="n">block</span><span class="p">)(</span><span class="n">func</span><span class="p">)</span>
+</span><span id="L-645"><a href="#L-645"><span class="linenos">645</span></a>
+</span><span id="L-646"><a href="#L-646"><span class="linenos">646</span></a>    <span class="k">return</span> <span class="n">func</span>
+</span><span id="L-647"><a href="#L-647"><span class="linenos">647</span></a>
+</span><span id="L-648"><a href="#L-648"><span class="linenos">648</span></a>
+</span><span id="L-649"><a href="#L-649"><span class="linenos">649</span></a><span class="n">driver</span> <span class="o">=</span> <span class="n">get_driver</span><span class="p">()</span>
 </span><span id="L-650"><a href="#L-650"><span class="linenos">650</span></a>
-</span><span id="L-651"><a href="#L-651"><span class="linenos">651</span></a>    <span class="k">return</span> <span class="n">func</span>
-</span><span id="L-652"><a href="#L-652"><span class="linenos">652</span></a>
-</span><span id="L-653"><a href="#L-653"><span class="linenos">653</span></a>
-</span><span id="L-654"><a href="#L-654"><span class="linenos">654</span></a><span class="n">driver</span> <span class="o">=</span> <span class="n">get_driver</span><span class="p">()</span>
-</span><span id="L-655"><a href="#L-655"><span class="linenos">655</span></a>
-</span><span id="L-656"><a href="#L-656"><span class="linenos">656</span></a>
-</span><span id="L-657"><a href="#L-657"><span class="linenos">657</span></a><span class="nd">@driver</span><span class="o">.</span><span class="n">on_startup</span>
-</span><span id="L-658"><a href="#L-658"><span class="linenos">658</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">startup</span><span class="p">():</span>
-</span><span id="L-659"><a href="#L-659"><span class="linenos">659</span></a>    <span class="c1"># 注册所有回调</span>
-</span><span id="L-660"><a href="#L-660"><span class="linenos">660</span></a>    <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">app_list</span><span class="p">:</span>
-</span><span id="L-661"><a href="#L-661"><span class="linenos">661</span></a>        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">app</span><span class="o">.</span><span class="n">funcs</span><span class="p">:</span>
-</span><span id="L-662"><a href="#L-662"><span class="linenos">662</span></a>            <span class="n">regist_func</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-</span><span id="L-663"><a href="#L-663"><span class="linenos">663</span></a>
-</span><span id="L-664"><a href="#L-664"><span class="linenos">664</span></a>    <span class="k">if</span> <span class="n">ayaka_root_config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-</span><span id="L-665"><a href="#L-665"><span class="linenos">665</span></a>        <span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
-</span><span id="L-666"><a href="#L-666"><span class="linenos">666</span></a>            <span class="n">root_state</span><span class="o">.</span><span class="n">dict</span><span class="p">(),</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-</span><span id="L-667"><a href="#L-667"><span class="linenos">667</span></a>            <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">repr</span>
-</span><span id="L-668"><a href="#L-668"><span class="linenos">668</span></a>        <span class="p">)</span>
-</span><span id="L-669"><a href="#L-669"><span class="linenos">669</span></a>        <span class="n">path</span> <span class="o">=</span> <span class="n">ayaka_data_path</span> <span class="o">/</span> <span class="s2">&quot;all_state.json&quot;</span>
-</span><span id="L-670"><a href="#L-670"><span class="linenos">670</span></a>        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="L-671"><a href="#L-671"><span class="linenos">671</span></a>            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-</span><span id="L-672"><a href="#L-672"><span class="linenos">672</span></a>
-</span><span id="L-673"><a href="#L-673"><span class="linenos">673</span></a><span class="n">on_message</span><span class="p">(</span><span class="n">priority</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">handlers</span><span class="o">=</span><span class="p">[</span><span class="n">deal_event</span><span class="p">])</span>
+</span><span id="L-651"><a href="#L-651"><span class="linenos">651</span></a>
+</span><span id="L-652"><a href="#L-652"><span class="linenos">652</span></a><span class="nd">@driver</span><span class="o">.</span><span class="n">on_startup</span>
+</span><span id="L-653"><a href="#L-653"><span class="linenos">653</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">startup</span><span class="p">():</span>
+</span><span id="L-654"><a href="#L-654"><span class="linenos">654</span></a>    <span class="c1"># 注册所有回调</span>
+</span><span id="L-655"><a href="#L-655"><span class="linenos">655</span></a>    <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">app_list</span><span class="p">:</span>
+</span><span id="L-656"><a href="#L-656"><span class="linenos">656</span></a>        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">app</span><span class="o">.</span><span class="n">funcs</span><span class="p">:</span>
+</span><span id="L-657"><a href="#L-657"><span class="linenos">657</span></a>            <span class="n">regist_func</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+</span><span id="L-658"><a href="#L-658"><span class="linenos">658</span></a>
+</span><span id="L-659"><a href="#L-659"><span class="linenos">659</span></a>    <span class="k">if</span> <span class="n">ayaka_root_config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+</span><span id="L-660"><a href="#L-660"><span class="linenos">660</span></a>        <span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+</span><span id="L-661"><a href="#L-661"><span class="linenos">661</span></a>            <span class="n">root_state</span><span class="o">.</span><span class="n">dict</span><span class="p">(),</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+</span><span id="L-662"><a href="#L-662"><span class="linenos">662</span></a>            <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">repr</span>
+</span><span id="L-663"><a href="#L-663"><span class="linenos">663</span></a>        <span class="p">)</span>
+</span><span id="L-664"><a href="#L-664"><span class="linenos">664</span></a>        <span class="n">path</span> <span class="o">=</span> <span class="n">ayaka_data_path</span> <span class="o">/</span> <span class="s2">&quot;all_state.json&quot;</span>
+</span><span id="L-665"><a href="#L-665"><span class="linenos">665</span></a>        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="L-666"><a href="#L-666"><span class="linenos">666</span></a>            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</span><span id="L-667"><a href="#L-667"><span class="linenos">667</span></a>
+</span><span id="L-668"><a href="#L-668"><span class="linenos">668</span></a><span class="n">on_message</span><span class="p">(</span><span class="n">priority</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">handlers</span><span class="o">=</span><span class="p">[</span><span class="n">deal_event</span><span class="p">])</span>
 </span></pre></div>
 
 
@@ -2626,14 +2621,9 @@
 </span><span id="regist_func-642"><a href="#regist_func-642"><span class="linenos">642</span></a>
 </span><span id="regist_func-643"><a href="#regist_func-643"><span class="linenos">643</span></a>    <span class="c1"># 注册</span>
 </span><span id="regist_func-644"><a href="#regist_func-644"><span class="linenos">644</span></a>    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
-</span><span id="regist_func-645"><a href="#regist_func-645"><span class="linenos">645</span></a>        <span class="n">s</span><span class="o">.</span><span class="n">on_cmd</span><span class="p">(</span>
-</span><span id="regist_func-646"><a href="#regist_func-646"><span class="linenos">646</span></a>            <span class="o">*</span><span class="n">cmds</span><span class="p">,</span>
-</span><span id="regist_func-647"><a href="#regist_func-647"><span class="linenos">647</span></a>            <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">,</span>
-</span><span id="regist_func-648"><a href="#regist_func-648"><span class="linenos">648</span></a>            <span class="n">deep</span><span class="o">=</span><span class="n">deep</span><span class="p">,</span>
-</span><span id="regist_func-649"><a href="#regist_func-649"><span class="linenos">649</span></a>            <span class="n">block</span><span class="o">=</span><span class="n">block</span>
-</span><span id="regist_func-650"><a href="#regist_func-650"><span class="linenos">650</span></a>        <span class="p">)(</span><span class="n">func</span><span class="p">)</span>
-</span><span id="regist_func-651"><a href="#regist_func-651"><span class="linenos">651</span></a>
-</span><span id="regist_func-652"><a href="#regist_func-652"><span class="linenos">652</span></a>    <span class="k">return</span> <span class="n">func</span>
+</span><span id="regist_func-645"><a href="#regist_func-645"><span class="linenos">645</span></a>        <span class="n">s</span><span class="o">.</span><span class="n">on_cmd</span><span class="p">(</span><span class="n">cmds</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">deep</span><span class="p">,</span> <span class="n">block</span><span class="p">)(</span><span class="n">func</span><span class="p">)</span>
+</span><span id="regist_func-646"><a href="#regist_func-646"><span class="linenos">646</span></a>
+</span><span id="regist_func-647"><a href="#regist_func-647"><span class="linenos">647</span></a>    <span class="k">return</span> <span class="n">func</span>
 </span></pre></div>
 
 
@@ -2654,21 +2644,21 @@
 
     </div>
     <a class="headerlink" href="#startup"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="startup-658"><a href="#startup-658"><span class="linenos">658</span></a><span class="nd">@driver</span><span class="o">.</span><span class="n">on_startup</span>
-</span><span id="startup-659"><a href="#startup-659"><span class="linenos">659</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">startup</span><span class="p">():</span>
-</span><span id="startup-660"><a href="#startup-660"><span class="linenos">660</span></a>    <span class="c1"># 注册所有回调</span>
-</span><span id="startup-661"><a href="#startup-661"><span class="linenos">661</span></a>    <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">app_list</span><span class="p">:</span>
-</span><span id="startup-662"><a href="#startup-662"><span class="linenos">662</span></a>        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">app</span><span class="o">.</span><span class="n">funcs</span><span class="p">:</span>
-</span><span id="startup-663"><a href="#startup-663"><span class="linenos">663</span></a>            <span class="n">regist_func</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-</span><span id="startup-664"><a href="#startup-664"><span class="linenos">664</span></a>
-</span><span id="startup-665"><a href="#startup-665"><span class="linenos">665</span></a>    <span class="k">if</span> <span class="n">ayaka_root_config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-</span><span id="startup-666"><a href="#startup-666"><span class="linenos">666</span></a>        <span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
-</span><span id="startup-667"><a href="#startup-667"><span class="linenos">667</span></a>            <span class="n">root_state</span><span class="o">.</span><span class="n">dict</span><span class="p">(),</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-</span><span id="startup-668"><a href="#startup-668"><span class="linenos">668</span></a>            <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">repr</span>
-</span><span id="startup-669"><a href="#startup-669"><span class="linenos">669</span></a>        <span class="p">)</span>
-</span><span id="startup-670"><a href="#startup-670"><span class="linenos">670</span></a>        <span class="n">path</span> <span class="o">=</span> <span class="n">ayaka_data_path</span> <span class="o">/</span> <span class="s2">&quot;all_state.json&quot;</span>
-</span><span id="startup-671"><a href="#startup-671"><span class="linenos">671</span></a>        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="startup-672"><a href="#startup-672"><span class="linenos">672</span></a>            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="startup-653"><a href="#startup-653"><span class="linenos">653</span></a><span class="nd">@driver</span><span class="o">.</span><span class="n">on_startup</span>
+</span><span id="startup-654"><a href="#startup-654"><span class="linenos">654</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">startup</span><span class="p">():</span>
+</span><span id="startup-655"><a href="#startup-655"><span class="linenos">655</span></a>    <span class="c1"># 注册所有回调</span>
+</span><span id="startup-656"><a href="#startup-656"><span class="linenos">656</span></a>    <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">app_list</span><span class="p">:</span>
+</span><span id="startup-657"><a href="#startup-657"><span class="linenos">657</span></a>        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">app</span><span class="o">.</span><span class="n">funcs</span><span class="p">:</span>
+</span><span id="startup-658"><a href="#startup-658"><span class="linenos">658</span></a>            <span class="n">regist_func</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+</span><span id="startup-659"><a href="#startup-659"><span class="linenos">659</span></a>
+</span><span id="startup-660"><a href="#startup-660"><span class="linenos">660</span></a>    <span class="k">if</span> <span class="n">ayaka_root_config</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+</span><span id="startup-661"><a href="#startup-661"><span class="linenos">661</span></a>        <span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+</span><span id="startup-662"><a href="#startup-662"><span class="linenos">662</span></a>            <span class="n">root_state</span><span class="o">.</span><span class="n">dict</span><span class="p">(),</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+</span><span id="startup-663"><a href="#startup-663"><span class="linenos">663</span></a>            <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">repr</span>
+</span><span id="startup-664"><a href="#startup-664"><span class="linenos">664</span></a>        <span class="p">)</span>
+</span><span id="startup-665"><a href="#startup-665"><span class="linenos">665</span></a>        <span class="n">path</span> <span class="o">=</span> <span class="n">ayaka_data_path</span> <span class="o">/</span> <span class="s2">&quot;all_state.json&quot;</span>
+</span><span id="startup-666"><a href="#startup-666"><span class="linenos">666</span></a>        <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="startup-667"><a href="#startup-667"><span class="linenos">667</span></a>            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 </span></pre></div>
 
 
