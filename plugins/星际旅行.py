@@ -1,5 +1,5 @@
 from pydantic import Field
-from ayaka import AyakaApp, AyakaInput, AyakaCache, AyakaUserDB
+from ayaka import AyakaApp, AyakaInput, AyakaCache, AyakaUserDB, AyakaConfig
 
 app = AyakaApp("星际旅行")
 app.help = "xing ji lv xing"
@@ -87,6 +87,7 @@ async def watch(cache: Cache):
 
 
 @app.on_state(["太阳", "奶茶店"])
+@app.on_text()
 async def handle():
     '''令人震惊的事实'''
     await app.send("你发现这里只卖热饮")
@@ -97,13 +98,18 @@ class Data(AyakaUserDB):
     gold_number: int = 0
 
 
-Data.create_table()
+class Config(AyakaConfig):
+    __app_name__ = "gold"
+    each_number: int = 1
+
+
+config = Config()
 
 
 @app.on_state(["太阳", "森林公园"])
 @app.on_cmd("pick")
 async def get_gold(data: Data):
     '''捡金子'''
-    data.gold_number += 1
+    data.gold_number += config.each_number
     data.save()
     await app.send(f"喜加一 {data.gold_number}")

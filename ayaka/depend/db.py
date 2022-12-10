@@ -13,14 +13,13 @@ class AyakaDB(AyakaDepend):
     '''
 ```
 1. 继承时要书写 __table_name__
-2. 如果要把该类放入回调函数的参数表中，则还要编写classmethod async def create方法
+2. 如果要把该类放入回调函数的参数表中，则还要编写classmethod async def _create_by_app方法
 3. 设置主键需要使用
     <name>:<type> = Field(extra=AyakaDB.__primary_key__)
 4. 一些特殊类型的数据请设置其为json形式存取 
     <name>:<type> = Field(extra=AyakaDB.__json_key__)
     AyakaDB在写入时会自动序列化该数据为字符串，写入数据库，读取时则相反
 5. 若需要编写自定义读写数据方法，可以使用AyakaDB.get_db()方法获取sqlite3.Connection对象
-6. 使用前先调用classmethod def create_table
 ```
 '''
     __table_name__ = ""
@@ -105,7 +104,7 @@ class AyakaDB(AyakaDepend):
 
     @classmethod
     def select_one(cls, **params):
-        '''按照params的值搜索数据，返回一项数据，若不存在，则自动根据params创建'''
+        '''按照params的值搜索数据，返回一项数据，若不存在，则自动根据params创建，创建后自动写入数据库'''
         datas = cls.select_many(**params)
         if datas:
             return datas[0]
@@ -121,9 +120,7 @@ class AyakaDB(AyakaDepend):
 class AyakaGroupDB(AyakaDB):
     '''继承时要书写`__table_name__`
 
-    主键有且仅有 group_id
-
-    使用前先调用classmethod def create_table'''
+    主键有且仅有 group_id'''
     group_id: int = Field(extra=AyakaDB.__primary_key__)
 
     @classmethod
@@ -134,9 +131,7 @@ class AyakaGroupDB(AyakaDB):
 class AyakaUserDB(AyakaDB):
     '''继承时要书写`__table_name__`
 
-    主键有且仅有 group_id, user_id
-
-    使用前先调用classmethod def create_table'''
+    主键有且仅有 group_id, user_id'''
     group_id: int = Field(extra=AyakaDB.__primary_key__)
     user_id: int = Field(extra=AyakaDB.__primary_key__)
 
