@@ -67,7 +67,7 @@ async def move(userinput: UserInput):
 @app.on_state()
 async def say_hi():
     '''打招呼'''
-    await app.send(f"hi I'm in {app.state.keys[2:]}")
+    await app.send(f"hi I'm in {app.state[2:]}")
 
 
 class Cache(AyakaCache):

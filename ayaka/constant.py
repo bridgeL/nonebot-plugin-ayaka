@@ -6,8 +6,7 @@ from .driver import Message, MessageSegment, Bot, MessageEvent, get_driver
 
 
 if TYPE_CHECKING:
-    from .ayaka import AyakaApp
-    from .group import AyakaGroup
+    from .ayaka import AyakaApp, AyakaGroup
 
 
 _bot: ContextVar[Bot] = ContextVar("_bot")
@@ -28,28 +27,8 @@ bot_list: List[Bot] = []
 private_listener_dict: Dict[int, List[int]] = defaultdict(list)
 
 
-def get_bot(bot_id: int):
-    '''获取已连接的bot'''
-    bot_id = str(bot_id)
-    for bot in bot_list:
-        if bot.self_id == bot_id:
-            return bot
-
-
-def get_app(app_name: str):
-    for app in app_list:
-        if app.name == app_name:
-            return app
-
-
 first_bot_connect = True
 driver = get_driver()
-
-
-@driver.on_startup
-async def startup():
-    # 可有可无
-    app_list.sort(key=lambda x: x.name)
 
 
 @driver.on_bot_connect

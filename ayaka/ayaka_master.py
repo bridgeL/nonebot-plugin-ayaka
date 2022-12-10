@@ -1,7 +1,6 @@
 '''ayaka综合管理模块'''
 from pydantic import Field
-from .ayaka import app_list, AyakaApp
-from .constant import get_app
+from .ayaka import app_list, AyakaApp, get_app
 from .config import ayaka_root_config, save
 from .state import root_state
 from .driver import get_driver
@@ -47,7 +46,8 @@ async def show_state():
 async def show_help(data: AppnameInput):
     # 展示当前应用当前状态的帮助
     if app.state > root_state:
-        _app = get_app(app.state.keys[1])
+        app_name = app.state.keys[1]
+        _app = get_app(app_name)
         await app.send(_app.help)
         return
 

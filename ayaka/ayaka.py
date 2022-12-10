@@ -1,17 +1,81 @@
 '''ayaka核心'''
+import asyncio
+import datetime
 import inspect
 import json
 from math import ceil
 from pathlib import Path
 from loguru import logger
 from typing import List, Dict, Literal, Union
-from .depend import AyakaInput
+from .depend import AyakaCache
 from .config import ayaka_root_config, ayaka_data_path
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, app_list, private_listener_dict, get_bot
-from .deal import deal_event
-from .driver import on_message, MessageSegment, get_driver
-from .state import AyakaState, root_state
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, _enter_exit_during, app_list, group_list, bot_list, private_listener_dict
+from .driver import on_message, get_driver, Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
+from .state import AyakaState, AyakaTrigger, root_state
 from .on import AyakaOn, AyakaTimer
+
+
+class AyakaGroup:
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.bot_id}, {self.group_id}, {self.apps})"
+
+    def __init__(self, bot_id: int, group_id: int) -> None:
+        self.bot_id = bot_id
+        self.group_id = group_id
+        self.state = root_state
+
+        # 添加app，并分配独立数据空间
+        self.apps: List["AyakaApp"] = []
+        self.cache_dict: Dict[str, Dict[str, AyakaCache]] = {}
+        for app in app_list:
+            # if app.name not in forbid_names:
+            self.apps.append(app)
+            self.cache_dict[app.name] = {}
+
+        group_list.append(self)
+
+        if ayaka_root_config.debug:
+            print(self)
+
+    async def back(self):
+        if self.state.parent:
+            await self.state.exit()
+            self.state = self.state.parent
+            return self.state
+
+    async def goto(self, state: AyakaState):
+        if _enter_exit_during.get() > 0:
+            logger.warning("你正在AyakaState的enter/exit方法中进行状态转移，这可能会导致无法预料的错误")
+
+        keys = state.keys
+
+        # 找到第一个不同的结点
+        n0 = len(keys)
+        n1 = len(self.state.keys)
+        n = min(n0, n1)
+        for i in range(n):
+            if keys[i] != self.state.keys[i]:
+                break
+        else:
+            i += 1
+
+        # 回退
+        for j in range(i, n1):
+            await self.back()
+        keys = keys[i:]
+
+        # 重新出发
+        for key in keys:
+            self.state = self.state[key]
+            await self.state.enter()
+        logger.opt(colors=True).debug(f"状态：<c>{self.state}</c>")
+        return self.state
+
+    def get_app(self, name: str):
+        '''根据app名获取该group所启用的app，不存在则返回None'''
+        for app in self.apps:
+            if app.name == name:
+                return app
 
 
 class AyakaApp:
@@ -27,12 +91,14 @@ class AyakaApp:
                     f"应用{app.name} 重复注册，已忽略注册时间更晚的应用！\n{app.path}(最早注册)\n{self.path}(被忽略)")
 
         self.name = name
-        self._help: Dict[str, List[str]] = {}
         self.ayaka_root_config = ayaka_root_config
         self.funcs = []
         self.on = AyakaOn(self)
         self.timers: List[AyakaTimer] = []
         self.root_state = root_state
+        self._intro = "没有介绍"
+        self.state_helps: Dict[str, List[str]] = {}
+        self.idle_helps: List[str] = []
 
         logger.opt(colors=True).success(f"应用加载成功 \"<c>{name}</c>\"")
         app_list.append(self)
@@ -41,61 +107,48 @@ class AyakaApp:
 
     @property
     def intro(self):
-        '''获取介绍，也就是init状态下的帮助'''
-        helps = self._help.get(str(root_state), ["没有找到帮助"])
-        return "\n".join(helps)
+        help = self._intro
+        for h in self.idle_helps:
+            help += "\n" + h
+        return help
 
-    def get_helps(self, key: str):
-        helps = self._help.get(key)
-        if not helps:
-            return []
-        return [f"[{key}]"] + helps
+    @property
+    def all_help(self):
+        help = self.intro
+        for s, hs in self.state_helps.items():
+            help += f"\n[{s}]"
+            for h in hs:
+                help += "\n" + h
+        return help
 
     @property
     def help(self):
         '''获取当前状态下的帮助，没有找到则返回介绍'''
-        plugin_state = self.get_state()
-
-        # 没有运行
-        if not self.state.belong(plugin_state):
-            return self.intro
+        total_triggers = get_cascade_triggers(self.state)
 
         helps = []
-        helps.extend(self.get_helps(str(self.state)))
+        cmds = []
+        for ts in total_triggers:
+            flag = 1
+            for t in ts:
+                if t.app == self:
+                    for c in t.cmds:
+                        if c in cmds:
+                            break
+                    else:
+                        if flag:
+                            helps.append(f"[{t.state[1:]}]")
+                            flag = 0
+                        cmds.extend(t.cmds)
+                        helps.append(t.help)
 
-        # [-]
-        # 最好是能排除不生效的方法
-        # 计算父结点的帮助
-        state = self.state
-        while state.parent:
-            state = state.parent
-            helps.extend(self.get_helps(str(state)))
-
-        if helps:
-            return "\n".join(helps)
-
-        return self.intro
-
-    @property
-    def all_help(self):
-        '''获取介绍以及全部状态下的帮助'''
-        i = len(str(root_state)) + 1
-        info = self.intro + "\n"
-        for k, v in self._help.items():
-            k = k[i:]
-            v = "\n".join(v)
-            if k:
-                info += f"\n[{k}]\n{v}"
-        return info.strip()
+        if not helps:
+            return self.intro
+        return "\n".join(helps)
 
     @help.setter
-    def help(self, help: Union[str, Dict[str, str]]):
-        '''设置帮助，若help为str，则设置为介绍，若help为dict，则设置为对应状态的帮助'''
-        if isinstance(help, dict):
-            help = {k: [v.strip()] for k, v in help.items()}
-            self._help.update(help)
-        else:
-            self._help[str(root_state)] = [help.strip()]
+    def help(self, help: str):
+        self._intro = help
 
     @property
     def user_name(self):
@@ -389,10 +442,194 @@ class AyakaApp:
             await bot.call_api("send_group_forward_msg", group_id=group_id, messages=msgs)
 
 
-on_message(priority=20, block=False, handlers=[deal_event])
+def get_bot(bot_id: int):
+    '''获取已连接的bot'''
+    bot_id = str(bot_id)
+    for bot in bot_list:
+        if bot.self_id == bot_id:
+            return bot
 
 
-def get_func_attr(func):
+def get_group(bot_id: int, group_id: int):
+    '''获取对应的AyakaGroup对象，自动增加'''
+    for group in group_list:
+        if group.bot_id == bot_id and group.group_id == group_id:
+            break
+    else:
+        group = AyakaGroup(bot_id, group_id)
+    return group
+
+
+def get_app(app_name: str):
+    for app in app_list:
+        if app.name == app_name:
+            return app
+
+
+async def deal_event(bot: Bot, event: MessageEvent):
+    '''处理收到的消息，将其分割为cmd和args，设置上下文相关变量的值，并将消息传递给对应的群组'''
+    if ayaka_root_config.exclude_old_msg:
+        time_i = int(datetime.datetime.now().timestamp())
+        if event.time < time_i - 60:
+            return
+
+    _bot.set(bot)
+    _event.set(event)
+
+    bot_id = int(bot.self_id)
+
+    if isinstance(event, GroupMessageEvent):
+        group_id = event.group_id
+        await deal_group(bot_id, group_id)
+
+    else:
+        id = event.user_id
+        group_ids = private_listener_dict.get(id, [])
+        ts = [asyncio.create_task(deal_group(bot_id, group_id))
+              for group_id in group_ids]
+        await asyncio.gather(*ts)
+
+
+async def deal_group(bot_id: int, group_id: int):
+    prefix = ayaka_root_config.prefix
+
+    # 群组
+    group = get_group(bot_id, group_id)
+    _group.set(group)
+
+    # 消息
+    message = _event.get().message
+    _message.set(message)
+
+    # 从子状态开始向上查找可用的触发
+    state = group.state
+    cascade_triggers = get_cascade_triggers(state, 0)
+
+    # 命令
+    # 消息前缀文本
+    first = get_first(message)
+    if first.startswith(prefix):
+        first = first[len(prefix):]
+        for ts in cascade_triggers:
+            if await deal_cmd_triggers(ts, message, first, state):
+                return
+
+    # 命令退化成消息
+    for ts in cascade_triggers:
+        if await deal_text_triggers(ts, message, state):
+            return
+
+
+async def deal_cmd_triggers(triggers: List[AyakaTrigger], message: Message, first: str, state: AyakaState):
+    sep = ayaka_root_config.separate
+
+    # 命令
+    temp = [t for t in triggers if t.cmds]
+    # 根据命令长度排序，长命令优先级更高
+    cmd_ts = [(c, t) for t in temp for c in t.cmds]
+    cmd_ts.sort(key=lambda x: len(x[0]), reverse=1)
+
+    for c, t in cmd_ts:
+        if first.startswith(c):
+            # 设置上下文
+            # 设置命令
+            _cmd.set(c)
+            # 设置参数
+            left = first[len(c):].lstrip(sep)
+            if left:
+                arg = Message([MessageSegment.text(left), *message[1:]])
+            else:
+                arg = Message(message[1:])
+            _arg.set(arg)
+            _args.set(divide_message(arg))
+
+            # 触发
+            log_trigger(c, t.app.name, state, t.func.__name__)
+            await t.run()
+
+            # 阻断后续
+            if t.block:
+                return True
+
+
+async def deal_text_triggers(triggers: List[AyakaTrigger], message: Message, state: AyakaState):
+    # 消息
+    text_ts = [t for t in triggers if not t.cmds]
+
+    # 设置上下文
+    # 设置命令
+    _cmd.set("")
+    # 设置参数
+    _arg.set(message)
+    _args.set(divide_message(message))
+
+    for t in text_ts:
+        # 触发
+        log_trigger("", t.app.name, state, t.func.__name__)
+        await t.run()
+
+        # 阻断后续
+        if t.block:
+            return True
+
+
+def get_cascade_triggers(state: AyakaState, deep: int = 0):
+    # 根据深度筛选funcs
+    ts = [
+        t for t in state.triggers
+        if t.deep == "all" or t.deep >= deep
+    ]
+    cascade_triggers = [ts]
+
+    # 获取父状态的方法
+    if state.parent:
+        cascade_triggers.extend(get_cascade_triggers(state.parent, deep+1))
+
+    # 排除空项
+    cascade_triggers = [ts for ts in cascade_triggers if ts]
+    return cascade_triggers
+
+
+def log_trigger(cmd, app_name, state, func_name):
+    '''日志记录'''
+    items = []
+    items.append(f"状态：<c>{state}</c>")
+    items.append(f"应用：<y>{app_name}</y>")
+    if cmd:
+        items.append(f"命令：<y>{cmd}</y>")
+    else:
+        items.append("命令：<g>无</g>")
+    items.append(f"回调：<c>{func_name}</c>")
+    info = " | ".join(items)
+    logger.opt(colors=True).debug(info)
+
+
+def get_first(message: Message):
+    first = ""
+    for m in message:
+        if m.type == "text":
+            first += str(m)
+        else:
+            break
+    return first
+
+
+def divide_message(message: Message) -> List[MessageSegment]:
+    args = []
+    sep = ayaka_root_config.separate
+
+    for m in message:
+        if m.is_text():
+            ss = str(m).split(sep)
+            args.extend(MessageSegment.text(s) for s in ss if s)
+        else:
+            args.append(m)
+
+    return args
+
+
+def regist_func(app: AyakaApp, func):
+    '''注册回调'''
     # 默认是无状态应用，从root开始触发
     states: List[AyakaState] = getattr(func, "states", [root_state])
     # 默认是消息响应
@@ -401,20 +638,7 @@ def get_func_attr(func):
     deep: int = getattr(func, "deep", 0)
     # 默认阻断
     block: bool = getattr(func, "block", True)
-    # 默认没有解析模型
-    model = None
-    sig = inspect.signature(func)
-    for k, v in sig.parameters.items():
-        cls = v.annotation
-        if issubclass(cls, AyakaInput):
-            model = cls
-            break
-    return states, cmds, deep, block, model
 
-
-def regist_func(app: AyakaApp, func):
-    '''注册回调'''
-    states, cmds, deep, block, model = get_func_attr(func)
     # 注册
     for s in states:
         s.on_cmd(
@@ -423,41 +647,8 @@ def regist_func(app: AyakaApp, func):
             deep=deep,
             block=block
         )(func)
+
     return func
-
-
-def add_help(app: AyakaApp, func):
-    # 如果有帮助，自动添加到_help中
-    doc = func.__doc__
-    if not doc:
-        doc = ""
-    else:
-        doc = f"| {doc}"
-
-    states, cmds, deep, block, model = get_func_attr(func)
-
-    cmd_str = '/'.join(cmds)
-    if not cmd_str:
-        if not doc:
-            return
-        cmd_str = "*"
-
-    if not model:
-        help = f"- {cmd_str} {doc}"
-    else:
-        data = model.help()
-        keys_str = " ".join(f"<{k}>" for k in data.keys())
-
-        def handle(v):
-            return "" if not v else v
-        data_str = "\n".join(f"    <{k}> {handle(v)}" for k, v in data.items())
-        help = f"- {cmd_str} {keys_str} {doc}\n{data_str}"
-
-    for s in states:
-        s = str(s)
-        if s not in app._help:
-            app._help[s] = []
-        app._help[s].append(help)
 
 
 driver = get_driver()
@@ -469,8 +660,6 @@ async def startup():
     for app in app_list:
         for func in app.funcs:
             regist_func(app, func)
-            # 注册帮助
-            add_help(app, func)
 
     if ayaka_root_config.debug:
         s = json.dumps(
@@ -480,3 +669,5 @@ async def startup():
         path = ayaka_data_path / "all_state.json"
         with path.open("w+", encoding="utf8") as f:
             f.write(s)
+
+on_message(priority=20, block=False, handlers=[deal_event])

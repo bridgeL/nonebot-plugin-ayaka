@@ -24,7 +24,7 @@ class AyakaInput(AyakaDepend):
     @classmethod
     def help(cls):
         props = cls.props()
-        data = {k: v.get("description") for k, v in props.items()}
+        data = {k: v.get("description", "") for k, v in props.items()}
         return data
 
     @validator("*", pre=True)
