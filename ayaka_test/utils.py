@@ -7,6 +7,7 @@ from loguru import logger
 
 def record(text: str):
     path = Path("ayaka_test.log")
+    text = text.replace("<", "&lt;")
     with path.open("a+", encoding="utf8") as f:
         f.write(text + "\n")
 

@@ -88,7 +88,7 @@ class AyakaDB(AyakaDepend):
 
     @classmethod
     def select_many(cls, **params) -> List[Self]:
-        '''按照params的值搜索数据，返回数据列表'''
+        '''按照params的值搜索数据，返回数据列表，若没有符合的数据则返回空列表'''
         where = "1"
         if params:
             where = " and ".join(f"{k}={wrap(v)}" for k, v in params.items())
@@ -100,7 +100,9 @@ class AyakaDB(AyakaDepend):
         datas = cls.select_many(**params)
         if datas:
             return datas[0]
-        return cls(**params)
+        data = cls(**params)
+        data.save()
+        return data
 
     @classmethod
     def get_db(cls):
