@@ -332,11 +332,19 @@ class AyakaApp:
 
     def set_start_cmds(self, *cmds: str):
         '''设置应用启动命令，当然，你也可以通过on_cmd自定义启动方式'''
-        async def func():
+        @self.on_cmd(*cmds)
+        async def start():
             '''打开应用'''
             await self.start()
-        func.cmds = cmds
-        self.funcs.append(func)
+
+    def set_close_cmds(self, *cmds: str):
+        '''设置应用关闭命令，当然，你也可以通过on_cmd自定义关闭方式'''
+        @self.on_state()
+        @self.on_deep_all()
+        @self.on_cmd(*cmds)
+        async def close():
+            '''关闭应用'''
+            await self.close()
 
     async def start(self, state: str = None):
         '''*timer触发时不可用*
