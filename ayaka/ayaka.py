@@ -285,6 +285,7 @@ class AyakaApp:
         return await self.group.back()
 
     def _add_func(self, func):
+        '''如果不存在就加入self.funcs'''
         if func not in self.funcs:
             self.funcs.append(func)
 
@@ -312,6 +313,13 @@ class AyakaApp:
             return func
         return decorator
 
+    def on_text(self):
+        '''注册消息触发'''
+        def decorator(func):
+            self._add_func(func)
+            return func
+        return decorator
+
     def on_state(self, *states: Union[AyakaState, str, List[str]]):
         '''注册有状态响应，不填写states则为root.插件名状态'''
         _states = []
@@ -329,6 +337,10 @@ class AyakaApp:
             self._add_func(func)
             return func
         return decorator
+
+    def on_idle(self):
+        '''注册根结点回调'''
+        return self.on_state(self.root_state)
 
     def set_start_cmds(self, *cmds: str):
         '''设置应用启动命令，当然，你也可以通过on_cmd自定义启动方式'''

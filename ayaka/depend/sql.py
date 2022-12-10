@@ -1,5 +1,7 @@
 import sqlite3
 from typing import TYPE_CHECKING, List, Type
+
+from loguru import logger
 from ..config import ayaka_data_path, ayaka_root_config
 
 if TYPE_CHECKING:
@@ -9,6 +11,7 @@ PrimaryKey = {"primary": True}
 JsonKey = {"json": True}
 
 path = ayaka_data_path / "ayaka.db"
+journal_path = ayaka_data_path / "ayaka.db-journal"
 db = sqlite3.connect(path)
 
 
@@ -112,9 +115,11 @@ def drop_table(name: str):
 
 
 def commit():
-    if ayaka_root_config.debug:
-        print("commit")
-    db.commit()
+    if journal_path.exists():
+        if ayaka_root_config.debug:
+            print("commit")
+        logger.debug("更新数据库")
+        db.commit()
 
 
 def wrap(v):

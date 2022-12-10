@@ -26,10 +26,10 @@ class AyakaDB(AyakaDepend):
     __table_name__ = ""
     __primary_key__ = PrimaryKey
     __json_key__ = JsonKey
+    __created__ = False
 
     def __init__(self, **data) -> None:
-        if not self.__table_name__:
-            raise Exception("__table_name__不可为空")
+        self.create_table()
         super().__init__(**data)
 
     @classmethod
@@ -64,10 +64,15 @@ class AyakaDB(AyakaDepend):
     @classmethod
     def create_table(cls):
         '''根据数据类型自动创建表'''
-        create_table(cls.__table_name__, cls)
+        if not cls.__created__:
+            if not cls.__table_name__:
+                raise Exception("__table_name__不可为空")
+            cls.__created__ = True
+            create_table(cls.__table_name__, cls)
 
     @classmethod
     def replace(cls, data: Self):
+        cls.create_table()
         insert_or_replace(cls.__table_name__, data, "replace")
 
     def save(self):
@@ -76,14 +81,17 @@ class AyakaDB(AyakaDepend):
 
     @classmethod
     def replace_many(cls, datas: List[Self]):
+        cls.create_table()
         insert_or_replace_many(cls.__table_name__, datas, "replace")
 
     @classmethod
     def insert(cls, data: Self):
+        cls.create_table()
         insert_or_replace(cls.__table_name__, data, "insert")
 
     @classmethod
     def insert_many(cls, datas: List[Self]):
+        cls.create_table()
         insert_or_replace_many(cls.__table_name__, datas, "insert")
 
     @classmethod
@@ -92,6 +100,7 @@ class AyakaDB(AyakaDepend):
         where = "1"
         if params:
             where = " and ".join(f"{k}={wrap(v)}" for k, v in params.items())
+        cls.create_table()
         return select_many(cls.__table_name__, cls, where)
 
     @classmethod

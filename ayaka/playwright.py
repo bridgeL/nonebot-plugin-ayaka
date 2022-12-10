@@ -1,20 +1,18 @@
 '''浏览器截图'''
-from .driver import get_driver
 import platform
 from loguru import logger
 from .config import ayaka_root_config
+from .driver import get_driver
 
+driver = get_driver()
 running_on_windows = platform.system() == "Windows"
-fastapi_reload = getattr(get_driver().config, "fastapi_reload", True)
+fastapi_reload = getattr(driver.config, "fastapi_reload", True)
 
 if ayaka_root_config.use_playwright:
-    import datetime
     from playwright.async_api import async_playwright, Browser, Page, Playwright
     from contextlib import asynccontextmanager
     from typing import AsyncIterator
-    from .driver import get_driver
 
-    driver = get_driver()
     _browser: Browser = None
     _playwright: Playwright = None
 
