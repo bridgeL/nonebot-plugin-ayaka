@@ -64,21 +64,6 @@ class AyakaState:
             node = node[key]
         return node
 
-    def __gt__(self, node: Self):
-        return self >= node and len(self.keys) > len(node.keys)
-
-    def __ge__(self, node: Self):
-        return self.belong(node)
-
-    def __lt__(self, node: Self):
-        return self <= node and len(self.keys) < len(node.keys)
-
-    def __le__(self, node: Self):
-        return node.belong(self)
-
-    def __eq__(self, node: Self):
-        return self <= node and len(self.keys) == len(node.keys)
-
     def belong(self, node: Self):
         if len(self.keys) < len(node.keys):
             return False
@@ -88,6 +73,21 @@ class AyakaState:
                 return False
 
         return True
+
+    def __ge__(self, node: Self):
+        return self.belong(node)
+
+    def __le__(self, node: Self):
+        return node.belong(self)
+
+    def __gt__(self, node: Self):
+        return self >= node and len(self.keys) > len(node.keys)
+
+    def __lt__(self, node: Self):
+        return self <= node and len(self.keys) < len(node.keys)
+
+    def __eq__(self, node: Self):
+        return self <= node and len(self.keys) == len(node.keys)
 
     def dict(self):
         data = [child.dict() for child in self.children]
@@ -125,7 +125,7 @@ class AyakaState:
             return func
         return decorator
 
-    def on_cmd(self, *cmds: str, app: "AyakaApp", deep: Union[int, Literal["all"]] = 0, block=True):
+    def on_cmd(self, cmds: List[str], app: "AyakaApp", deep: Union[int, Literal["all"]] = 0, block=True):
         def decorator(func):
             t = AyakaTrigger(func, cmds, deep, app, block, self)
             self.triggers.append(t)
@@ -133,7 +133,7 @@ class AyakaState:
         return decorator
 
     def on_text(self, app: "AyakaApp", deep: Union[int, Literal["all"]] = 0, block=True):
-        return self.on_cmd(app=app, deep=deep, block=block)
+        return self.on_cmd([], app, deep, block)
 
 
 class AyakaTrigger:

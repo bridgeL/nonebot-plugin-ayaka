@@ -641,12 +641,7 @@ def regist_func(app: AyakaApp, func):
 
     # 注册
     for s in states:
-        s.on_cmd(
-            *cmds,
-            app=app,
-            deep=deep,
-            block=block
-        )(func)
+        s.on_cmd(cmds, app, deep, block)(func)
 
     return func
 
