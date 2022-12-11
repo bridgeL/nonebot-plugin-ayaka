@@ -3,9 +3,11 @@ __pycache__
 /data
 /sample
 
-# 保留示例插件
+# 保留示例
 /plugins/*
 !/plugins/星际旅行.py
+/scripts/*
+!/scripts/[1-5].ini
 
 /error.log
 
