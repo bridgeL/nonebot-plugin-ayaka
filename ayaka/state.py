@@ -37,6 +37,12 @@ class AyakaState:
         if isinstance(k, slice):
             s = AyakaState("")
             s.keys = self.keys[k]
+            if s.keys:
+                s.key = s.keys[-1]
+            return s
+        
+        if isinstance(k, int):
+            s = AyakaState(self.keys[k])
             return s
 
         for node in self.children:

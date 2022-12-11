@@ -270,18 +270,24 @@ class AyakaApp:
         keys = [self.name, *keys]
         return root_state.join(*keys)
 
-    async def set_state(self, state_or_key: Union[AyakaState, str], *keys: str):
-        return await self.goto(state_or_key, *keys)
+    async def set_state(self, state: Union[AyakaState, str, List[str]], *keys: str):
+        '''变更当前群组的状态，state可以是AyakaState、字符串或字符串列表，若字符串内包含.符号，还会自动对其进行分割'''
+        return await self.goto(state, *keys)
 
-    async def goto(self, state_or_key: Union[AyakaState, str], *keys: str):
-        '''当state_or_key为字符串时，调用get_state进行初始化(state_or_key.keys1.keys2)，keys可选填'''
-        if isinstance(state_or_key, AyakaState):
-            state = state_or_key
-        else:
-            state = self.get_state(*state_or_key.split("."), *keys)
+    async def goto(self, state: Union[AyakaState, str, List[str]], *keys: str):
+        # keys为兼容旧API（0.5.2及以前
+        '''变更当前群组的状态，state可以是AyakaState、字符串或字符串列表，若字符串内包含.符号，还会自动对其进行分割'''
+        if isinstance(state, str):
+            if "." in state:
+                state = self.get_state(*state.split("."))
+            else:
+                state = self.get_state(state, *keys)
+        elif isinstance(state, list):
+            state = self.get_state(*state)
         return await self.group.goto(state)
 
     async def back(self):
+        '''回退当前群组的状态'''
         return await self.group.back()
 
     def _add_func(self, func):
@@ -343,14 +349,15 @@ class AyakaApp:
         return self.on_state(self.root_state)
 
     def set_start_cmds(self, *cmds: str):
-        '''设置应用启动命令，当然，你也可以通过on_cmd自定义启动方式'''
+        '''设置应用启动命令，当然，你也可以通过app.on_cmd自定义启动方式'''
+        @self.on_idle()
         @self.on_cmd(*cmds)
         async def start():
             '''打开应用'''
             await self.start()
 
     def set_close_cmds(self, *cmds: str):
-        '''设置应用关闭命令，当然，你也可以通过on_cmd自定义关闭方式'''
+        '''设置应用关闭命令，当然，你也可以通过app.on_cmd自定义关闭方式'''
         @self.on_state()
         @self.on_deep_all()
         @self.on_cmd(*cmds)
