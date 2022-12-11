@@ -257,7 +257,7 @@ class AyakaApp:
     def state(self):
         return self.group.state
 
-    def get_state(self, key: Union[str, List[str]], *_keys: str):
+    def get_state(self, key: Union[str, List[str]] = [], *_keys: str):
         # _keys为兼容旧API（0.5.3及以前
         '''
             假设当前app.name为test

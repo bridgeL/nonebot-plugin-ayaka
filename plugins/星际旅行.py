@@ -113,3 +113,15 @@ async def get_gold(data: Data):
     data.gold_number += config.each_number
     data.save()
     await app.send(f"喜加一 {data.gold_number}")
+
+
+class UserInput2(AyakaInput):
+    number: int = Field(description="一次捡起的金块数量")
+
+
+@app.on_state(["太阳", "森林公园"])
+@app.on_cmd("change")
+async def change_gold_number(userinput: UserInput2):
+    '''修改捡金子配置'''
+    config.each_number = userinput.number
+    await app.send("修改成功")
