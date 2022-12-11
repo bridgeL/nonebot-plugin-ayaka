@@ -257,17 +257,23 @@ class AyakaApp:
     def state(self):
         return self.group.state
 
-    def get_state(self, *keys: str):
+    def get_state(self, key: Union[str, List[str]], *_keys: str):
+        # _keys为兼容旧API（0.5.3及以前
         '''
-            假设当前状态为 `root.test.a` 即 `根.插件名.一级菜单项`
+            假设当前app.name为test
 
-            >>> get_state(key1, key2) -> [root.test].key1.key2
+            >>> get_state(key1) -> [root.test].key1
+            
+            >>> get_state([key1, key2]) -> [root.test].key1.key2
 
-            特别的，keys可以为空，例如：
+            特别的，参数可以为空，例如：
 
             >>> get_state() -> [root.test]
         '''
-        keys = [self.name, *keys]
+        if isinstance(key, list):
+            keys = [self.name, *key]
+        else:
+            keys = [self.name, key, *_keys]
         return root_state.join(*keys)
 
     async def set_state(self, state: Union[AyakaState, str, List[str]], *keys: str):
