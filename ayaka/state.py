@@ -40,7 +40,7 @@ class AyakaState:
             if s.keys:
                 s.key = s.keys[-1]
             return s
-        
+
         if isinstance(k, int):
             s = AyakaState(self.keys[k])
             return s
@@ -152,26 +152,27 @@ class AyakaTrigger:
         self.state = state
 
         # 默认没有解析模型
-        model = None
+        models: List[AyakaInput] = []
         sig = inspect.signature(func)
         for k, v in sig.parameters.items():
             cls = v.annotation
             if issubclass(cls, AyakaInput):
-                model = cls
-                break
-        self.model = model
+                models.append(cls)
 
         # 生成帮助
         doc = "" if not func.__doc__ else f"| {func.__doc__}"
         cmd_str = '/'.join(cmds) if cmds else "<任意文字>"
 
-        if not model:
+        if not models:
             help = f"- {cmd_str} {doc}"
         else:
-            data = model.help()
-            keys_str = " ".join(f"<{k}>" for k in data.keys())
-            data_str = "\n".join(f"    <{k}> {v}" for k, v in data.items())
-            help = f"- {cmd_str} {keys_str} {doc}\n{data_str}"
+            helps = []
+            for model in models:
+                data = model.help()
+                keys_str = " ".join(f"<{k}>" for k in data.keys())
+                data_str = "\n".join(f"    <{k}> {v}" for k, v in data.items())
+                helps.append(f"- {cmd_str} {keys_str} {doc}\n{data_str}")
+            help = "\n".join(helps)
 
         self.help = help
         if len(state.keys) > 1:
@@ -192,12 +193,13 @@ class AyakaTrigger:
         for k, v in sig.parameters.items():
             cls = v.annotation
             if issubclass(cls, AyakaDepend):
-                d = await cls._create_by_app(self.app)
+                d = await cls.create_by_app(self.app)
                 if not d:
-                    return
+                    return False
                 params[k] = d
 
         await self.func(**params)
+        return True
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self})"

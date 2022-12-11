@@ -263,7 +263,7 @@ class AyakaApp:
             假设当前app.name为test
 
             >>> get_state(key1) -> [root.test].key1
-            
+
             >>> get_state([key1, key2]) -> [root.test].key1.key2
 
             特别的，参数可以为空，例如：
@@ -562,6 +562,7 @@ async def deal_cmd_triggers(triggers: List[AyakaTrigger], message: Message, firs
     cmd_ts = [(c, t) for t in temp for c in t.cmds]
     cmd_ts.sort(key=lambda x: len(x[0]), reverse=1)
 
+    # 找到触发命令
     for c, t in cmd_ts:
         if first.startswith(c):
             # 设置上下文
@@ -576,12 +577,12 @@ async def deal_cmd_triggers(triggers: List[AyakaTrigger], message: Message, firs
             _arg.set(arg)
             _args.set(divide_message(arg))
 
-            # 触发
+            # 记录触发
             log_trigger(c, t.app.name, state, t.func.__name__)
-            await t.run()
+            f = await t.run()
 
             # 阻断后续
-            if t.block:
+            if f and t.block:
                 return True
 
 
@@ -597,12 +598,12 @@ async def deal_text_triggers(triggers: List[AyakaTrigger], message: Message, sta
     _args.set(divide_message(message))
 
     for t in text_ts:
-        # 触发
+        # 记录触发
         log_trigger("", t.app.name, state, t.func.__name__)
-        await t.run()
+        f = await t.run()
 
         # 阻断后续
-        if t.block:
+        if f and t.block:
             return True
 
 

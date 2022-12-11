@@ -13,7 +13,7 @@ class AyakaDB(AyakaDepend):
     '''
 ```
 1. 继承时要书写 __table_name__
-2. 如果要把该类放入回调函数的参数表中，则还要编写classmethod async def _create_by_app方法
+2. 如果要把该类放入回调函数的参数表中，则还要编写classmethod async def create_by_app方法
 3. 设置主键需要使用
     <name>:<type> = Field(extra=AyakaDB.__primary_key__)
 4. 一些特殊类型的数据请设置其为json形式存取 
@@ -124,7 +124,7 @@ class AyakaGroupDB(AyakaDB):
     group_id: int = Field(extra=AyakaDB.__primary_key__)
 
     @classmethod
-    async def _create_by_app(cls, app: "AyakaApp"):
+    async def create_by_app(cls, app: "AyakaApp"):
         return cls.select_one(group_id=app.group_id)
 
 
@@ -136,7 +136,7 @@ class AyakaUserDB(AyakaDB):
     user_id: int = Field(extra=AyakaDB.__primary_key__)
 
     @classmethod
-    async def _create_by_app(cls, app: "AyakaApp"):
+    async def create_by_app(cls, app: "AyakaApp"):
         return cls.select_one(
             group_id=app.group_id,
             user_id=app.user_id

@@ -7,8 +7,8 @@ if TYPE_CHECKING:
 
 class AyakaDepend(BaseModel):
     @classmethod
-    async def _create_by_app(cls, app: "AyakaApp"):
-        raise NotImplementedError
+    async def create_by_app(cls, app: "AyakaApp"):
+        return
 
     @classmethod
     def props(cls) -> Dict[str, dict]:
