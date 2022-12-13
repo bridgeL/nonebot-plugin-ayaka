@@ -29,7 +29,6 @@ class AyakaDB(AyakaDepend):
     __created__ = False
 
     def __init__(self, **data) -> None:
-        self.create_table()
         super().__init__(**data)
 
     @classmethod

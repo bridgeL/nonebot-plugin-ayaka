@@ -99,8 +99,8 @@ class Data(AyakaUserDB):
 
 
 class Config(AyakaConfig):
-    __app_name__ = "gold"
-    each_number: int = 1
+    __app_name__ = app.name
+    gold_number: int = 1
 
 
 config = Config()
@@ -110,7 +110,7 @@ config = Config()
 @app.on_cmd("pick")
 async def get_gold(data: Data):
     '''捡金子'''
-    data.gold_number += config.each_number
+    data.gold_number += config.gold_number
     data.save()
     await app.send(f"喜加一 {data.gold_number}")
 
@@ -123,5 +123,5 @@ class UserInput2(AyakaInput):
 @app.on_cmd("change")
 async def change_gold_number(userinput: UserInput2):
     '''修改捡金子配置'''
-    config.each_number = userinput.number
+    config.gold_number = userinput.number
     await app.send("修改成功")

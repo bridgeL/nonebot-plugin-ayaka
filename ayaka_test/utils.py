@@ -1,8 +1,6 @@
 import re
-import sys
 import base64
 from pathlib import Path
-from loguru import logger
 
 
 def record(text: str):
