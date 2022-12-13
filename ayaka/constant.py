@@ -3,7 +3,7 @@ from contextvars import ContextVar
 from collections import defaultdict
 from typing import List, TYPE_CHECKING, Dict
 from .driver import Message, MessageSegment, Bot, MessageEvent, get_driver
-
+from .utils import singleton
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp, AyakaGroup
@@ -27,21 +27,21 @@ bot_list: List[Bot] = []
 private_listener_dict: Dict[int, List[int]] = defaultdict(list)
 
 
-first_bot_connect = True
 driver = get_driver()
+
+
+@singleton
+def start_timers():
+    '''开启插件中的定时模块，仅执行一次'''
+    for app in app_list:
+        for t in app.timers:
+            t.start()
 
 
 @driver.on_bot_connect
 async def bot_connect(bot: Bot):
     bot_list.append(bot)
-
-    # 在第一个bot就绪后，开启插件中的定时模块
-    global first_bot_connect
-    if first_bot_connect:
-        first_bot_connect = False
-        for app in app_list:
-            for t in app.timers:
-                t.start()
+    start_timers()
 
 
 @driver.on_bot_disconnect

@@ -28,9 +28,6 @@ class AyakaDB(AyakaDepend):
     __json_key__ = JsonKey
     __created__ = False
 
-    def __init__(self, **data) -> None:
-        super().__init__(**data)
-
     @classmethod
     def _create_by_db_data(cls, data: dict):
         props = cls.props()
