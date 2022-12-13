@@ -3,7 +3,7 @@
 from ayaka import load_plugins, load_plugin, run
 from ayaka.extension import Timer
 
-with Timer.加载全部插件:
+with Timer("加载全部插件"):
     load_plugins("plugins")
 
 # 加载测试环境

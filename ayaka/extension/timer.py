@@ -3,12 +3,7 @@
 from time import time
 
 
-class TimerMeta(type):
-    def __getattr__(self, k):
-        return Timer(k)
-
-
-class Timer(metaclass=TimerMeta):
+class Timer:
     def __init__(self, name) -> None:
         self.name = name
 
