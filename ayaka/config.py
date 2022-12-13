@@ -137,8 +137,6 @@ class Config(AyakaConfig):
     separate: str = " "
     # 是否排除go-cqhttp缓存的过期消息
     exclude_old_msg: bool = True
-    # 是否使用playwright
-    use_playwright: bool = False
     # ayaka插件的所有者
     owners: List[int] = []
     # ayaka插件的管理者
