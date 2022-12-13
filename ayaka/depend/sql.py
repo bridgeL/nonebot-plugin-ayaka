@@ -94,13 +94,14 @@ def insert_or_replace_many(name: str, datas: List["AyakaDB"], action: str):
     executemany(query, values)
 
 
-def select_many(name: str, cls: Type["AyakaDB"], where: str = "1"):
+def select_many(name: str, cls: Type["AyakaDB"], where: str = ""):
     props = cls.props()
     keys = list(props.keys())
+    if where:
+        where = f"where {where}"
 
-    # 本来想用*，不过为了保险起见（后续更新的兼容性），还是老老实实写key吧
     keys_str = ",".join(keys)
-    query = f"select {keys_str} from \"{name}\" where {where}"
+    query = f"select {keys_str} from \"{name}\" {where}"
     values = fetchall(query)
 
     # 组装为字典

@@ -14,19 +14,19 @@ AYAKA_VERSION = "0.5.4b0"
 ayaka_data_path = Path("data", "ayaka")
 if not ayaka_data_path.exists():
     ayaka_data_path.mkdir(parents=1)
-    
+
 # 分文件夹
 ayaka_data_separate_path = ayaka_data_path / "separate"
 if not ayaka_data_separate_path.exists():
     ayaka_data_separate_path.mkdir(parents=1)
- 
+
 # 总配置文件
 setting_filepath = ayaka_data_path / "ayaka_setting.json"
 # 总配置
 total_settings: dict = {}
 # 数据脏标志
 dirty_flag = False
-    
+
 
 def load():
     global total_settings
@@ -58,7 +58,7 @@ class AyakaConfig(BaseModel):
     该配置保存在data/ayaka/ayaka_setting.json中字典的`__app_name__`键下
 
     当配置项较多时（超过100行），建议使用`AyakaLargeConfig`
-    
+
     在修改不可变成员属性时，`AyakaConfig`会自动写入到本地文件，但修改可变成员属性时，需要手动执行save函数
     '''
     __app_name__ = ""
@@ -71,7 +71,7 @@ class AyakaConfig(BaseModel):
 
         # 默认空数据
         data = {}
-        
+
         try:
             if self.__separate__:
                 path = ayaka_data_separate_path / f"{name}.json"
@@ -79,25 +79,26 @@ class AyakaConfig(BaseModel):
                 if path.exists():
                     with path.open("r", encoding="utf8") as f:
                         data = json.load(f)
-                        
+
             # 存在则读取
             elif name in total_settings:
                 data = total_settings[name]
-            
+
             # 载入数据
             super().__init__(**data)
-            
+
         except ValidationError as e:
             logger.error(
                 f"导入配置失败，请检查{name}的配置是否正确")
             raise e
-        
+
         # 强制更新（更新默认值）
         self.save()
 
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
         self.save()
+        logger.debug("已自动保存配置更改")
 
     def force_update(self):
         '''修改可变成员变量后，需要使用该方法才能保存其值到文件'''
@@ -121,7 +122,7 @@ class AyakaLargeConfig(AyakaConfig):
     '''继承时请填写`__app_name__`
 
     该配置保存在data/ayaka/separate/`__app_name__`.json下
-    
+
     在修改不可变成员属性时，`AyakaLargeConfig`会自动写入到本地文件，但修改可变成员属性时，需要手动执行save函数
     '''
     __app_name__ = ""

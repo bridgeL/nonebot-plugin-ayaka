@@ -96,7 +96,10 @@ class AyakaApp:
         self.funcs = []
         self.on = AyakaOn(self)
         self.timers: List[AyakaTimer] = []
+
         self.root_state = root_state
+        self.plugin_state = self.get_state()
+
         self._intro = "没有介绍"
         self.state_helps: Dict[str, List[str]] = {}
         self.idle_helps: List[str] = []
@@ -333,16 +336,19 @@ class AyakaApp:
         return decorator
 
     def on_state(self, *states: Union[AyakaState, str, List[str]]):
-        '''注册有状态响应，不填写states则为root.插件名状态'''
+        '''注册有状态响应，不填写states则为plugin_state'''
         _states = []
+        
         if not states:
-            states = [[]]
-        for s in states:
-            if isinstance(s, str):
-                s = self.get_state(s)
-            elif isinstance(s, list):
-                s = self.get_state(*s)
-            _states.append(s)
+            _states = [self.plugin_state]
+        
+        else:
+            for s in states:
+                if isinstance(s, str):
+                    s = self.get_state(s)
+                elif isinstance(s, list):
+                    s = self.get_state(*s)
+                _states.append(s)
 
         def decorator(func):
             func.states = _states

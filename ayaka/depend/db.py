@@ -1,4 +1,5 @@
 import json
+from loguru import logger
 from pydantic import Field
 from typing import List, TYPE_CHECKING
 from typing_extensions import Self
@@ -43,6 +44,11 @@ class AyakaDB(AyakaDepend):
                     data[k] = json.loads(data[k])
 
         return cls(**data)
+
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+        self.save()
+        logger.debug("已自动保存数据更改")
 
     def dict(self, **params):
         data = super().dict(**params)
@@ -96,9 +102,13 @@ class AyakaDB(AyakaDepend):
     @classmethod
     def select_many(cls, **params) -> List[Self]:
         '''按照params的值搜索数据，返回数据列表，若没有符合的数据则返回空列表'''
-        where = "1"
+        items = []
         if params:
-            where = " and ".join(f"{k}={wrap(v)}" for k, v in params.items())
+            items.extend(f"{k}={wrap(v)}" for k, v in params.items())
+        if items:
+            where = " and ".join(items)
+        else:
+            where = ""
         cls.create_table()
         return select_many(cls.__table_name__, cls, where)
 
