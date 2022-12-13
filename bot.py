@@ -5,6 +5,7 @@ from ayaka.extension import Timer
 
 with Timer("加载全部插件"):
     load_plugins("plugins")
+    # load_plugin("ayaka_games")
 
 # 加载测试环境
 load_plugin("ayaka_test")
