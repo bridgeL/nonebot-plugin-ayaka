@@ -12,26 +12,6 @@ def record(text: str):
         f.write(text + "\n")
 
 
-def init_logger():
-    logger.remove()
-    logger.add(
-        sys.stdout,
-        level="DEBUG",
-        format="<g>{time:HH:mm:ss}</g> | <level>{level}</level> | {message}",
-        filter={
-            "nonebot": "WARNING",
-            "uvicorn": "INFO",
-            "websockets": "WARNING"
-        },
-        backtrace=False,
-        diagnose=False
-    )
-    logger.add(
-        open("error.log", "a+", encoding="utf8"),
-        level="ERROR", backtrace=False, diagnose=False
-    )
-
-
 def divide(line):
     if " " not in line:
         line += " "

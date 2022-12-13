@@ -85,7 +85,6 @@ def load_plugins(path):
     for p in path.iterdir():
         if p.name.startswith("_"):
             continue
-
         load_plugin(p)
 
 

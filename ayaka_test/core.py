@@ -5,7 +5,7 @@ from typing import Callable, Coroutine
 from websockets.legacy.client import Connect
 from ayaka import get_driver, logger
 from .constant import AYAKA_LOGGER_NAME, bot_id, private_temp, group_temp
-from .utils import divide, shorten, init_logger
+from .utils import divide, shorten
 
 driver = get_driver()
 logger.level(AYAKA_LOGGER_NAME, no=26, icon="⚡", color="<blue>")
@@ -48,8 +48,6 @@ class FakeQQ:
             extra_headers={"x-self-id": bot_id}
         )
         self.ws = await self.conn.__aenter__()
-
-        init_logger()
         self.print_help()
 
         # 启动收发循环

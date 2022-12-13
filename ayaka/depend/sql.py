@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from typing import TYPE_CHECKING, List, Type
 
@@ -12,6 +13,7 @@ JsonKey = {"json": True}
 
 path = ayaka_data_path / "ayaka.db"
 journal_path = ayaka_data_path / "ayaka.db-journal"
+old_journal_path = ayaka_data_path / "ayaka.db-journal-old"
 db = sqlite3.connect(path)
 
 
@@ -115,11 +117,19 @@ def drop_table(name: str):
 
 
 def commit():
+    if old_journal_path.exists():
+        os.remove(old_journal_path)
+        logger.debug("已删除旧db-journal-old文件")
     if journal_path.exists():
         if ayaka_root_config.debug:
             print("commit")
         logger.debug("更新数据库")
         db.commit()
+
+        # 提交失败，直接删除
+        if journal_path.exists():
+            logger.debug("更新数据库失败，已将journal文件更名为db-journal-old")
+            journal_path.rename(old_journal_path)
 
 
 def wrap(v):

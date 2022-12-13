@@ -84,6 +84,7 @@ class AyakaApp:
 
     def __init__(self, name: str) -> None:
         self.path = Path(inspect.stack()[1].filename)
+        logger.opt(colors=True).debug(f"加载应用 \"<c>{name}</c>\"")
 
         for app in app_list:
             if app.name == name:
@@ -100,7 +101,6 @@ class AyakaApp:
         self.state_helps: Dict[str, List[str]] = {}
         self.idle_helps: List[str] = []
 
-        logger.opt(colors=True).success(f"应用加载成功 \"<c>{name}</c>\"")
         app_list.append(self)
         if ayaka_root_config.debug:
             print(self)

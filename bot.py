@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from ayaka.driver import load_plugins, load_plugin, get_driver, run
+from ayaka import load_plugins, load_plugin, run
+from ayaka.extension import Timer
 
-driver = get_driver()
-reload = getattr(driver.config, "fastapi_reload", True)
-if not reload or __name__ == "__mp_main__":
-    # 加载插件
+with Timer.加载全部插件:
     load_plugins("plugins")
-    # 加载测试环境
-    load_plugin("ayaka_test")
+
+# 加载测试环境
+load_plugin("ayaka_test")
 
 # 启动bot
 if __name__ == "__main__":

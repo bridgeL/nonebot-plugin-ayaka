@@ -6,8 +6,8 @@ __pycache__
 # 保留示例
 /plugins/*
 !/plugins/星际旅行.py
-/scripts/*
-!/scripts/[1-5].ini
+/script/*
+!/script/[1-5].ini
 
 /error.log
 
