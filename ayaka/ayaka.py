@@ -11,8 +11,8 @@ from .depend import AyakaCache
 from .config import ayaka_root_config, ayaka_data_path
 from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, _enter_exit_during, app_list, group_list, bot_list, private_listener_dict
 from .driver import on_message, get_driver, Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
-from .state import AyakaState, AyakaTrigger, root_state
-from .on import AyakaOn, AyakaTimer
+from .state import AyakaState, AyakaTrigger, AyakaTimer, root_state
+from .on import AyakaOn
 
 
 class AyakaGroup:
@@ -36,6 +36,15 @@ class AyakaGroup:
 
         if ayaka_root_config.debug:
             print(self)
+
+    async def enter(self, state: Union[str, List[str], AyakaState]):
+        if isinstance(state, list):
+            next_state = self.state.join(*state)
+        elif isinstance(state, str):
+            next_state = self.state.join(state)
+        else:
+            next_state = self.state.join(*state.keys)
+        return await self.goto(next_state)
 
     async def back(self):
         if self.state.parent:
@@ -295,6 +304,10 @@ class AyakaApp:
             state = self.get_state(*state)
         return await self.group.goto(state)
 
+    async def enter(self, state: Union[str, List[str], AyakaState]):
+        '''进入子状态'''
+        return await self.group.enter(state)
+
     async def back(self):
         '''回退当前群组的状态'''
         return await self.group.back()
@@ -338,10 +351,10 @@ class AyakaApp:
     def on_state(self, *states: Union[AyakaState, str, List[str]]):
         '''注册有状态响应，不填写states则为plugin_state'''
         _states = []
-        
+
         if not states:
             _states = [self.plugin_state]
-        
+
         else:
             for s in states:
                 if isinstance(s, str):
@@ -359,6 +372,18 @@ class AyakaApp:
     def on_idle(self):
         '''注册根结点回调'''
         return self.on_state(self.root_state)
+
+    def on_everyday(self, h: int, m: int, s: int):
+        '''每日定时触发'''
+        return self.on_interval(86400, h, m, s)
+
+    def on_interval(self, gap: int, h=-1, m=-1, s=-1, show=True):
+        '''在指定的时间点后循环触发'''
+        def decorator(func):
+            t = AyakaTimer(self, gap, h, m, s, func, show)
+            self.timers.append(t)
+            return func
+        return decorator
 
     def set_start_cmds(self, *cmds: str):
         '''设置应用启动命令，当然，你也可以通过app.on_cmd自定义启动方式'''

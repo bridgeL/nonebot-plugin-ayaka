@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+'''0.5.4b1'''
+
 from loguru import logger
 from .ayaka import AyakaApp
 from .driver import Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent, Event, DataclassEncoder, msg_type, get_driver, on_message, load_plugin, load_plugins, run
