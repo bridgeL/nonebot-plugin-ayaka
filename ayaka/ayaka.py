@@ -385,24 +385,36 @@ class AyakaApp:
             return func
         return decorator
 
+    def on_start_cmds(self, *cmds: str):
+        def decorator(func):
+            func = self.on_idle()(func)
+            func = self.on_cmd(*cmds)(func)
+            return func
+        return decorator
+
+    def on_close_cmds(self, *cmds: str):
+        def decorator(func):
+            func = self.on_state()(func)
+            func = self.on_deep_all()(func)
+            func = self.on_cmd(*cmds)(func)
+            return func
+        return decorator
+
     def set_start_cmds(self, *cmds: str):
-        '''设置应用启动命令，当然，你也可以通过app.on_cmd自定义启动方式'''
-        @self.on_idle()
-        @self.on_cmd(*cmds)
+        '''设置应用启动命令，当然，你也可以通过app.on_start_cmds自定义启动方式'''
+        @self.on_start_cmds(*cmds)
         async def start():
             '''打开应用'''
             await self.start()
 
     def set_close_cmds(self, *cmds: str):
-        '''设置应用关闭命令，当然，你也可以通过app.on_cmd自定义关闭方式'''
-        @self.on_state()
-        @self.on_deep_all()
-        @self.on_cmd(*cmds)
+        '''设置应用关闭命令，当然，你也可以通过app.on_close_cmds自定义关闭方式'''
+        @self.on_close_cmds(*cmds)
         async def close():
             '''关闭应用'''
             await self.close()
 
-    async def start(self, state: str = None):
+    async def start(self, state: str = ""):
         '''*timer触发时不可用*
 
         启动应用，并发送提示

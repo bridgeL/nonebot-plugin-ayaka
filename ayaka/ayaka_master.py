@@ -1,7 +1,8 @@
 '''ayaka综合管理模块'''
 from pydantic import Field
 from .ayaka import app_list, AyakaApp, get_app
-from .config import ayaka_root_config, save
+# from .config import ayaka_root_config, save
+from .config import save
 from .state import root_state
 from .driver import get_driver
 from .depend import commit, AyakaInput
@@ -20,8 +21,9 @@ class AppnameInput(AyakaInput):
     name: str = Field("", description="应用名")
 
 
-@app.on.idle(super=True)
-@app.on.command("插件", "plugin", "plugins")
+@app.on_idle()
+@app.on_deep_all()
+@app.on_cmd("插件", "plugin", "plugins")
 async def show_plugins():
     '''展示所有应用'''
     items = []
@@ -31,8 +33,9 @@ async def show_plugins():
     await app.send("\n".join(items))
 
 
-@app.on.idle(super=True)
-@app.on.command("状态", "state")
+@app.on_idle()
+@app.on_deep_all()
+@app.on_cmd("状态", "state")
 async def show_state():
     state = app.group.state
     if state <= root_state:
@@ -41,8 +44,9 @@ async def show_state():
     await app.send(f"当前状态：{state}")
 
 
-@app.on.idle(super=True)
-@app.on.command("帮助", "help")
+@app.on_idle()
+@app.on_deep_all()
+@app.on_cmd("帮助", "help")
 async def show_help(data: AppnameInput):
     # 展示当前应用当前状态的帮助
     if app.state > root_state:
@@ -75,56 +79,52 @@ async def show_help(data: AppnameInput):
     await app.send("使用 帮助 <插件名> 可以进一步展示指定插件的详细帮助信息")
 
 
-@app.on.idle(super=True)
-@app.on.command("强制退出", "force_exit")
+@app.on_idle()
+@app.on_deep_all()
+@app.on_cmd("强制退出", "force_exit")
 async def force_exit():
     await app.group.goto(root_state)
     await app.send("已强制退出应用")
 
 
-@app.on.idle(super=True)
-@app.on.command("查看缓存")
-async def show_cache():
-    '''查看当前群组的所有缓存'''
-    print(app.group.cache_dict)
+# @app.on_idle()
+# @app.on_deep_all()
+# @app.on_cmd("add_admin")
+# async def add_admin(data: UidInput):
+#     '''增加ayaka管理者'''
+#     if app.user_id not in ayaka_root_config.owners:
+#         await app.send("仅有ayaka所有者有权执行此命令")
+#         return
+
+#     uid = data.uid
+
+#     if uid not in ayaka_root_config.admins:
+#         ayaka_root_config.admins.append(uid)
+#         ayaka_root_config.force_update()
+
+#     await app.send("设置成功")
 
 
-@app.on.idle(super=True)
-@app.on.command("add_admin")
-async def add_admin(data: UidInput):
-    '''增加ayaka管理者'''
-    if app.user_id not in ayaka_root_config.owners:
-        await app.send("仅有ayaka所有者有权执行此命令")
-        return
+# @app.on_idle()
+# @app.on_deep_all()
+# @app.on_cmd("remove_admin")
+# async def remove_admin(data: UidInput):
+#     '''移除ayaka管理者'''
+#     if app.user_id not in ayaka_root_config.owners:
+#         await app.send("仅有ayaka所有者有权执行此命令")
+#         return
 
-    uid = data.uid
+#     uid = data.uid
 
-    if uid not in ayaka_root_config.admins:
-        ayaka_root_config.admins.append(uid)
-        ayaka_root_config.force_update()
+#     if uid in ayaka_root_config.admins:
+#         ayaka_root_config.admins.remove(uid)
+#         ayaka_root_config.force_update()
 
-    await app.send("设置成功")
-
-
-@app.on.idle(super=True)
-@app.on.command("remove_admin")
-async def remove_admin(data: UidInput):
-    '''移除ayaka管理者'''
-    if app.user_id not in ayaka_root_config.owners:
-        await app.send("仅有ayaka所有者有权执行此命令")
-        return
-
-    uid = data.uid
-
-    if uid in ayaka_root_config.admins:
-        ayaka_root_config.admins.remove(uid)
-        ayaka_root_config.force_update()
-
-    await app.send("设置成功")
+#     await app.send("设置成功")
 
 
 # 定时提交db、保存setting
-@app.on.interval(60, show=False)
+@app.on_interval(60, show=False)
 async def update_data():
     commit()
     save()

@@ -92,13 +92,15 @@ class AyakaConfig(BaseModel):
                 f"导入配置失败，请检查{name}的配置是否正确")
             raise e
 
-        # 强制更新（更新默认值）
-        self.save()
+        if not data:
+            # 强制更新（更新默认值）
+            self.save()
 
     def __setattr__(self, name, value):
-        super().__setattr__(name, value)
-        self.save()
-        logger.debug("已自动保存配置更改")
+        if getattr(self, name) != value:
+            super().__setattr__(name, value)
+            self.save()
+            logger.debug("已自动保存配置更改")
 
     def force_update(self):
         '''修改可变成员变量后，需要使用该方法才能保存其值到文件'''
@@ -138,10 +140,10 @@ class Config(AyakaConfig):
     separate: str = " "
     # 是否排除go-cqhttp缓存的过期消息
     exclude_old_msg: bool = True
-    # ayaka插件的所有者
-    owners: List[int] = []
-    # ayaka插件的管理者
-    admins: List[int] = []
+    # # ayaka插件的所有者
+    # owners: List[int] = []
+    # # ayaka插件的管理者
+    # admins: List[int] = []
     # 切换bot类型
     bot_type: Literal["nonebot", "ayakabot"] = "nonebot"
     # 是否处于调试模式

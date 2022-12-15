@@ -42,9 +42,10 @@ class AyakaDB(AyakaDepend):
         return cls(**data)
 
     def __setattr__(self, name, value):
-        super().__setattr__(name, value)
-        self.save()
-        logger.debug("已自动保存数据更改")
+        if getattr(self, name) != value:
+            super().__setattr__(name, value)
+            self.save()
+            logger.debug("已自动保存配置更改")
 
     def dict(self, **params):
         data = super().dict(**params)
