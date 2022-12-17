@@ -1,6 +1,6 @@
-'''0.5.4
+'''0.5.5
 
-https://bridgel.github.io/ayaka_doc/0.5.4/
+https://bridgel.github.io/ayaka_doc/0.5.5/
 '''
 
 from loguru import logger

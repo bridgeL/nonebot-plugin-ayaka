@@ -365,6 +365,7 @@ class AyakaApp:
     def on_text(self):
         '''注册消息触发'''
         def decorator(func):
+            func = self.on_no_block()(func)
             self._add_func(func)
             return func
         return decorator

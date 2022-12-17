@@ -1,6 +1,6 @@
 <div align="center">
 
-# Ayaka 0.5.4
+# Ayaka 0.5.5
 
 <img src="https://img.shields.io/pypi/pyversions/nonebot-plugin-ayaka">
 
