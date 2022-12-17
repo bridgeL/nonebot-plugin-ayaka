@@ -353,7 +353,7 @@ class AyakaApp:
             return func
         return decorator
 
-    def on_regex(self, *cmds: Union[str, re.Pattern]):
+    def on_cmd_regex(self, *cmds: Union[str, re.Pattern]):
         '''注册命令触发，不填写命令则视为文本消息'''
         def decorator(func):
             func.cmds = getattr(func, "cmds", [])
