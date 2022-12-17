@@ -8,7 +8,7 @@ from pydantic import BaseModel, ValidationError, validator
 from typing import Literal
 from loguru import logger
 
-AYAKA_VERSION = "0.5.4b3"
+AYAKA_VERSION = "0.5.4"
 
 # 总文件夹
 ayaka_data_path = Path("data", "ayaka")

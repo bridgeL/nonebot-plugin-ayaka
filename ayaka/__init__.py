@@ -1,4 +1,7 @@
-'''0.5.4b3'''
+'''0.5.4
+
+https://bridgel.github.io/ayaka_doc/0.5.4/
+'''
 
 from loguru import logger
 from .ayaka import AyakaApp
