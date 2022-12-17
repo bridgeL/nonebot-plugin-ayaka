@@ -18,7 +18,6 @@ class AyakaOn:
                 func = self.app.on_state()(func)
                 return func
             return decorator
-        states = [s.split(".") for s in states]
         return self.app.on_state(*states)
 
     def idle(self, super=False):

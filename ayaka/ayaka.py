@@ -5,13 +5,14 @@ import inspect
 import json
 from math import ceil
 from pathlib import Path
+import re
 from loguru import logger
-from typing import List, Dict, Literal, Union
+from typing import List, Dict, Literal, Tuple, Union
 from .depend import AyakaCache
 from .config import ayaka_root_config, ayaka_data_path
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, _enter_exit_during, app_list, group_list, bot_list, private_listener_dict
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, _cmd_regex, _enter_exit_during, app_list, group_list, bot_list, private_listener_dict
 from .driver import on_message, get_driver, Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
-from .state import AyakaState, AyakaTrigger, AyakaTimer, root_state
+from .state import AyakaState, AyakaTrigger, AyakaTimer, root_state, ensure_regex_list
 from .on import AyakaOn
 
 
@@ -144,14 +145,14 @@ class AyakaApp:
             flag = 1
             for t in ts:
                 if t.app == self:
-                    for c in t.cmds:
+                    for c in t.raw_cmds:
                         if c in cmds:
                             break
                     else:
                         if flag:
                             helps.append(f"[{t.state[1:]}]")
                             flag = 0
-                        cmds.extend(t.cmds)
+                        cmds.extend(t.raw_cmds)
                         helps.append(t.help)
 
         if not helps:
@@ -258,6 +259,14 @@ class AyakaApp:
         return _cmd.get()
 
     @property
+    def cmd_regex(self):
+        '''*timer触发时不可用*
+
+        当前消息的命令头
+        '''
+        return _cmd_regex.get()
+
+    @property
     def message(self):
         '''*timer触发时不可用*
 
@@ -283,9 +292,14 @@ class AyakaApp:
             >>> get_state() -> [root.test]
         '''
         if isinstance(key, list):
-            keys = [self.name, *key]
+            _keys = [self.name, *key]
         else:
-            keys = [self.name, key, *_keys]
+            _keys = [self.name, key, *_keys]
+
+        keys = []
+        for k in _keys:
+            keys.extend(k.split(ayaka_root_config.state_separate))
+
         return root_state.join(*keys)
 
     async def set_state(self, state: Union[AyakaState, str, List[str]], *keys: str):
@@ -296,10 +310,7 @@ class AyakaApp:
         # keys为兼容旧API（0.5.2及以前
         '''变更当前群组的状态，state可以是AyakaState、字符串或字符串列表，若字符串内包含.符号，还会自动对其进行分割'''
         if isinstance(state, str):
-            if "." in state:
-                state = self.get_state(*state.split("."))
-            else:
-                state = self.get_state(state, *keys)
+            state = self.get_state(state, *keys)
         elif isinstance(state, list):
             state = self.get_state(*state)
         return await self.group.goto(state)
@@ -333,10 +344,20 @@ class AyakaApp:
             return func
         return decorator
 
-    def on_cmd(self, *cmds: str):
+    def on_cmd(self, *cmds: Union[str, re.Pattern]):
         '''注册命令触发，不填写命令则视为文本消息'''
         def decorator(func):
-            func.cmds = cmds
+            func.cmds = getattr(func, "cmds", [])
+            func.cmds.extend(ensure_regex_list(cmds))
+            self._add_func(func)
+            return func
+        return decorator
+
+    def on_regex(self, *cmds: Union[str, re.Pattern]):
+        '''注册命令触发，不填写命令则视为文本消息'''
+        def decorator(func):
+            func.cmds = getattr(func, "cmds", [])
+            func.cmds.extend(ensure_regex_list(cmds, False))
             self._add_func(func)
             return func
         return decorator
@@ -385,14 +406,14 @@ class AyakaApp:
             return func
         return decorator
 
-    def on_start_cmds(self, *cmds: str):
+    def on_start_cmds(self, *cmds: Union[str, re.Pattern]):
         def decorator(func):
             func = self.on_idle()(func)
             func = self.on_cmd(*cmds)(func)
             return func
         return decorator
 
-    def on_close_cmds(self, *cmds: str):
+    def on_close_cmds(self, *cmds: Union[str, re.Pattern]):
         def decorator(func):
             func = self.on_state()(func)
             func = self.on_deep_all()(func)
@@ -400,14 +421,14 @@ class AyakaApp:
             return func
         return decorator
 
-    def set_start_cmds(self, *cmds: str):
+    def set_start_cmds(self, *cmds: Union[str, re.Pattern]):
         '''设置应用启动命令，当然，你也可以通过app.on_start_cmds自定义启动方式'''
         @self.on_start_cmds(*cmds)
         async def start():
             '''打开应用'''
             await self.start()
 
-    def set_close_cmds(self, *cmds: str):
+    def set_close_cmds(self, *cmds: Union[str, re.Pattern]):
         '''设置应用关闭命令，当然，你也可以通过app.on_close_cmds自定义关闭方式'''
         @self.on_close_cmds(*cmds)
         async def close():
@@ -422,10 +443,7 @@ class AyakaApp:
         state参数为兼容旧API'''
         if not state:
             state = self.get_state()
-            await self.goto(state)
-        else:
-            states = state.split(".")
-            await self.goto(*states)
+        await self.goto(state)
         await self.send(f"已打开应用 [{self.name}]")
 
     async def close(self):
@@ -599,34 +617,39 @@ async def deal_group(bot_id: int, group_id: int):
 async def deal_cmd_triggers(triggers: List[AyakaTrigger], message: Message, first: str, state: AyakaState):
     sep = ayaka_root_config.separate
 
-    # 命令
-    temp = [t for t in triggers if t.cmds]
-    # 根据命令长度排序，长命令优先级更高
-    cmd_ts = [(c, t) for t in temp for c in t.cmds]
-    cmd_ts.sort(key=lambda x: len(x[0]), reverse=1)
-
     # 找到触发命令
-    for c, t in cmd_ts:
-        if first.startswith(c):
-            # 设置上下文
-            # 设置命令
-            _cmd.set(c)
-            # 设置参数
-            left = first[len(c):].lstrip(sep)
-            if left:
-                arg = Message([MessageSegment.text(left), *message[1:]])
-            else:
-                arg = Message(message[1:])
-            _arg.set(arg)
-            _args.set(divide_message(arg))
+    cmd_ts: List[Tuple[re.Pattern, str, AyakaTrigger]] = []
+    for t in triggers:
+        for cmd in t.cmds:
+            r = cmd.match(first)
+            if r:
+                cmd_ts.append([r, r.group(), t])
+                break
 
-            # 记录触发
-            log_trigger(c, t.app.name, state, t.func.__name__)
-            f = await t.run()
+    # 根据命令长度排序，长命令优先级更高
+    cmd_ts.sort(key=lambda x: len(x[1]), reverse=1)
 
-            # 阻断后续
-            if f and t.block:
-                return True
+    for r, c, t in cmd_ts:
+        # 设置上下文
+        # 设置命令
+        _cmd.set(c)
+        _cmd_regex.set(r)
+        # 设置参数
+        left = first[len(c):].lstrip(sep)
+        if left:
+            arg = Message([MessageSegment.text(left), *message[1:]])
+        else:
+            arg = Message(message[1:])
+        _arg.set(arg)
+        _args.set(divide_message(arg))
+
+        # 记录触发
+        log_trigger(c, t.app.name, state, t.func.__name__)
+        f = await t.run()
+
+        # 阻断后续
+        if f and t.block:
+            return True
 
 
 async def deal_text_triggers(triggers: List[AyakaTrigger], message: Message, state: AyakaState):
@@ -634,8 +657,6 @@ async def deal_text_triggers(triggers: List[AyakaTrigger], message: Message, sta
     text_ts = [t for t in triggers if not t.cmds]
 
     # 设置上下文
-    # 设置命令
-    _cmd.set("")
     # 设置参数
     _arg.set(message)
     _args.set(divide_message(message))
@@ -710,7 +731,7 @@ def regist_func(app: AyakaApp, func):
     # 默认是无状态应用，从root开始触发
     states: List[AyakaState] = getattr(func, "states", [root_state])
     # 默认是消息响应
-    cmds: List[str] = getattr(func, "cmds", [])
+    cmds: List[re.Pattern] = getattr(func, "cmds", [])
     # 默认监听深度为0
     deep: int = getattr(func, "deep", 0)
     # 默认阻断

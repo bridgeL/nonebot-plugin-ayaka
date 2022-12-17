@@ -1,5 +1,5 @@
-from pydantic import Field
-from ayaka import AyakaApp, AyakaInput, AyakaCache, AyakaUserDB, AyakaConfig
+# ---------- 1 ----------
+from ayaka import AyakaApp
 
 app = AyakaApp("星际旅行")
 app.help = "xing ji lv xing"
@@ -10,20 +10,34 @@ app.set_start_cmds("星际旅行", "travel")
 app.set_close_cmds("退出", "exit")
 
 
+# ---------- 2 ----------
 # 装饰器的顺序没有强制要求，随便写
+@app.on_state()
+@app.on_deep_all()
+@app.on_cmd("hi")
+async def say_hi():
+    '''打招呼'''
+    await app.send(f"hi I'm in {app.state}")
+
+
+# ---------- 3 ----------
+@app.on_state()
+@app.on_deep_all()
+@app.on_cmd("move")
+async def move():
+    '''移动'''
+    args = [str(a) for a in app.args]
+    await app.set_state(*args)
+    await app.send(f"前往 {app.arg}")
+
+
+# ---------- 4 ----------
 # 注册各种行动
-@app.on_state("地球")
+@app.on_state("地球", "月球")
 @app.on_cmd("drink")
 async def drink():
     '''喝水'''
     await app.send("喝水")
-
-
-@app.on_state("月球")
-@app.on_cmd("drink")
-async def drink():
-    '''喝土'''
-    await app.send("喝土")
 
 
 @app.on_state("太阳")
@@ -34,39 +48,20 @@ async def drink():
     await app.send("喝太阳风")
 
 
-class UserInput(AyakaInput):
-    where: str = Field(description="你要去的地方")
-
-
-@app.on_state()
-@app.on_deep_all()
-@app.on_cmd("move")
-async def move(userinput: UserInput):
-    '''移动'''
-    await app.set_state(userinput.where)
-    await app.send(f"前往 {userinput.where}")
-
-
-@app.on_state()
-@app.on_deep_all()
-@app.on_cmd("hi")
-async def say_hi():
-    '''打招呼'''
-    await app.send(f"hi I'm in {app.state[2:]}")
-
-
-@app.on_state(["太阳", "奶茶店"])
+@app.on_state("太阳.奶茶店")
 @app.on_cmd("drink")
 async def drink():
     '''喝奶茶'''
     await app.send("喝了一口3000度的奶茶")
 
 
+# ---------- 5 ----------
+from ayaka import AyakaCache
 class Cache(AyakaCache):
     ticket: int = 0
 
 
-@app.on_state(["太阳", "售票处"])
+@app.on_state("太阳.售票处")
 @app.on_cmd("buy", "买票")
 async def buy_ticket(cache: Cache):
     '''买门票'''
@@ -86,13 +81,16 @@ async def watch(cache: Cache):
         await app.send("10分甚至9分的好看")
 
 
-@app.on_state(["太阳", "奶茶店"])
+# ---------- 6 ----------
+@app.on_state("太阳.奶茶店")
 @app.on_text()
 async def handle():
     '''令人震惊的事实'''
     await app.send("你发现这里只卖热饮")
 
 
+# ---------- 7 ----------
+from ayaka import AyakaUserDB, AyakaConfig
 class Data(AyakaUserDB):
     __table_name__ = "gold"
     gold_number: int = 0
@@ -106,7 +104,7 @@ class Config(AyakaConfig):
 config = Config()
 
 
-@app.on_state(["太阳", "森林公园"])
+@app.on_state("太阳.森林公园")
 @app.on_cmd("pick")
 async def get_gold(data: Data):
     '''捡金子'''
@@ -115,13 +113,26 @@ async def get_gold(data: Data):
     await app.send(f"喜加一 {data.gold_number}")
 
 
-class UserInput2(AyakaInput):
+
+# ---------- 8 ----------
+from pydantic import Field
+from ayaka import AyakaInput
+class UserInput(AyakaInput):
     number: int = Field(description="一次捡起的金块数量")
 
 
-@app.on_state(["太阳", "森林公园"])
+@app.on_state("太阳.森林公园")
 @app.on_cmd("change")
-async def change_gold_number(userinput: UserInput2):
+async def change_gold_number(userinput: UserInput):
     '''修改捡金子配置'''
     config.gold_number = userinput.number
+    await app.send("修改成功")
+
+
+# ---------- 9 ----------
+@app.on_state("太阳.森林公园")
+@app.on_regex("一次捡(\d+)块")
+async def change_gold_number():
+    '''修改捡金子配置'''
+    config.gold_number = int(app.cmd_regex.group(1))
     await app.send("修改成功")

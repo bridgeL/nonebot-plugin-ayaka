@@ -1,4 +1,4 @@
-'''0.5.4b1'''
+'''0.5.4b2'''
 
 from loguru import logger
 from .ayaka import AyakaApp

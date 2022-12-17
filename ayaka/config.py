@@ -5,10 +5,10 @@
 import json
 from pathlib import Path
 from pydantic import BaseModel, ValidationError, validator
-from typing import List, Literal
+from typing import Literal
 from loguru import logger
 
-AYAKA_VERSION = "0.5.4b1"
+AYAKA_VERSION = "0.5.4b2"
 
 # 总文件夹
 ayaka_data_path = Path("data", "ayaka")
@@ -150,6 +150,8 @@ class Config(AyakaConfig):
     debug: bool = False
     # 端口号
     ayaka_port: int = 19900
+    # 状态分割符（不可修改
+    state_separate: Literal["."] = "."
 
     @validator('separate')
     def name_must_contain_space(cls, v):

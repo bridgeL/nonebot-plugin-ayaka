@@ -1,6 +1,7 @@
 '''所有上下文变量'''
 from contextvars import ContextVar
 from collections import defaultdict
+from re import Match
 from typing import List, TYPE_CHECKING, Dict
 from .driver import Message, MessageSegment, Bot, MessageEvent, get_driver
 from .utils import singleton
@@ -15,7 +16,8 @@ _group: ContextVar["AyakaGroup"] = ContextVar("_group")
 _arg: ContextVar[Message] = ContextVar("_arg")
 _args: ContextVar[List[MessageSegment]] = ContextVar("_args")
 _message: ContextVar[Message] = ContextVar("_message")
-_cmd: ContextVar[str] = ContextVar("_cmd")
+_cmd: ContextVar[str] = ContextVar("_cmd", default="")
+_cmd_regex: ContextVar[Match] = ContextVar("_cmd_regex", default=None)
 _enter_exit_during: ContextVar[int] = ContextVar(
     "_enter_exit_during", default=0)
 

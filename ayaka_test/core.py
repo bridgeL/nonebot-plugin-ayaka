@@ -4,11 +4,12 @@ from time import time
 from typing import Callable, Coroutine
 from websockets.legacy.client import Connect
 from ayaka import get_driver, logger
+from ayaka.config import ayaka_root_config
 from .constant import AYAKA_LOGGER_NAME, bot_id, private_temp, group_temp
 from .utils import divide, shorten
 
 driver = get_driver()
-logger.level(AYAKA_LOGGER_NAME, no=26, icon="⚡", color="<blue>")
+logger.level(AYAKA_LOGGER_NAME, no=27, icon="⚡", color="<blue>")
 port = driver.config.port
 addr = f"ws://127.0.0.1:{port}/onebot/v11/ws"
 
@@ -91,7 +92,8 @@ class FakeQQ:
 
             # 调用回调
             action = data["action"]
-            self.print(f"<y>{action}</y>")
+            if ayaka_root_config.debug:
+                self.print(f"<y>{action}</y>")
             func = self.cqhttp_acts.get(action)
             if not func:
                 self.print("未定义的假cqhttp动作", data)

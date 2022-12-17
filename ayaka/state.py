@@ -1,4 +1,5 @@
 import inspect
+import re
 from typing import TYPE_CHECKING, List, Literal, Union, Awaitable, Callable
 from typing_extensions import Self
 import asyncio
@@ -20,6 +21,21 @@ def add_flag():
 
 def sub_flag():
     _enter_exit_during.set(_enter_exit_during.get()-1)
+
+
+def ensure_regex(data: Union[str, re.Pattern], escape=True):
+    if isinstance(data, str):
+        if escape:
+            data = re.escape(data)
+        data = re.compile(data)
+    return data
+
+
+def ensure_regex_list(cmds: List[Union[str, re.Pattern]], escape=True):
+    _cmds: List[re.Pattern] = []
+    for cmd in cmds:
+        _cmds.append(ensure_regex(cmd, escape))
+    return _cmds
 
 
 class AyakaState:
@@ -62,7 +78,7 @@ class AyakaState:
         return iter(self.children)
 
     def __str__(self) -> str:
-        return ".".join(self.keys)
+        return ayaka_root_config.state_separate.join(self.keys)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self})"
@@ -134,9 +150,11 @@ class AyakaState:
             return func
         return decorator
 
-    def on_cmd(self, cmds: List[str], app: "AyakaApp", deep: Union[int, Literal["all"]] = 0, block=True):
+    def on_cmd(self, cmds: List[Union[str, re.Pattern]], app: "AyakaApp", deep: Union[int, Literal["all"]] = 0, block=True):
+        _cmds = ensure_regex_list(cmds)
+
         def decorator(func):
-            t = AyakaTrigger(func, cmds, deep, app, block, self)
+            t = AyakaTrigger(func, _cmds, deep, app, block, self)
             self.triggers.append(t)
             return func
         return decorator
@@ -146,9 +164,11 @@ class AyakaState:
 
 
 class AyakaTrigger:
-    def __init__(self, func: Callable[..., Awaitable], cmds: List[str], deep: Union[int, Literal["all"]], app: "AyakaApp", block: bool, state: AyakaState):
+    def __init__(self, func: Callable[..., Awaitable], cmds: List[re.Pattern], deep: Union[int, Literal["all"]], app: "AyakaApp", block: bool, state: AyakaState):
+        raw_cmds: List[str] = [cmd.pattern for cmd in cmds]
         self.func = func
         self.cmds = cmds
+        self.raw_cmds = raw_cmds
         self.deep = deep
         self.app = app
         self.block = block
@@ -164,7 +184,7 @@ class AyakaTrigger:
 
         # 生成帮助
         doc = "" if not func.__doc__ else f"| {func.__doc__}"
-        cmd_str = '/'.join(cmds) if cmds else "<任意文字>"
+        cmd_str = '/'.join(raw_cmds) if raw_cmds else "<任意文字>"
 
         if not models:
             help = f"- {cmd_str} {doc}"
@@ -211,7 +231,7 @@ class AyakaTrigger:
         data = {
             "func": self.func.__name__,
             "app_name": self.app.name,
-            "cmds": self.cmds,
+            "cmds": self.raw_cmds,
             "deep": self.deep,
             "block": self.block
         }
