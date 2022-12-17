@@ -43,7 +43,7 @@ async def group_msg(echo: int, params: dict):
     except:
         text = str(params["message"])
     fake_qq.print(f"群聊({gid}) <r>Ayaka Bot</r>({bot_id}) 说：\n{text}")
-    record(f">>>  \"Bot\" 说：{text}")
+    record(f"\"Bot\" 说：{text}")
     await fake_qq.send_echo(echo, None)
 
 

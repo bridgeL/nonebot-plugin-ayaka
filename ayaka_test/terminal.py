@@ -28,7 +28,7 @@ async def _(text: str):
     '''<group_id> <user_id> <text> | 发送群聊消息'''
     items = text.split(" ", maxsplit=2)
     if len(items) == 3:
-        record(f"<<< \"user\" 说：{items[2]}")
+        record(f"\"user\" 说：{items[2]}")
         await fake_qq.send_group(*items)
 
 
