@@ -73,7 +73,7 @@ async def _(text: str):
 
     # 执行脚本
     before = ""
-    after = "dn 0.1"
+    after = "dn 0.2"
     for line in lines:
         cmd, text = divide(line)
         if cmd == "after":

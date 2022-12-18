@@ -17,11 +17,15 @@ old_journal_path = ayaka_data_path / "ayaka.db-journal-old"
 db = sqlite3.connect(path)
 
 
-def execute(query, values=None):
+def log_query(query, values=None):
     if ayaka_root_config.debug:
-        print(query)
+        logger.debug(query)
         if values:
-            print(values)
+            logger.debug(values)
+
+
+def execute(query, values=None):
+    log_query(query, values)
     if values is None:
         cursor = db.execute(query)
     else:
@@ -30,10 +34,7 @@ def execute(query, values=None):
 
 
 def executemany(query, values=None):
-    if ayaka_root_config.debug:
-        print(query)
-        if values:
-            print(values)
+    log_query(query, values)
     if values is None:
         cursor = db.executemany(query)
     else:
@@ -45,9 +46,7 @@ def fetchall(query: str):
     cursor = db.execute(query)
     values = cursor.fetchall()
     cursor.close()
-    if ayaka_root_config.debug:
-        print(query)
-        print(values)
+    log_query(query, values)
     return values
 
 
@@ -123,7 +122,7 @@ def commit():
         logger.debug("已删除旧db-journal-old文件")
     if journal_path.exists():
         if ayaka_root_config.debug:
-            print("commit")
+            logger.debug("commit")
         logger.debug("更新数据库")
         db.commit()
 

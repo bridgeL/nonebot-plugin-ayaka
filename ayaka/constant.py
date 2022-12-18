@@ -18,8 +18,6 @@ _args: ContextVar[List[MessageSegment]] = ContextVar("_args")
 _message: ContextVar[Message] = ContextVar("_message")
 _cmd: ContextVar[str] = ContextVar("_cmd", default="")
 _cmd_regex: ContextVar[Match] = ContextVar("_cmd_regex", default=None)
-_enter_exit_during: ContextVar[int] = ContextVar(
-    "_enter_exit_during", default=0)
 
 app_list: List["AyakaApp"] = []
 group_list: List["AyakaGroup"] = []

@@ -10,10 +10,63 @@ from loguru import logger
 from typing import List, Dict, Literal, Tuple, Union
 from .depend import AyakaCache
 from .config import ayaka_root_config, ayaka_data_path
-from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, _cmd_regex, _enter_exit_during, app_list, group_list, bot_list, private_listener_dict
+from .constant import _bot, _event, _group, _arg, _args, _message, _cmd, _cmd_regex, app_list, group_list, bot_list, private_listener_dict
 from .driver import on_message, get_driver, Message, MessageSegment, Bot, MessageEvent, GroupMessageEvent
 from .state import AyakaState, AyakaTrigger, AyakaTimer, root_state, ensure_regex_list
 from .on import AyakaOn
+
+
+class AyakaFuncInfo:
+    def __init__(self) -> None:
+        self.trigger_mode_has_set = False
+        self.state_has_set = False
+
+        self.states: List[AyakaState] = [root_state]
+        self.cmds: List[re.Pattern] = []
+        self.deep = 0
+
+        # 1 must_block
+        # 0 default
+        # -1 must_no_block
+        self.block = 0
+
+        self.enter = False
+        self.exit = False
+
+    def regist_func(self, app: "AyakaApp", func):
+        '''注册回调'''
+        if not self.trigger_mode_has_set:
+            info = f"应用：<y>{app.name}</y> | 回调：<y>{func.__name__}</y> | 警告：注册命令/消息回调时，请使用如下装饰器中的一个或多个：on_text，on_cmd，on_cmd_regex，on_enter，on_exit"
+            logger.opt(colors=True).warning(info)
+            # raise Exception(info)
+
+        if not self.state_has_set:
+            info = f"应用：<y>{app.name}</y> | 回调：<y>{func.__name__}</y> | 警告：注册命令/消息回调时，请使用如下装饰器中的一个：on_state，on_idle"
+            logger.opt(colors=True).warning(info)
+            # raise Exception(info)
+
+        if self.enter:
+            for s in self.states:
+                s.on_enter()(func)
+            return
+
+        if self.exit:
+            for s in self.states:
+                s.on_exit()(func)
+            return
+
+        # 命令
+        if self.cmds:
+            # default block
+            block = self.block != -1
+
+        # 消息
+        else:
+            # default no block
+            block = self.block == 1
+
+        for s in self.states:
+            s.on_cmd(self.cmds, app, self.deep, block)(func)
 
 
 class AyakaGroup:
@@ -38,25 +91,10 @@ class AyakaGroup:
         if ayaka_root_config.debug:
             print(self)
 
-    async def enter(self, state: Union[str, List[str], AyakaState]):
-        if isinstance(state, list):
-            next_state = self.state.join(*state)
-        elif isinstance(state, str):
-            next_state = self.state.join(state)
-        else:
-            next_state = self.state.join(*state.keys)
-        return await self.goto(next_state)
-
-    async def back(self):
-        if self.state.parent:
-            await self.state.exit()
-            self.state = self.state.parent
-            return self.state
+    async def set_state(self, state: AyakaState):
+        return await self.goto(state)
 
     async def goto(self, state: AyakaState):
-        if _enter_exit_during.get() > 0:
-            logger.warning("你正在AyakaState的enter/exit方法中进行状态转移，这可能会导致无法预料的错误")
-
         keys = state.keys
 
         # 找到第一个不同的结点
@@ -70,15 +108,19 @@ class AyakaGroup:
             i += 1
 
         # 回退
+        old_state = self.state
         for j in range(i, n1):
-            await self.back()
+            await self.state.exit()
+            self.state = self.state.parent
         keys = keys[i:]
 
         # 重新出发
         for key in keys:
             self.state = self.state[key]
             await self.state.enter()
-        logger.opt(colors=True).debug(f"状态：<c>{self.state}</c>")
+
+        logger.opt(colors=True).debug(
+            f"状态转移：<c>{old_state}</c> -> <y>{self.state}</y>")
         return self.state
 
     def get_app(self, name: str):
@@ -315,63 +357,58 @@ class AyakaApp:
             state = self.get_state(*state)
         return await self.group.goto(state)
 
-    async def enter(self, state: Union[str, List[str], AyakaState]):
-        '''进入子状态'''
-        return await self.group.enter(state)
-
-    async def back(self):
-        '''回退当前群组的状态'''
-        return await self.group.back()
-
-    def _add_func(self, func):
+    def _add_func(self, func) -> AyakaFuncInfo:
         '''如果不存在就加入self.funcs'''
         if func not in self.funcs:
             self.funcs.append(func)
+            func.info = AyakaFuncInfo()
+        return func.info
 
     def on_deep_all(self, deep: Union[int, Literal["all"]] = "all"):
         '''注册深度监听'''
         def decorator(func):
-            func.deep = deep
-            self._add_func(func)
+            info = self._add_func(func)
+            info.deep = deep
             return func
         return decorator
 
     def on_no_block(self, block: bool = False):
         '''注册非阻断'''
         def decorator(func):
-            func.block = block
-            self._add_func(func)
+            info = self._add_func(func)
+            info.block = block
             return func
         return decorator
 
     def on_cmd(self, *cmds: Union[str, re.Pattern]):
         '''注册命令触发，不填写命令则视为文本消息'''
         def decorator(func):
-            func.cmds = getattr(func, "cmds", [])
-            func.cmds.extend(ensure_regex_list(cmds))
-            self._add_func(func)
+            info = self._add_func(func)
+            info.cmds.extend(ensure_regex_list(cmds))
+            info.trigger_mode_has_set = True
             return func
         return decorator
 
     def on_cmd_regex(self, *cmds: Union[str, re.Pattern]):
         '''注册命令触发，不填写命令则视为文本消息'''
         def decorator(func):
-            func.cmds = getattr(func, "cmds", [])
-            func.cmds.extend(ensure_regex_list(cmds, False))
-            self._add_func(func)
+            info = self._add_func(func)
+            info.cmds.extend(ensure_regex_list(cmds, False))
+            info.trigger_mode_has_set = True
             return func
         return decorator
 
     def on_text(self):
         '''注册消息触发'''
         def decorator(func):
-            func = self.on_no_block()(func)
-            self._add_func(func)
+            info = self._add_func(func)
+            info.cmds = []
+            info.trigger_mode_has_set = True
             return func
         return decorator
 
     def on_state(self, *states: Union[AyakaState, str, List[str]]):
-        '''注册有状态响应，不填写states则为plugin_state'''
+        '''注册有状态响应，不填写states则为app.plugin_state（root.插件名）'''
         _states = []
 
         if not states:
@@ -386,14 +423,33 @@ class AyakaApp:
                 _states.append(s)
 
         def decorator(func):
-            func.states = _states
-            self._add_func(func)
+            info = self._add_func(func)
+            info.states = _states
+            info.state_has_set = True
             return func
         return decorator
 
     def on_idle(self):
         '''注册根结点回调'''
         return self.on_state(self.root_state)
+
+    def on_enter(self):
+        '''注册状态进入回调'''
+        def decorator(func):
+            info = self._add_func(func)
+            info.enter = True
+            info.trigger_mode_has_set = True
+            return func
+        return decorator
+
+    def on_exit(self):
+        '''注册状态退出回调'''
+        def decorator(func):
+            info = self._add_func(func)
+            info.exit = True
+            info.trigger_mode_has_set = True
+            return func
+        return decorator
 
     def on_everyday(self, h: int, m: int, s: int):
         '''每日定时触发'''
@@ -536,6 +592,12 @@ class AyakaApp:
             )
             await bot.call_api("send_group_forward_msg", group_id=group_id, messages=msgs)
 
+    async def deal_event(self, event: MessageEvent = None):
+        '''手动令ayaka再次处理一次'''
+        if not event:
+            event = self.event
+        await deal_event(self.bot, event, self.state)
+
 
 def get_bot(bot_id: int):
     '''获取已连接的bot'''
@@ -561,9 +623,9 @@ def get_app(app_name: str):
             return app
 
 
-async def deal_event(bot: Bot, event: MessageEvent):
+async def deal_event(bot: Bot, event: MessageEvent, no_exclude=False):
     '''处理收到的消息，将其分割为cmd和args，设置上下文相关变量的值，并将消息传递给对应的群组'''
-    if ayaka_root_config.exclude_old_msg:
+    if not no_exclude and ayaka_root_config.exclude_old_msg:
         time_i = int(datetime.datetime.now().timestamp())
         if event.time < time_i - 60:
             return
@@ -586,8 +648,6 @@ async def deal_event(bot: Bot, event: MessageEvent):
 
 
 async def deal_group(bot_id: int, group_id: int):
-    prefix = ayaka_root_config.prefix
-
     # 群组
     group = get_group(bot_id, group_id)
     _group.set(group)
@@ -596,8 +656,14 @@ async def deal_group(bot_id: int, group_id: int):
     message = _event.get().message
     _message.set(message)
 
-    # 从子状态开始向上查找可用的触发
-    state = group.state
+    # 处理
+    await deal_state(message, group.state)
+
+
+async def deal_state(message: Message, state: AyakaState):
+    prefix = ayaka_root_config.prefix
+
+    # 向上查找可用的触发，一直到根结点
     cascade_triggers = get_cascade_triggers(state, 0)
 
     # 命令
@@ -727,24 +793,6 @@ def divide_message(message: Message) -> List[MessageSegment]:
     return args
 
 
-def regist_func(app: AyakaApp, func):
-    '''注册回调'''
-    # 默认是无状态应用，从root开始触发
-    states: List[AyakaState] = getattr(func, "states", [root_state])
-    # 默认是消息响应
-    cmds: List[re.Pattern] = getattr(func, "cmds", [])
-    # 默认监听深度为0
-    deep: int = getattr(func, "deep", 0)
-    # 默认阻断
-    block: bool = getattr(func, "block", True)
-
-    # 注册
-    for s in states:
-        s.on_cmd(cmds, app, deep, block)(func)
-
-    return func
-
-
 driver = get_driver()
 
 
@@ -753,7 +801,8 @@ async def startup():
     # 注册所有回调
     for app in app_list:
         for func in app.funcs:
-            regist_func(app, func)
+            info: AyakaFuncInfo = func.info
+            info.regist_func(app, func)
 
     if ayaka_root_config.debug:
         s = json.dumps(

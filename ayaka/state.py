@@ -7,20 +7,11 @@ import datetime
 from loguru import logger
 
 from .config import ayaka_root_config
-from .constant import _enter_exit_during
 from .depend import AyakaDepend, AyakaInput
 
 
 if TYPE_CHECKING:
     from .ayaka import AyakaApp
-
-
-def add_flag():
-    _enter_exit_during.set(_enter_exit_during.get()+1)
-
-
-def sub_flag():
-    _enter_exit_during.set(_enter_exit_during.get()-1)
 
 
 def ensure_regex(data: Union[str, re.Pattern], escape=True):
@@ -124,19 +115,15 @@ class AyakaState:
 
     async def enter(self):
         if ayaka_root_config.debug:
-            print(">>>", self.key)
-        add_flag()
+            logger.debug(f"enter >>> {self.key}")
         for func in self.enter_funcs:
             await func()
-        sub_flag()
 
     async def exit(self):
         if ayaka_root_config.debug:
-            print("<<<", self.key)
-        add_flag()
+            logger.debug(f"exit <<< {self.key}")
         for func in self.exit_funcs:
             await func()
-        sub_flag()
 
     def on_enter(self):
         def decorator(func):
