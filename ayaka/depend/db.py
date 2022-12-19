@@ -1,5 +1,4 @@
 import json
-from loguru import logger
 from pydantic import Field
 from typing import List, TYPE_CHECKING
 from typing_extensions import Self
@@ -40,12 +39,6 @@ class AyakaDB(AyakaDepend):
                     data[k] = json.loads(data[k])
 
         return cls(**data)
-
-    def __setattr__(self, name, value):
-        if getattr(self, name) != value:
-            super().__setattr__(name, value)
-            self.save()
-            logger.debug("已自动保存配置更改")
 
     def dict(self, **params):
         data = super().dict(**params)
@@ -98,12 +91,9 @@ class AyakaDB(AyakaDepend):
 
     @classmethod
     def select_many(cls, **params) -> List[Self]:
-        '''按照params的值搜索数据，返回数据列表，若没有符合的数据则返回空列表'''
-        items = []
+        '''按照params的值搜索数据，返回数据列表，若没有符合的数据则返回空列表；若params为空，则返回表内所有数据'''
         if params:
-            items.extend(f"{k}={wrap(v)}" for k, v in params.items())
-        if items:
-            where = " and ".join(items)
+            where = " and ".join(f"{k}={wrap(v)}" for k, v in params.items())
         else:
             where = ""
         cls.create_table()
@@ -115,12 +105,14 @@ class AyakaDB(AyakaDepend):
         datas = cls.select_many(**params)
         if datas:
             return datas[0]
-        data = cls(**params)
-        data.save()
-        return data
+        else:
+            data = cls(**params)
+            data.save()
+            return data
 
     @classmethod
     def get_db(cls):
+        '''获取connection对象，通过该方法你可以自定义一些crud方法'''
         return db
 
 
