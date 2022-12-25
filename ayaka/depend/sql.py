@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from typing import TYPE_CHECKING, List, Type
+from typing import TYPE_CHECKING, List, Literal, Type
 
 from loguru import logger
 from ..config import ayaka_data_path, ayaka_root_config
@@ -50,7 +50,17 @@ def fetchall(query: str):
     return values
 
 
+table_names = []
+
+
 def create_table(name: str, cls: Type["AyakaDB"]):
+    if not name:
+        raise Exception("__table_name__不可为空")
+
+    if name in table_names:
+        return
+    table_names.append(name)
+
     props = cls.props()
     args = []
     primarys = []
@@ -74,7 +84,9 @@ def create_table(name: str, cls: Type["AyakaDB"]):
     execute(query)
 
 
-def insert_or_replace(name: str, data: "AyakaDB", action: str):
+def insert_or_replace(name: str, data: "AyakaDB", action: Literal["insert", "replace"]):
+    create_table(name, data.__class__)
+
     keys = list(data.dict().keys())
     values = list(data.dict().values())
     keys_str = ",".join(keys)
@@ -83,7 +95,9 @@ def insert_or_replace(name: str, data: "AyakaDB", action: str):
     execute(query, values)
 
 
-def insert_or_replace_many(name: str, datas: List["AyakaDB"], action: str):
+def insert_or_replace_many(name: str, datas: List["AyakaDB"], action: Literal["insert", "replace"]):
+    create_table(name, datas[0].__class__)
+
     data = datas[0]
     keys = list(data.dict().keys())
     values = [[getattr(data, k) for k in keys] for data in datas]
@@ -93,14 +107,13 @@ def insert_or_replace_many(name: str, datas: List["AyakaDB"], action: str):
     executemany(query, values)
 
 
-def select_many(name: str, cls: Type["AyakaDB"], where: str = ""):
+def select_many(name: str, cls: Type["AyakaDB"], extra: str = ""):
+    create_table(name, cls)
+
     props = cls.props()
     keys = list(props.keys())
-    if where:
-        where = f"where {where}"
-
     keys_str = ",".join(keys)
-    query = f"select {keys_str} from \"{name}\" {where}"
+    query = f"select {keys_str} from \"{name}\" {extra}"
     values = fetchall(query)
 
     # 组装为字典
@@ -133,6 +146,7 @@ def commit():
 
 
 def wrap(v):
+    '''给字符串包裹上双引号'''
     if isinstance(v, str):
         return f"\"{v}\""
     return str(v)
