@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from ayaka import load_plugins, load_plugin, run
-from ayaka.extension import Timer
 
-with Timer("加载全部插件"):
-    load_plugins("plugins")
-    # load_plugin("nonebot_plugin_no_repeat")
-    # load_plugin("ayaka_games")
+import nonebot
+from nonebot.adapters.onebot.v11 import Adapter
 
-# 加载测试环境
-load_plugin("ayaka_test")
+nonebot.init()
+app = nonebot.get_asgi()
+driver = nonebot.get_driver()
+driver.register_adapter(Adapter)
 
-# 启动bot
+nonebot.load_plugins("plugins")
+nonebot.load_plugin("ayaka_test")
+
 if __name__ == "__main__":
-    run()
+    nonebot.run(app="__mp_main__:app")

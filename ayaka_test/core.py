@@ -3,8 +3,8 @@ import asyncio
 from time import time
 from typing import Callable, Coroutine
 from websockets.legacy.client import Connect
-from ayaka import get_driver, logger
-from ayaka.config import ayaka_root_config
+from loguru import logger
+from nonebot import get_driver
 from .constant import AYAKA_LOGGER_NAME, bot_id, private_temp, group_temp
 from .utils import divide, shorten
 
@@ -92,8 +92,7 @@ class FakeQQ:
 
             # 调用回调
             action = data["action"]
-            if ayaka_root_config.debug:
-                self.print(f"<y>{action}</y>")
+            self.print(f"<y>{action}</y>")
             func = self.cqhttp_acts.get(action)
             if not func:
                 self.print("未定义的假cqhttp动作", data)
