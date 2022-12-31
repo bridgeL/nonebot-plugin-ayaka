@@ -12,6 +12,7 @@ driver = get_driver()
 logger.level(AYAKA_LOGGER_NAME, no=27, icon="⚡", color="<blue>")
 port = driver.config.port
 addr = f"ws://127.0.0.1:{port}/onebot/v11/ws"
+logger.add(open("error.log", "a+", encoding="utf8"), level="ERROR")
 
 
 class FakeQQ:

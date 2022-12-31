@@ -8,7 +8,7 @@ from loguru import logger
 
 from .helpers import ensure_dir_exists
 
-AYAKA_VERSION = "1.0.0b0"
+AYAKA_VERSION = "1.0.0b1"
 
 data_path = Path("data", "ayaka")
 ensure_dir_exists(data_path)
@@ -73,6 +73,7 @@ class RootConfig(AyakaConfig):
 
 ayaka_root_config = RootConfig()
 ayaka_root_config.version = AYAKA_VERSION
+logger.opt(colors=True).success(f"ayaka当前版本 <y>{AYAKA_VERSION}</y>")
 
 
 def load_data_from_file(path: Path):
@@ -95,4 +96,5 @@ def load_data_from_file(path: Path):
             return json.load(f)
     else:
         with path.open("r", encoding="utf8") as f:
-            return [line[:-1] for line in f]
+            # 排除空行
+            return [line[:-1] for line in f if line[:-1]]

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot_plugin_ayaka"
-version = "1.0.0b0"
+version = "1.0.0b1"
 description = "为nonebot插件开发提供状态机支持"
 authors = ["Su <wxlxy316@163.com>"]
 license = "MIT"

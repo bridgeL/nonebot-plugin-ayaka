@@ -248,7 +248,7 @@ class AyakaBox:
         if not states:
             states = ["idle"]
 
-        def checker(event: GroupMessageEvent):
+        def ayaka_state_checker(event: GroupMessageEvent):
             group = get_group(event.group_id)
             if group.state == "idle":
                 return "idle" in states
@@ -258,7 +258,7 @@ class AyakaBox:
                 return True
             return group.state in states
 
-        return Rule(checker)
+        return Rule(ayaka_state_checker)
 
     def create_cmd_matcher(self, cmds: list, states: list = ["idle"],  **params):
         '''创建命令matcher
@@ -273,6 +273,8 @@ class AyakaBox:
 
         异常:
             cmds不可为空
+            cmds必须是数组类型
+            states必须是数组类型
 
         示例代码:
         ```
@@ -288,10 +290,14 @@ class AyakaBox:
         '''
         if not cmds:
             raise Exception("cmds不可为空")
+        if not isinstance(cmds, list):
+            raise Exception("cmds必须是数组类型")
+        if not isinstance(states, list):
+            raise Exception("states必须是数组类型")
         rule = self.rule(*states) & params.pop("rule", None)
         matcher = on_command(cmd=cmds[0], aliases=set(
             cmds[1:]), rule=rule, **params)
-        matcher.ayaka_flag = True
+        matcher.ayaka_box_name = self.name
         return matcher
 
     def create_text_matcher(self, states: list = ["idle"],  **params):
@@ -301,13 +307,18 @@ class AyakaBox:
             states: 注册状态，*意味着对所有状态生效（除idle）
             params: 其他参数，参考nonebot.on_message
 
+        异常:
+            states必须是数组类型
+
         返回:
             nonebot.matcher.Matcher对象
         '''
+        if not isinstance(states, list):
+            raise Exception("states必须是数组类型")
         rule = self.rule(*states) & params.pop("rule", None)
         params.setdefault("block", False)
         matcher = on_message(rule=rule, **params)
-        matcher.ayaka_flag = True
+        matcher.ayaka_box_name = self.name
         return matcher
 
     # ---- on_xxx ----
@@ -324,6 +335,8 @@ class AyakaBox:
 
         异常:
             cmds不可为空
+            cmds必须是数组类型
+            states必须是数组类型
 
         示例代码:
         ```
@@ -338,6 +351,10 @@ class AyakaBox:
         '''
         if not cmds:
             raise Exception("cmds不可为空")
+        if not isinstance(cmds, list):
+            raise Exception("cmds必须是数组类型")
+        if not isinstance(states, list):
+            raise Exception("states必须是数组类型")
         rule = self.rule(*states) & params.pop("rule", None)
 
         def decorator(func):
@@ -348,7 +365,7 @@ class AyakaBox:
                 **params
             )
             matcher.handle()(func)
-            matcher.ayaka_flag = True
+            matcher.ayaka_box_name = self.name
             return func
         return decorator
 
@@ -359,16 +376,21 @@ class AyakaBox:
             states: 注册状态，*意味着对所有状态生效（除idle）
             params: 其他参数，参考nonebot.on_message
 
+        异常:
+            states必须是数组类型
+
         返回:
             装饰器
         '''
+        if not isinstance(states, list):
+            raise Exception("states必须是数组类型")
         rule = self.rule(*states) & params.pop("rule", None)
         params.setdefault("block", False)
 
         def decorator(func):
             matcher = on_message(rule=rule, **params)
             matcher.handle()(func)
-            matcher.ayaka_flag = True
+            matcher.ayaka_box_name = self.name
             return func
         return decorator
 
@@ -376,7 +398,7 @@ class AyakaBox:
         '''注册立即处理回调
 
         参数:
-            state: 注册状态，不可为*
+            state: 注册状态，不可为*或idle
 
         返回:
             装饰器
@@ -398,11 +420,11 @@ class AyakaBox:
     # ---- 快捷命令 ----
     def set_start_cmds(self, *cmds: str):
         '''设置启动命令，启动后，插件进入menu状态'''
-        self.on_cmd(cmds=cmds)(self.start)
+        self.on_cmd(cmds=list(cmds))(self.start)
 
     def set_close_cmds(self, *cmds: str):
         '''设置关闭命令'''
-        self.on_cmd(cmds=cmds, states=["*"])(self.close)
+        self.on_cmd(cmds=list(cmds), states=["*"])(self.close)
 
     # ---- cache ----
     def remove_data(self, key_or_obj: str | T_BaseModel):
@@ -440,6 +462,23 @@ class AyakaBox:
         else:
             raise Exception("参数类型错误，必须是字符串或BaseModel对象")
         self.cache.pop(key, None)
+
+    def get_arbitrary_data(self, key: str, default_factory=None):
+        '''从当前群组的缓存中加载指定key下的任意对象
+
+        参数:
+            key: 键名
+            default_factory: 若key不存在，则通过default_factory()方法
+            创建默认值，保存到cache中并返回
+
+        返回:
+            对应key下的值 或 None
+        '''
+        if key not in self.cache:
+            if not default_factory:
+                return
+            self.cache[key] = default_factory()
+        return self.cache[key]
 
     def get_data(self, cls: Type[T_BaseModel], key: str = None) -> T_BaseModel:
         '''从当前群组的缓存中加载指定的BaseModel对象
@@ -535,7 +574,8 @@ matcher = on_message(block=False)
 @matcher.handle()
 async def listener_handle(bot: Bot, event: PrivateMessageEvent):
     if event.user_id in listeners:
-        event2 = GroupMessageEvent(**event.dict(exclude={"message_type"}), group_id=0, message_type="group")
+        event2 = GroupMessageEvent(
+            **event.dict(exclude={"message_type"}), group_id=0, message_type="group")
         for group_id in listeners[event.user_id]:
             event2.group_id = group_id
             await bot.handle_event(event2)
