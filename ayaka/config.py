@@ -80,12 +80,15 @@ def load_data_from_file(path: Path):
     '''从指定文件加载数据
 
     参数:
+    
         path: 文件路径。文件类型，必须是.json文件或.txt文件
 
     返回:
+    
         json反序列化后的结果(对应.json文件) 或 字符串数组(对应.txt文件)
 
     异常:
+    
         错误的文件类型
     '''
     if path.suffix not in [".json", ".txt"]:

@@ -22,9 +22,13 @@ class AyakaGroup:
     '''群组
 
     属性:
+    
         state: group当前所处状态，初始值为idle
+        
         current_box_name: group当前正在运行的box的名字
+        
         cache: group当前缓存的数据，不会随事件结束而清除
+        
         group_id: 群组qq号
     '''
 
@@ -73,7 +77,9 @@ class AyakaBox:
     '''盒子，通过盒子使用ayaka的大部分特性
 
     属性:
+    
         name: box的名字，应与插件名字一致
+        
         immediates: on_immediate注册状态记录
 
     示例代码1:
@@ -105,6 +111,7 @@ class AyakaBox:
         '''初始化box对象
 
         参数:
+        
             name: box的名字，需保证其唯一性
         '''
         self.name = name
@@ -187,9 +194,11 @@ class AyakaBox:
         '''修改当前群组状态
 
         参数: 
+        
             state: 新状态
 
         异常:
+        
             state不可为空字符串或*
         ```
         '''
@@ -230,9 +239,11 @@ class AyakaBox:
         '''返回一个检查state的Rule对象
 
         参数:
+        
             states: 注册状态
 
         返回:
+        
             Rule对象
 
         示例代码:
@@ -264,16 +275,23 @@ class AyakaBox:
         '''创建命令matcher
 
         参数:
+        
             cmds: 注册命令
+            
             states: 注册状态，*意味着对所有状态生效（除idle）
+            
             params: 其他参数，参考nonebot.on_command
 
         返回:
+        
             nonebot.matcher.Matcher对象
 
         异常:
+        
             cmds不可为空
+            
             cmds必须是数组类型
+            
             states必须是数组类型
 
         示例代码:
@@ -304,13 +322,17 @@ class AyakaBox:
         '''创建消息matcher
 
         参数:
+        
             states: 注册状态，*意味着对所有状态生效（除idle）
+            
             params: 其他参数，参考nonebot.on_message
 
         异常:
+        
             states必须是数组类型
 
         返回:
+        
             nonebot.matcher.Matcher对象
         '''
         if not isinstance(states, list):
@@ -326,16 +348,23 @@ class AyakaBox:
         '''注册命令处理回调
 
         参数:
+        
             cmds: 注册命令
+            
             states: 注册状态，*意味着对所有状态生效（除idle）
+            
             params: 其他参数，参考nonebot.on_command
 
         返回:
+        
             装饰器
 
         异常:
+        
             cmds不可为空
+            
             cmds必须是数组类型
+            
             states必须是数组类型
 
         示例代码:
@@ -373,13 +402,17 @@ class AyakaBox:
         '''注册消息处理回调
 
         参数:
+        
             states: 注册状态，*意味着对所有状态生效（除idle）
+            
             params: 其他参数，参考nonebot.on_message
 
         异常:
+        
             states必须是数组类型
 
         返回:
+        
             装饰器
         '''
         if not isinstance(states, list):
@@ -398,12 +431,15 @@ class AyakaBox:
         '''注册立即处理回调
 
         参数:
+        
             state: 注册状态，不可为*或idle
 
         返回:
+        
             装饰器
 
         异常:
+        
             state不可以为idle或*
 
         此注册方法很特殊，其回调在box.state变为指定的state时立刻执行
@@ -431,9 +467,11 @@ class AyakaBox:
         '''从当前群组的缓存移除指定的键-值对
 
         参数:
+        
             key: 键名或BaseModel对象，如果是BaseModel对象，则自动取其类的名字作为键名
 
         异常:
+        
             参数类型错误，必须是字符串或BaseModel对象
 
         示例代码:
@@ -467,11 +505,13 @@ class AyakaBox:
         '''从当前群组的缓存中加载指定key下的任意对象
 
         参数:
+        
             key: 键名
-            default_factory: 若key不存在，则通过default_factory()方法
-            创建默认值，保存到cache中并返回
+            
+            default_factory: 若key不存在，则通过default_factory()方法创建默认值，保存到cache中并返回
 
         返回:
+        
             对应key下的值 或 None
         '''
         if key not in self.cache:
@@ -484,10 +524,13 @@ class AyakaBox:
         '''从当前群组的缓存中加载指定的BaseModel对象
 
         参数:
+        
             cls: BaseModel类
+            
             key: 键名，为空时使用cls.__name__作为键名
 
         返回:
+        
             BaseModel对象
 
         示例代码:
