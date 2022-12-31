@@ -8,7 +8,7 @@ from loguru import logger
 
 from .helpers import ensure_dir_exists
 
-AYAKA_VERSION = "1.0.0b1"
+AYAKA_VERSION = "1.0.0b2"
 
 data_path = Path("data", "ayaka")
 ensure_dir_exists(data_path)
