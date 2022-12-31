@@ -1,148 +1,131 @@
 # # ---------- 1 ----------
-# from ayaka import AyakaApp
+# from ayaka import AyakaBox
 
-# app = AyakaApp("星际旅行")
-# app.help = "xing ji lv xing"
+# box = AyakaBox("星际旅行")
+# # box.help = "xing ji lv xing"
 
 # # 启动应用
-# app.set_start_cmds("星际旅行", "travel")
+# box.set_start_cmds("星际旅行", "travel")
 # # 关闭应用
-# app.set_close_cmds("退出", "exit")
+# box.set_close_cmds("退出", "exit")
 
 
 # # ---------- 2 ----------
-# # 装饰器的顺序没有强制要求
-# @app.on_state()
-# @app.on_deep_all()
-# @app.on_cmd("hi")
+# @box.on_cmd(cmds=["hi"], states=["地球", "月球", "太阳"])
 # async def say_hi():
 #     '''打招呼'''
-#     await app.send(f"hi I'm in {app.state}")
+#     await box.send(f"你好，{box.state}！")
 
 
 # # ---------- 3 ----------
-# @app.on_state()
-# @app.on_deep_all()
-# @app.on_cmd("move")
+# @box.on_cmd(cmds=["move"], states=["*"])
 # async def move():
 #     '''移动'''
-#     args = [str(a) for a in app.args]
-#     await app.set_state(*args)
-#     await app.send(f"前往 {app.arg}")
+#     arg = str(box.arg)
+#     await box.set_state(arg)
+#     await box.send(f"前往 {arg}")
 
 
 # # ---------- 4 ----------
-# # 注册各种行动
-# @app.on_state("地球", "月球")
-# @app.on_cmd("drink")
+# # 相同命令，不同行为
+# @box.on_cmd(cmds=["drink"], states=["地球", "月球"])
 # async def drink():
 #     '''喝水'''
-#     await app.send("喝水")
+#     await box.send("喝水")
 
-
-# @app.on_state("太阳")
-# @app.on_deep_all()
-# @app.on_cmd("drink")
+# @box.on_cmd(cmds=["drink"], states=["太阳"])
 # async def drink():
 #     '''喝太阳风'''
-#     await app.send("喝太阳风")
+#     await box.send("喝太阳风")
 
 
 # # ---------- 5 ----------
-# @app.on_state("太阳.奶茶店")
-# @app.on_cmd("drink")
-# async def drink():
-#     '''喝奶茶'''
-#     await app.send("喝了一口3000度的奶茶")
+# from ayaka import BaseModel
+
+# class Cache(BaseModel):
+#     ticket:int = 0
+
+# @box.on_cmd(cmds=["buy", "买票"], states=["售票处"])
+# async def buy_ticket():
+#     '''买门票'''
+#     cache = box.get_data(Cache)
+#     cache.ticket += 1
+#     await box.send("耀斑表演门票+1")
+
+# @box.on_cmd(cmds=["watch", "看表演"], states=["*"])
+# async def watch():
+#     '''看表演'''
+#     cache = box.get_data(Cache)
+#     if cache.ticket <= 0:
+#         await box.send("先去售票处买票！")
+#     else:
+#         cache.ticket -= 1
+#         await box.send("门票-1")
+#         await box.send("10分甚至9分的好看")
 
 
 # # ---------- 6 ----------
-# from ayaka import AyakaCache
-# class Cache(AyakaCache):
-#     ticket: int = 0
-
-
-# @app.on_state("太阳.售票处")
-# @app.on_cmd("buy", "买票")
-# async def buy_ticket(cache: Cache):
-#     '''买门票'''
-#     cache.ticket += 1
-#     await app.send("耀斑表演门票+1")
-
-
-# @app.on_state("太阳")
-# @app.on_deep_all()
-# @app.on_cmd("watch", "看表演")
-# async def watch(cache: Cache):
-#     '''看表演'''
-#     if cache.ticket <= 0:
-#         await app.send("先去售票处买票！")
-#     else:
-#         cache.ticket -= 1
-#         await app.send("10分甚至9分的好看")
+# @box.on_text(states=["火星"])
+# async def handle():
+#     '''令人震惊的事实'''
+#     await box.send("你火星了")
 
 
 # # ---------- 7 ----------
-# @app.on_state("太阳.奶茶店")
-# @app.on_text()
-# async def handle():
-#     '''令人震惊的事实'''
-#     await app.send("你发现这里只卖热饮")
-
-
-# # ---------- 8 ----------
 # from ayaka import AyakaConfig
-# class Config(AyakaConfig):
-#     __app_name__ = app.name
-#     gold_number: int = 1
 
+# class Cache2(BaseModel):
+#     gold:int = 0
+
+# class Config(AyakaConfig):
+#     __config_name__ = box.name
+#     gold_each_time: int = 1
 
 # config = Config()
 
-
-# @app.on_state("太阳.森林公园")
-# @app.on_cmd("fake_pick")
+# @box.on_cmd(cmds=["fake_pick"], states=["沙城"])
 # async def get_gold():
 #     '''捡金子'''
-#     await app.send(f"虚假的喜加一 {config.gold_number}")
+#     cache = box.get_data(Cache2)
+#     cache.gold += config.gold_each_time
+#     await box.send(f"fake +{config.gold_each_time} / {cache.gold}")
+
+
+# # ---------- 8 ----------
+# from ayaka import Numbers
+
+# @box.on_cmd(cmds=["change"], states=["沙城"])
+# async def change_gold_number(nums=Numbers("请输入一个数字")):
+#     '''修改捡金子配置'''
+#     config.gold_each_time = int(nums[0])
+#     await box.send(f"修改每次拾取数量为{config.gold_each_time}")
 
 
 # # ---------- 9 ----------
-# from pydantic import Field
-# from ayaka import AyakaInput
-# class UserInput(AyakaInput):
-#     number: int = Field(description="一次捡起的金块数量")
+# from ayaka import AyakaBox, OrmSession, get_metadata_obj, Column, Integer, select, Table, insert
 
+# gold_table = Table(
+#     "gold",
+#     get_metadata_obj(),
+#     Column("user_id", Integer, primary_key=True),
+#     Column("value", Integer)
+# )
 
-# @app.on_state("太阳.森林公园")
-# @app.on_cmd("change")
-# async def change_gold_number(userinput: UserInput):
-#     '''修改捡金子配置'''
-#     config.gold_number = userinput.number
-#     await app.send("修改成功")
+#     # def __repr__(self) -> str:
+#     #     return f"[{self.user_id}] {self.value}"
 
-
-# # ---------- 10 ----------
-# @app.on_state("太阳.森林公园")
-# @app.on_cmd_regex("一次捡(\d+)块")
-# async def change_gold_number():
-#     '''修改捡金子配置'''
-#     config.gold_number = int(app.cmd_regex.group(1))
-#     await app.send("修改成功")
-    
-    
-# # ---------- 11 ----------
-# from ayaka import AyakaUserDB
-# class Data(AyakaUserDB):
-#     __table_name__ = "gold"
-#     gold_number: int = 0
-
-
-# @app.on_state("太阳.森林公园")
-# @app.on_cmd("real_pick")
-# async def get_gold(data: Data):
+# @box.on_cmd(cmds=["real_pick"], states=["沙城"])
+# async def get_gold(session=OrmSession()):
 #     '''捡金子'''
-#     data.gold_number += config.gold_number
-#     data.save()
-#     await app.send(f"真正的喜加一 {data.gold_number}")
-
+#     stmt = select(gold_table).where(gold_table.c.user_id==box.user_id)
+#     result = await session.execute(stmt)
+#     gold = result.scalar_one_or_none()
+#     if gold is None:
+#         stmt = insert(gold_table).values(
+#             user_id=box.user_id,
+#             gold=config.gold_each_time
+#         )
+#         await session.execute(stmt)
+#     else:
+#         gold.value += config.gold_each_time
+#     await box.send(f"real +{config.gold_each_time} / {gold.value}")

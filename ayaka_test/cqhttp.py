@@ -51,13 +51,13 @@ async def group_msg(echo: int, params: dict):
 async def _(echo: int, params: dict):
     gid = params["group_id"]
     messages = params["messages"]
-    items = [f"群聊({gid}) 收到<y>合并转发</y>消息"]
+    items = []
     for m in messages:
         uid = m["data"]["user_id"]
         name = m["data"]["nickname"]
         text = m["data"]["content"]
         items.append(f"<y>{name}</y>({uid}) 说：\n{text}")
-    fake_qq.print("\n\n".join(items))
+    fake_qq.print(f"群聊({gid}) 收到<y>合并转发</y>消息\n" + "\n\n".join(items))
     await fake_qq.send_echo(echo, None)
 
 

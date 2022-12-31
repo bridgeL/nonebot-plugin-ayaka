@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "nonebot_plugin_ayaka"
-version = "0.5.5"
-description = "a useful plugin providing convinient tools for the development of textual game on QQ"
+version = "1.0.0b0"
+description = "为nonebot插件开发提供状态机支持"
 authors = ["Su <wxlxy316@163.com>"]
 license = "MIT"
 readme = "README.md"
@@ -13,7 +13,7 @@ packages = [
 
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 nonebot2 = "^2.0.0b5"
 nonebot-adapter-onebot = "^2.1.3"
 
