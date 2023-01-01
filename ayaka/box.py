@@ -188,7 +188,10 @@ class AyakaBox:
     @property
     def arg(self):
         '''去除了命令之后的消息'''
-        return _command_arg(current_matcher.get().state)
+        arg = _command_arg(current_matcher.get().state)
+        if arg is None:
+            arg = self.event.message
+        return arg
 
     @property
     @cached
