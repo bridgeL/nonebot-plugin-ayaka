@@ -22,13 +22,13 @@ class AyakaGroup:
     '''群组
 
     属性:
-    
+
         state: group当前所处状态，初始值为idle
-        
+
         current_box_name: group当前正在运行的box的名字
-        
+
         cache: group当前缓存的数据，不会随事件结束而清除
-        
+
         group_id: 群组qq号
     '''
 
@@ -77,9 +77,9 @@ class AyakaBox:
     '''盒子，通过盒子使用ayaka的大部分特性
 
     属性:
-    
+
         name: box的名字，应与插件名字一致
-        
+
         immediates: on_immediate注册状态记录
 
     示例代码1:
@@ -111,11 +111,17 @@ class AyakaBox:
         '''初始化box对象
 
         参数:
-        
+
             name: box的名字，需保证其唯一性
         '''
         self.name = name
         self.immediates = set()
+        self._helps: dict[str, list] = {}
+
+        # 默认帮助
+        @self.on_cmd(cmds=[f"help {name}", f"{name}帮助"], states=["idle", "*"])
+        async def show_help():
+            await self.send(self.all_help)
 
     # ---- 便捷属性 ----
     @property
@@ -189,16 +195,49 @@ class AyakaBox:
         '''去除了命令之后的消息，再根据分割符进行分割'''
         return StrOrMsgList.create(self.arg)
 
+    @property
+    def all_help(self):
+        '''全部帮助'''
+        items = [f"[{self.name}]"]
+        for state, infos in self._helps.items():
+            items.append(f"[{state}]")
+            items.extend(infos)
+        return "\n".join(items)
+
+    # ---- 添加帮助 ----
+    def add_help(self, cmds: list, states: list, func=None):
+        '''添加帮助
+
+        参数:
+
+            cmds: 命令
+
+            states: 状态
+
+            func: 回调
+        '''
+        info = "- "
+        if cmds:
+            info += "/".join(cmds) + " "
+        else:
+            info += "<任意文字> "
+        if func and func.__doc__:
+            info += func.__doc__
+        for state in states:
+            if state not in self._helps:
+                self._helps[state] = []
+            self._helps[state].append(info)
+
     # ---- 设置状态 ----
     async def set_state(self, state: str = "idle"):
         '''修改当前群组状态
 
         参数: 
-        
+
             state: 新状态
 
         异常:
-        
+
             state不可为空字符串或*
         ```
         '''
@@ -239,11 +278,11 @@ class AyakaBox:
         '''返回一个检查state的Rule对象
 
         参数:
-        
+
             states: 注册状态
 
         返回:
-        
+
             Rule对象
 
         示例代码:
@@ -275,23 +314,23 @@ class AyakaBox:
         '''创建命令matcher
 
         参数:
-        
+
             cmds: 注册命令
-            
+
             states: 注册状态，*意味着对所有状态生效（除idle）
-            
+
             params: 其他参数，参考nonebot.on_command
 
         返回:
-        
+
             nonebot.matcher.Matcher对象
 
         异常:
-        
+
             cmds不可为空
-            
+
             cmds必须是数组类型
-            
+
             states必须是数组类型
 
         示例代码:
@@ -316,23 +355,24 @@ class AyakaBox:
         matcher = on_command(cmd=cmds[0], aliases=set(
             cmds[1:]), rule=rule, **params)
         matcher.ayaka_box_name = self.name
+        self.add_help(cmds, states)
         return matcher
 
     def create_text_matcher(self, states: list = ["idle"],  **params):
         '''创建消息matcher
 
         参数:
-        
+
             states: 注册状态，*意味着对所有状态生效（除idle）
-            
+
             params: 其他参数，参考nonebot.on_message
 
         异常:
-        
+
             states必须是数组类型
 
         返回:
-        
+
             nonebot.matcher.Matcher对象
         '''
         if not isinstance(states, list):
@@ -341,6 +381,7 @@ class AyakaBox:
         params.setdefault("block", False)
         matcher = on_message(rule=rule, **params)
         matcher.ayaka_box_name = self.name
+        self.add_help([], states)
         return matcher
 
     # ---- on_xxx ----
@@ -348,23 +389,23 @@ class AyakaBox:
         '''注册命令处理回调
 
         参数:
-        
+
             cmds: 注册命令
-            
+
             states: 注册状态，*意味着对所有状态生效（除idle）
-            
+
             params: 其他参数，参考nonebot.on_command
 
         返回:
-        
+
             装饰器
 
         异常:
-        
+
             cmds不可为空
-            
+
             cmds必须是数组类型
-            
+
             states必须是数组类型
 
         示例代码:
@@ -395,6 +436,7 @@ class AyakaBox:
             )
             matcher.handle()(func)
             matcher.ayaka_box_name = self.name
+            self.add_help(cmds, states, func)
             return func
         return decorator
 
@@ -402,17 +444,17 @@ class AyakaBox:
         '''注册消息处理回调
 
         参数:
-        
+
             states: 注册状态，*意味着对所有状态生效（除idle）
-            
+
             params: 其他参数，参考nonebot.on_message
 
         异常:
-        
+
             states必须是数组类型
 
         返回:
-        
+
             装饰器
         '''
         if not isinstance(states, list):
@@ -424,6 +466,7 @@ class AyakaBox:
             matcher = on_message(rule=rule, **params)
             matcher.handle()(func)
             matcher.ayaka_box_name = self.name
+            self.add_help([], states, func)
             return func
         return decorator
 
@@ -431,15 +474,15 @@ class AyakaBox:
         '''注册立即处理回调
 
         参数:
-        
+
             state: 注册状态，不可为*或idle
 
         返回:
-        
+
             装饰器
 
         异常:
-        
+
             state不可以为idle或*
 
         此注册方法很特殊，其回调在box.state变为指定的state时立刻执行
@@ -467,11 +510,11 @@ class AyakaBox:
         '''从当前群组的缓存移除指定的键-值对
 
         参数:
-        
+
             key: 键名或BaseModel对象，如果是BaseModel对象，则自动取其类的名字作为键名
 
         异常:
-        
+
             参数类型错误，必须是字符串或BaseModel对象
 
         示例代码:
@@ -505,13 +548,13 @@ class AyakaBox:
         '''从当前群组的缓存中加载指定key下的任意对象
 
         参数:
-        
+
             key: 键名
-            
+
             default_factory: 若key不存在，则通过default_factory()方法创建默认值，保存到cache中并返回
 
         返回:
-        
+
             对应key下的值 或 None
         '''
         if key not in self.cache:
@@ -524,13 +567,13 @@ class AyakaBox:
         '''从当前群组的缓存中加载指定的BaseModel对象
 
         参数:
-        
+
             cls: BaseModel类
-            
+
             key: 键名，为空时使用cls.__name__作为键名
 
         返回:
-        
+
             BaseModel对象
 
         示例代码:
