@@ -118,12 +118,13 @@ class AyakaBox:
         self.immediates = set()
         self._helps: dict[str, list] = {}
 
-        # 默认帮助
+        # 默认指令
         @self.on_cmd(cmds=[f"help {name}", f"{name}帮助"], states=["idle", "*"])
         async def show_help():
             await self.send(self.all_help)
 
     # ---- 便捷属性 ----
+
     @property
     def bot(self):
         '''当前bot'''
@@ -654,10 +655,10 @@ def pack_messages(bot_id, messages):
     return data
 
 
-matcher = on_message(block=False)
+listen_matcher = on_message(block=False)
 
 
-@matcher.handle()
+@listen_matcher.handle()
 async def listener_handle(bot: Bot, event: PrivateMessageEvent):
     if event.user_id in listeners:
         event2 = GroupMessageEvent(
@@ -665,3 +666,15 @@ async def listener_handle(bot: Bot, event: PrivateMessageEvent):
         for group_id in listeners[event.user_id]:
             event2.group_id = group_id
             await bot.handle_event(event2)
+
+state_matcher = on_command("state", aliases={"状态", "当前状态"})
+
+
+@state_matcher.handle()
+async def show_state(event: GroupMessageEvent):
+    group = get_group(event.group_id)
+    if group.current_box_name:
+        info = f"正在运行应用[{group.current_box_name}]\n当前状态[{group.state}]"
+    else:
+        info = "闲置中"
+    await state_matcher.send(info)
