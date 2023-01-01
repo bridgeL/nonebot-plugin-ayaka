@@ -219,6 +219,7 @@ class AyakaDB(BaseModel):
     @classmethod
     def drop_table(cls):
         drop_table(cls.__table_name__)
+        commit()
 
     @classmethod
     def create_table(cls):
@@ -228,18 +229,22 @@ class AyakaDB(BaseModel):
     @classmethod
     def replace(cls, data: Self):
         insert_or_replace(cls.__table_name__, data, "replace")
+        commit()
 
     @classmethod
     def replace_many(cls, datas: list[Self]):
         insert_or_replace_many(cls.__table_name__, datas, "replace")
+        commit()
 
     @classmethod
     def insert(cls, data: Self):
         insert_or_replace(cls.__table_name__, data, "insert")
+        commit()
 
     @classmethod
     def insert_many(cls, datas: list[Self]):
         insert_or_replace_many(cls.__table_name__, datas, "insert")
+        commit()
 
     @classmethod
     def select_many(cls, **params) -> list[Self]:
