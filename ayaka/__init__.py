@@ -19,3 +19,6 @@ from .orm import AyakaDB, AyakaGroupDB, AyakaUserDB
 
 # ---- 方便使用 ----
 from .lazy import *
+
+# ---- master ----
+from . import master

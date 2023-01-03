@@ -95,6 +95,8 @@ class AyakaBox:
 
         immediates: on_immediate注册状态记录
 
+        更多计算属性请查询api文档
+
     示例代码1:
     ```
         from ayaka.box import AyakaBox
@@ -148,10 +150,21 @@ class AyakaBox:
 
         self.name = name
         self.immediates = set()
+        self._help = ""
         self._helps: dict[str, list] = {}
         box_list.append(self)
 
     # ---- 便捷属性 ----
+    @property
+    def help(self):
+        '''box的帮助'''
+        return self._help
+
+    @help.setter
+    def help(self, value):
+        '''设置box的帮助'''
+        self._help = str(value).strip()
+
     @property
     def bot(self):
         '''当前bot'''
@@ -236,6 +249,8 @@ class AyakaBox:
     def all_help(self):
         '''全部帮助'''
         items = [f"[{self.name}]"]
+        if self.help:
+            items.append(self.help)
         for state, infos in self._helps.items():
             items.append(f"[{state}]")
             items.extend(infos)
@@ -334,13 +349,13 @@ class AyakaBox:
             # 仅在群组运行当前应用，且状态为test1或test2时
             # m1才能被命令hh触发
             m1 = on_command(cmd="hh", rule=box.rule(states=["test1", "test2"]))
-            
+
             # 仅在群组运行当前应用时。m2才能被命令hh触发
             m2 = on_command(cmd="hh", rule=box.rule())
-            
+
             # 无视box的任何规定，m3总能被命令hh触发
             m3 = on_command(cmd="hh")
-            
+
             # 请注意三者的区别
         ```
         '''
@@ -389,12 +404,12 @@ class AyakaBox:
             @box.on_cmd(cmds="hh", states=["test1", "test2"])
             async def matcher_handle_1():
                 pass
-            
+
             # 仅在群组没有运行任何应用时，matcher_handle_2才会被命令hh触发
             @box.on_cmd(cmds="hh")
             async def matcher_handle_2():
                 pass
-                
+
             # 请注意其与on_command("hh")的区别
             # on_command("hh")无视box这些规定，只要检测到hh命令就会触发
         ```
