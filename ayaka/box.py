@@ -83,7 +83,7 @@ def cached(func):
         data = current_matcher.get().state
         key = f"ayaka_{func.__name__}"
         if key not in data:
-            data[key] = func()
+            data[key] = func(*args, **kwargs)
         return data[key]
     return _func
 
