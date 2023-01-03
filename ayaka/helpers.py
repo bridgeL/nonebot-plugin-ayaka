@@ -1,10 +1,5 @@
-import re
 from time import time
-from pathlib import Path
-from pydantic import BaseModel
-
-from nonebot import get_driver
-from nonebot.adapters.onebot.v11 import MessageSegment, Message
+from .lazy import get_driver, MessageSegment, BaseModel, Path, re
 
 driver = get_driver()
 
@@ -110,21 +105,3 @@ def get_user(m: MessageSegment, users: list):
         uid = user["user_id"]
         uname = user["card"] or user["nickname"]
         return SimpleUserInfo(id=uid, name=uname)
-
-
-class StrOrMsgList(list[str | MessageSegment]):
-    '''将Message对象转为list[str | MessageSegment]'''
-    seps = driver.config.command_sep
-    seps = [re.escape(sep) for sep in seps]
-    patt = re.compile("|".join(seps))
-
-    @classmethod
-    def create(cls, msg: Message):
-        items = StrOrMsgList()
-        for m in msg:
-            if m.type == "text":
-                ts = cls.patt.split(str(m))
-                items.extend(t for t in ts if t)
-            else:
-                items.append(m)
-        return items

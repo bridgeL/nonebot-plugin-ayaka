@@ -1,14 +1,11 @@
 '''
     管理插件配置，提供读写支持
 '''
-import json
-from pathlib import Path
-from pydantic import BaseModel, ValidationError
-from loguru import logger
-
+from pydantic import ValidationError
 from .helpers import ensure_dir_exists
+from .lazy import logger, BaseModel, Path, json
 
-AYAKA_VERSION = "1.0.0"
+AYAKA_VERSION = "1.0.1b0"
 
 data_path = Path("data", "ayaka")
 ensure_dir_exists(data_path)
@@ -80,15 +77,15 @@ def load_data_from_file(path: Path):
     '''从指定文件加载数据
 
     参数:
-    
+
         path: 文件路径。文件类型，必须是.json文件或.txt文件
 
     返回:
-    
+
         json反序列化后的结果(对应.json文件) 或 字符串数组(对应.txt文件)
 
     异常:
-    
+
         错误的文件类型
     '''
     if path.suffix not in [".json", ".txt"]:

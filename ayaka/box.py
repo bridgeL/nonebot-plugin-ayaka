@@ -1,21 +1,27 @@
 from math import ceil
 from typing import Type, TypeVar
-from pydantic import BaseModel
+from typing_extensions import Self
 from collections import defaultdict
-
-from nonebot import get_driver, on_command, on_message
-from nonebot.internal.rule import Rule
-from nonebot.internal.matcher import current_bot, current_event, current_matcher
+from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command_arg
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageSegment, Bot, PrivateMessageEvent
 
-from .helpers import StrOrMsgList
+from .helpers import singleton
+from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, Message, MessageSegment, Bot, BaseModel, re
+
 
 driver = get_driver()
 on_immediate_cmd = list(driver.config.command_start)[0] + "on_immediate"
 '''用来实现on_immediate效果的特殊命令'''
 T_BaseModel = TypeVar("T_BaseModel", bound=BaseModel)
 '''BaseModel的子类'''
+
+
+def ensure_list(data: str | list | tuple | set):
+    if isinstance(data, str):
+        return [data]
+    if isinstance(data, list):
+        return data
+    return list(data)
 
 
 class AyakaGroup:
@@ -33,7 +39,7 @@ class AyakaGroup:
     '''
 
     def __init__(self, group_id: int) -> None:
-        self.state = "idle"
+        self.state = ""
         self.current_box_name = ""
         self.cache = defaultdict(dict)
         self.group_id = group_id
@@ -53,24 +59,46 @@ def get_group(group_id: int):
     return group
 
 
+@singleton
+def get_patt():
+    seps = driver.config.command_sep
+    seps = [re.escape(sep) for sep in seps]
+    return re.compile("|".join(seps))
+
+
 def cached(func):
-    '''在state中缓存box的属性'''
-    def new_func(*args, **kwargs):
+    '''在matcher.state中缓存内容
+
+    注意：如果和property装饰器配合使用，cached必须位于property装饰器下方'''
+    def _func(*args, **kwargs):
         data = current_matcher.get().state
-
-        if "ayaka_box" not in data:
-            data["ayaka_box"] = {}
-        data = data["ayaka_box"]
-
-        name = func.__name__
-        if name not in data:
-            data[name] = func(*args, **kwargs)
-        return data[name]
-
-    return new_func
+        key = f"ayaka_{func.__name__}"
+        if key not in data:
+            data[key] = func()
+        return data[key]
+    return _func
 
 
 listeners: dict[int, list[int]] = {}
+
+box_list: list["AyakaBox"] = []
+
+
+def get_box(name: str):
+    '''获得指定名字的box
+
+    参数:
+
+        name: box的名字
+
+    返回:
+
+        box 或 None
+    '''
+
+    for box in box_list:
+        if box.name == name:
+            return box
 
 
 class AyakaBox:
@@ -107,24 +135,38 @@ class AyakaBox:
     ```
     '''
 
-    def __init__(self, name: str) -> None:
+    def __new__(cls: type[Self], name: str, *args, **kwargs) -> Self:
+        b = get_box(name)
+        if b:
+            return b
+        return super().__new__(cls)
+
+    def __init__(self, name: str, allow_same: bool = False) -> None:
         '''初始化box对象
 
         参数:
 
-            name: box的名字，需保证其唯一性
+            name: box的名字，需保证其唯一性，如果重名，则会返回重名的box
+
+            allow_same: 允许重名，默认为False，当出现重名时抛出异常
+
+            注意: 若要使用allow_same，则必须保证所有重名box均设置该项为True，否则可能会由于加载顺序的随机性，导致重名异常
+
+        异常:
+
+            已有重名box
         '''
+        if get_box(name):
+            if not allow_same:
+                raise Exception(f"已有重名box: {name}")
+            return
+
         self.name = name
         self.immediates = set()
         self._helps: dict[str, list] = {}
-
-        # 默认指令
-        @self.on_cmd(cmds=[f"help {name}", f"{name}帮助"], states=["idle", "*"])
-        async def show_help():
-            await self.send(self.all_help)
+        box_list.append(self)
 
     # ---- 便捷属性 ----
-
     @property
     def bot(self):
         '''当前bot'''
@@ -195,9 +237,17 @@ class AyakaBox:
 
     @property
     @cached
-    def args(self):
+    def args(self) -> list[str | MessageSegment]:
         '''去除了命令之后的消息，再根据分割符进行分割'''
-        return StrOrMsgList.create(self.arg)
+        msg = self.arg
+        items = []
+        for m in msg:
+            if m.type == "text":
+                ts = get_patt().split(str(m))
+                items.extend(t for t in ts if t)
+            else:
+                items.append(m)
+        return items
 
     @property
     def all_help(self):
@@ -209,7 +259,7 @@ class AyakaBox:
         return "\n".join(items)
 
     # ---- 添加帮助 ----
-    def add_help(self, cmds: list, states: list, func=None):
+    def _add_help(self, cmds: list[str], states: list[str], func=None):
         '''添加帮助
 
         参数:
@@ -229,11 +279,12 @@ class AyakaBox:
             info += func.__doc__
         for state in states:
             if state not in self._helps:
-                self._helps[state] = []
-            self._helps[state].append(info)
+                self._helps[state] = [info]
+            else:
+                self._helps[state].append(info)
 
     # ---- 设置状态 ----
-    async def set_state(self, state: str = "idle"):
+    async def set_state(self, state: str):
         '''修改当前群组状态
 
         参数: 
@@ -247,13 +298,7 @@ class AyakaBox:
         '''
         if state in ["", "*"]:
             raise Exception("state不可为空字符串或*")
-
         self.group.state = state
-
-        if state == "idle":
-            self.group.current_box_name = ""
-        else:
-            self.group.current_box_name = self.name
 
         if state in self.immediates:
             event = GroupMessageEvent(
@@ -263,27 +308,35 @@ class AyakaBox:
             )
             await self.bot.handle_event(event)
 
-    async def reset_state(self):
-        '''重置当前群组状态为idle'''
-        return await self.set_state()
+    async def start(self, state: str = "idle"):
+        '''启动当前应用，启动后应用状态默认为idle
 
-    async def start(self, state: str = "menu"):
-        '''启动当前应用，启动后应用状态默认为menu'''
-        await self.set_state(state)
+        参数: 
+
+            state: 新状态
+
+        异常:
+
+            state不可为空字符串或*
+        '''
+        if state in ["", "*"]:
+            raise Exception("state不可为空字符串或*")
+        self.group.state = state
+        self.group.current_box_name = self.name
         await self.send(f"已启动应用[{self.name}]")
 
     async def close(self):
         '''关闭当前应用'''
-        await self.reset_state()
+        self.group.current_box_name = ""
         await self.send(f"已关闭应用[{self.name}]")
 
     # ---- 兼容性 ----
-    def rule(self, *states: str):
+    def rule(self, states: str | list[str] = []):
         '''返回一个检查state的Rule对象
 
         参数:
 
-            states: 注册状态
+            states: 命令状态，为空时意味着无状态命令
 
         返回:
 
@@ -292,20 +345,23 @@ class AyakaBox:
         示例代码:
         ```
             from ayaka.box import AyakaBox
-            from nonebot import on_message
+            from nonebot import on_command
 
-            box = AyakaBox("测试")
-            # 该matcher在群组处于test1或test2状态下时才能触发
-            matcher = on_message(box.rule("test1", "test2"))
+            box = AyakaBox("测试1号")
+            # m1在群组开启了测试1号应用后
+            # 且处于test1或test2状态下时
+            # 才能被命令"测试"触发
+            m1 = on_command(cmd="测试", rule=box.rule(states=["test1", "test2"]))
+            # m2在群组未开启任何应用时，才能被命令"测试"触发
+            m2 = on_command(cmd="测试", rule=box.rule())
         ```
         '''
-        if not states:
-            states = ["idle"]
+        states = ensure_list(states)
 
         def ayaka_state_checker(event: GroupMessageEvent):
             group = get_group(event.group_id)
-            if group.state == "idle":
-                return "idle" in states
+            if not states:
+                return not group.current_box_name
             if group.current_box_name != self.name:
                 return False
             if "*" in states:
@@ -314,89 +370,15 @@ class AyakaBox:
 
         return Rule(ayaka_state_checker)
 
-    def create_cmd_matcher(self, cmds: list, states: list = ["idle"],  **params):
-        '''创建命令matcher
-
-        参数:
-
-            cmds: 注册命令
-
-            states: 注册状态，*意味着对所有状态生效（除idle）
-
-            params: 其他参数，参考nonebot.on_command
-
-        返回:
-
-            nonebot.matcher.Matcher对象
-
-        异常:
-
-            cmds不可为空
-
-            cmds必须是数组类型
-
-            states必须是数组类型
-
-        示例代码:
-        ```
-            from ayaka.box import AyakaBox
-
-            box = AyakaBox("测试")
-            matcher = box.create_cmd_matcher(cmds=["hh"], states=["test"])
-
-            @matcher.handle()
-            async def matcher_handle():
-                pass
-        ```
-        '''
-        if not cmds:
-            raise Exception("cmds不可为空")
-        if not isinstance(cmds, list):
-            raise Exception("cmds必须是数组类型")
-        if not isinstance(states, list):
-            raise Exception("states必须是数组类型")
-        rule = self.rule(*states) & params.pop("rule", None)
-        matcher = on_command(cmd=cmds[0], aliases=set(
-            cmds[1:]), rule=rule, **params)
-        matcher.ayaka_box_name = self.name
-        self.add_help(cmds, states)
-        return matcher
-
-    def create_text_matcher(self, states: list = ["idle"],  **params):
-        '''创建消息matcher
-
-        参数:
-
-            states: 注册状态，*意味着对所有状态生效（除idle）
-
-            params: 其他参数，参考nonebot.on_message
-
-        异常:
-
-            states必须是数组类型
-
-        返回:
-
-            nonebot.matcher.Matcher对象
-        '''
-        if not isinstance(states, list):
-            raise Exception("states必须是数组类型")
-        rule = self.rule(*states) & params.pop("rule", None)
-        params.setdefault("block", False)
-        matcher = on_message(rule=rule, **params)
-        matcher.ayaka_box_name = self.name
-        self.add_help([], states)
-        return matcher
-
     # ---- on_xxx ----
-    def on_cmd(self, cmds: list, states: list = ["idle"], **params):
+    def on_cmd(self, cmds: str | list[str], states: str | list[str] = [], **params):
         '''注册命令处理回调
 
         参数:
 
-            cmds: 注册命令
+            cmds: 注册命令，不可为空
 
-            states: 注册状态，*意味着对所有状态生效（除idle）
+            states: 命令状态，*意味着对所有状态生效，为空时意味着无状态命令
 
             params: 其他参数，参考nonebot.on_command
 
@@ -408,28 +390,22 @@ class AyakaBox:
 
             cmds不可为空
 
-            cmds必须是数组类型
-
-            states必须是数组类型
-
         示例代码:
         ```
             from ayaka.box import AyakaBox
 
             box = AyakaBox("测试")
 
-            @box.on_cmd(cmds=["hh"], states=["test"])
+            @box.on_cmd(cmds="hh", states=["test1", "test2"])
             async def matcher_handle():
                 pass
         ```
         '''
         if not cmds:
             raise Exception("cmds不可为空")
-        if not isinstance(cmds, list):
-            raise Exception("cmds必须是数组类型")
-        if not isinstance(states, list):
-            raise Exception("states必须是数组类型")
-        rule = self.rule(*states) & params.pop("rule", None)
+        cmds = ensure_list(cmds)
+        states = ensure_list(states)
+        rule = self.rule(states) & params.pop("rule", None)
 
         def decorator(func):
             matcher = on_command(
@@ -439,38 +415,31 @@ class AyakaBox:
                 **params
             )
             matcher.handle()(func)
-            matcher.ayaka_box_name = self.name
-            self.add_help(cmds, states, func)
+            self._add_help(cmds, states, func)
             return func
         return decorator
 
-    def on_text(self, states: list = ["idle"], **params):
+    def on_text(self, states: str | list[str] = [], **params):
         '''注册消息处理回调
 
         参数:
 
-            states: 注册状态，*意味着对所有状态生效（除idle）
+            states: 命令状态，*意味着对所有状态生效，为空时意味着无状态命令
 
             params: 其他参数，参考nonebot.on_message
-
-        异常:
-
-            states必须是数组类型
 
         返回:
 
             装饰器
         '''
-        if not isinstance(states, list):
-            raise Exception("states必须是数组类型")
-        rule = self.rule(*states) & params.pop("rule", None)
+        states = ensure_list(states)
+        rule = self.rule(states) & params.pop("rule", None)
         params.setdefault("block", False)
 
         def decorator(func):
             matcher = on_message(rule=rule, **params)
             matcher.handle()(func)
-            matcher.ayaka_box_name = self.name
-            self.add_help([], states, func)
+            self._add_help([], states, func)
             return func
         return decorator
 
@@ -479,7 +448,7 @@ class AyakaBox:
 
         参数:
 
-            state: 注册状态，不可为*或idle
+            state: 注册状态，不可为*
 
         返回:
 
@@ -487,12 +456,12 @@ class AyakaBox:
 
         异常:
 
-            state不可以为idle或*
+            state不可以为*
 
         此注册方法很特殊，其回调在box.state变为指定的state时立刻执行
         '''
-        if state in ["idle", "*"]:
-            raise Exception("state不可以为idle或*")
+        if state == "*":
+            raise Exception("state不可以为*")
 
         def decorator(func):
             self.immediates.add(state)
@@ -501,13 +470,13 @@ class AyakaBox:
         return decorator
 
     # ---- 快捷命令 ----
-    def set_start_cmds(self, *cmds: str):
-        '''设置启动命令，启动后，插件进入menu状态'''
-        self.on_cmd(cmds=list(cmds))(self.start)
+    def set_start_cmds(self, cmds: str | list[str]):
+        '''设置启动命令'''
+        self.on_cmd(cmds=cmds)(self.start)
 
-    def set_close_cmds(self, *cmds: str):
+    def set_close_cmds(self, cmds: str | list[str]):
         '''设置关闭命令'''
-        self.on_cmd(cmds=list(cmds), states=["*"])(self.close)
+        self.on_cmd(cmds=cmds, states="*")(self.close)
 
     # ---- cache ----
     def remove_data(self, key_or_obj: str | T_BaseModel):
@@ -658,26 +627,18 @@ def pack_messages(bot_id, messages):
     return data
 
 
-listen_matcher = on_message(block=False)
+LISTEN = on_message(block=False)
 
 
-@listen_matcher.handle()
+@LISTEN.handle()
 async def listener_handle(bot: Bot, event: PrivateMessageEvent):
     if event.user_id in listeners:
-        event2 = GroupMessageEvent(
-            **event.dict(exclude={"message_type"}), group_id=0, message_type="group")
+        _event = GroupMessageEvent(
+            **event.dict(exclude={"message_type"}),
+            group_id=0,
+            message_type="group"
+        )
+
         for group_id in listeners[event.user_id]:
-            event2.group_id = group_id
-            await bot.handle_event(event2)
-
-state_matcher = on_command("state", aliases={"状态", "当前状态"})
-
-
-@state_matcher.handle()
-async def show_state(event: GroupMessageEvent):
-    group = get_group(event.group_id)
-    if group.current_box_name:
-        info = f"正在运行应用[{group.current_box_name}]\n当前状态[{group.state}]"
-    else:
-        info = "闲置中"
-    await state_matcher.send(info)
+            _event.group_id = group_id
+            await bot.handle_event(_event)

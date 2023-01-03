@@ -3,17 +3,13 @@
 未来计划1.1.0 替换为sqlmodel
 
 不建议其他人用，以后会大改'''
-import json
 import os
 import sqlite3
-from loguru import logger
-from pydantic import Field, BaseModel
 from typing import Literal, Type
 from typing_extensions import Self
 
-from nonebot import get_driver
+from .lazy import get_driver, Field, BaseModel, logger, json
 from .config import data_path
-from .box import AyakaBox
 
 PrimaryKey = {"primary": True}
 JsonKey = {"json": True}
