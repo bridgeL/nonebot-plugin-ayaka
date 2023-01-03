@@ -532,8 +532,8 @@ class AyakaBox:
             raise Exception("参数类型错误，必须是字符串或BaseModel对象")
         self.cache.pop(key, None)
 
-    def get_arbitrary_data(self, key: str, default_factory: Callable[[], T] = None):
-        '''从当前群组的缓存中加载指定key下的任意对象
+    def get_arbitrary_data(self, key: str, default_factory: Callable[[], T]) -> T:
+        '''从当前群组的缓存中加载指定key下的任意类型对象，即self.cache[key]，若不存在则自动通过default_factory()创建
 
         参数:
 
@@ -543,14 +543,11 @@ class AyakaBox:
 
         返回:
 
-            对应key下的值 或 None
+            self.cache[key]
         '''
         if key not in self.cache:
-            if not default_factory:
-                return
             self.cache[key] = default_factory()
-        data: T = self.cache[key]
-        return data
+        return self.cache[key]
 
     def get_data(self, cls: Type[T_BaseModel], key: str = None) -> T_BaseModel:
         '''从当前群组的缓存中加载指定的BaseModel对象
