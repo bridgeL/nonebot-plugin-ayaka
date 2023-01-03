@@ -330,13 +330,18 @@ class AyakaBox:
             from ayaka.box import AyakaBox
             from nonebot import on_command
 
-            box = AyakaBox("测试1号")
-            # m1在群组开启了测试1号应用后
-            # 且处于test1或test2状态下时
-            # 才能被命令"测试"触发
-            m1 = on_command(cmd="测试", rule=box.rule(states=["test1", "test2"]))
-            # m2在群组未开启任何应用时，才能被命令"测试"触发
-            m2 = on_command(cmd="测试", rule=box.rule())
+            box = AyakaBox("测试")
+            # 仅在群组运行当前应用，且状态为test1或test2时
+            # m1才能被命令hh触发
+            m1 = on_command(cmd="hh", rule=box.rule(states=["test1", "test2"]))
+            
+            # 仅在群组运行当前应用时。m2才能被命令hh触发
+            m2 = on_command(cmd="hh", rule=box.rule())
+            
+            # 无视box的任何规定，m3总能被命令hh触发
+            m3 = on_command(cmd="hh")
+            
+            # 请注意三者的区别
         ```
         '''
         states = ensure_list(states)
@@ -379,9 +384,19 @@ class AyakaBox:
 
             box = AyakaBox("测试")
 
+            # 仅在群组正在运行当前应用，且状态为test1或test2时
+            # matcher_handle_1才会被命令hh触发
             @box.on_cmd(cmds="hh", states=["test1", "test2"])
-            async def matcher_handle():
+            async def matcher_handle_1():
                 pass
+            
+            # 仅在群组没有运行任何应用时，matcher_handle_2才会被命令hh触发
+            @box.on_cmd(cmds="hh")
+            async def matcher_handle_2():
+                pass
+                
+            # 请注意其与on_command("hh")的区别
+            # on_command("hh")无视box这些规定，只要检测到hh命令就会触发
         ```
         '''
         if not cmds:
