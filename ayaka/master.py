@@ -2,8 +2,8 @@ from .box import AyakaBox, get_box, box_list, get_group
 from .lazy import on_command, GroupMessageEvent
 
 box = AyakaBox("盒子管理器")
-HELP = on_command("盒子帮助", aliases={"box help"})
-STATE = on_command("盒子状态", aliases={"box state"})
+HELP = on_command("盒子帮助", aliases={"box help", "box_help", "box-help"})
+STATE = on_command("盒子状态", aliases={"box state", "box_state", "box-state"})
 
 
 @HELP.handle()

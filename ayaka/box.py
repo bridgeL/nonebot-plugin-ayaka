@@ -270,6 +270,8 @@ class AyakaBox:
 
             func: 回调
         '''
+        if "on_immediate" in cmds:
+            return
         info = "- "
         if cmds:
             info += "/".join(cmds) + " "
