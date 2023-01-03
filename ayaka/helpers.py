@@ -1,7 +1,16 @@
 from time import time
-from .lazy import get_driver, MessageSegment, BaseModel, Path, re
+from .lazy import get_driver, Message, MessageSegment, BaseModel, Path, re
 
 driver = get_driver()
+
+
+def ensure_list(data: str | list | tuple | set):
+    '''确保为列表'''
+    if isinstance(data, str):
+        return [data]
+    if isinstance(data, list):
+        return data
+    return list(data)
 
 
 def ensure_dir_exists(path: str | Path):
@@ -10,6 +19,7 @@ def ensure_dir_exists(path: str | Path):
         path = Path(path)
     if not path.exists():
         path.mkdir(parents=True)
+    return path
 
 
 async def do_nothing():
@@ -105,3 +115,35 @@ def get_user(m: MessageSegment, users: list):
         uid = user["user_id"]
         uname = user["card"] or user["nickname"]
         return SimpleUserInfo(id=uid, name=uname)
+
+
+@singleton
+def _get_split_patt():
+    seps = driver.config.command_sep
+    seps = [re.escape(sep) for sep in seps]
+    return re.compile("|".join(seps))
+
+
+def _command_args(msg: Message) -> list[str | MessageSegment]:
+    '''根据配置的分割符，分割消息为数组'''
+    items = []
+    for m in msg:
+        if m.type == "text":
+            ts = _get_split_patt().split(str(m))
+            items.extend(t for t in ts if t)
+        else:
+            items.append(m)
+    return items
+
+
+def pack_messages(user_id: int, user_name: str, messages: list):
+    '''转换为cqhttp node格式'''
+    data = [
+        MessageSegment.node_custom(
+            user_id=user_id,
+            nickname=user_name,
+            content=str(m)
+        )
+        for m in messages
+    ]
+    return data

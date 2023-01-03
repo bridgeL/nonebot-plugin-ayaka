@@ -5,23 +5,24 @@ from collections import defaultdict
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command_arg
 
-from .helpers import singleton
-from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, Message, MessageSegment, Bot, BaseModel, re
+from .helpers import _command_args, ensure_list, pack_messages
+from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, Message, MessageSegment, Bot, BaseModel
 
 
 driver = get_driver()
+'''驱动器'''
 on_immediate_cmd = list(driver.config.command_start)[0] + "on_immediate"
 '''用来实现on_immediate效果的特殊命令'''
 T_BaseModel = TypeVar("T_BaseModel", bound=BaseModel)
 '''BaseModel的子类'''
-
-
-def ensure_list(data: str | list | tuple | set):
-    if isinstance(data, str):
-        return [data]
-    if isinstance(data, list):
-        return data
-    return list(data)
+group_list: list["AyakaGroup"] = []
+'''群组列表'''
+box_list: list["AyakaBox"] = []
+'''box列表'''
+listeners: dict[int, list[int]] = {}
+'''监听列表，将私聊消息转发给当前正监听它的若干个群聊'''
+LISTEN = on_message(block=False)
+'''处理监听转发的matcher'''
 
 
 class AyakaGroup:
@@ -45,10 +46,6 @@ class AyakaGroup:
         self.group_id = group_id
 
 
-group_list: list[AyakaGroup] = []
-'''群组列表'''
-
-
 def get_group(group_id: int):
     '''获得群组对象，若不存在则自动新增'''
     for group in group_list:
@@ -57,31 +54,6 @@ def get_group(group_id: int):
     group = AyakaGroup(group_id)
     group_list.append(group)
     return group
-
-
-@singleton
-def get_patt():
-    seps = driver.config.command_sep
-    seps = [re.escape(sep) for sep in seps]
-    return re.compile("|".join(seps))
-
-
-def cached(func):
-    '''在matcher.state中缓存内容
-
-    注意：如果和property装饰器配合使用，cached必须位于property装饰器下方'''
-    def _func(*args, **kwargs):
-        data = current_matcher.get().state
-        key = f"ayaka_{func.__name__}"
-        if key not in data:
-            data[key] = func()
-        return data[key]
-    return _func
-
-
-listeners: dict[int, list[int]] = {}
-
-box_list: list["AyakaBox"] = []
 
 
 def get_box(name: str):
@@ -99,6 +71,19 @@ def get_box(name: str):
     for box in box_list:
         if box.name == name:
             return box
+
+
+def cached(func):
+    '''在matcher.state中缓存内容
+
+    注意：如果和property装饰器配合使用，cached必须位于property装饰器下方'''
+    def _func(*args, **kwargs):
+        data = current_matcher.get().state
+        key = f"ayaka_{func.__name__}"
+        if key not in data:
+            data[key] = func()
+        return data[key]
+    return _func
 
 
 class AyakaBox:
@@ -187,6 +172,11 @@ class AyakaBox:
         return current_matcher.get()
 
     @property
+    def matcher_state(self):
+        '''当前nb事务处理的state数组'''
+        return self.matcher.state
+
+    @property
     def message(self):
         '''当前群聊消息'''
         return self.event.message
@@ -223,6 +213,7 @@ class AyakaBox:
         return self.event.user_id
 
     @property
+    @cached
     def user_name(self):
         '''当前群消息的发送者群名片或qq昵称'''
         return self.event.sender.card or self.event.sender.nickname
@@ -230,24 +221,16 @@ class AyakaBox:
     @property
     def arg(self):
         '''去除了命令之后的消息'''
-        arg = _command_arg(current_matcher.get().state)
+        arg = _command_arg(self.matcher_state)
         if arg is None:
             arg = self.event.message
         return arg
 
     @property
     @cached
-    def args(self) -> list[str | MessageSegment]:
+    def args(self):
         '''去除了命令之后的消息，再根据分割符进行分割'''
-        msg = self.arg
-        items = []
-        for m in msg:
-            if m.type == "text":
-                ts = get_patt().split(str(m))
-                items.extend(t for t in ts if t)
-            else:
-                items.append(m)
-        return items
+        return _command_args(self.arg)
 
     @property
     def all_help(self):
@@ -587,10 +570,11 @@ class AyakaBox:
         div_cnt = ceil(len(messages) / div_len)
         for i in range(div_cnt):
             msgs = pack_messages(
-                self.bot_id,
-                messages[i*div_len: (i+1)*div_len]
+                user_id=self.bot_id,
+                user_name="Ayaka Bot",
+                messages=messages[i*div_len: (i+1)*div_len]
             )
-            await self.bot.call_api("send_group_forward_msg", group_id=self.group_id, messages=msgs)
+            await self.bot.send_group_forward_msg(group_id=self.group_id, messages=msgs)
 
     # ---- 监听私聊 ----
     def add_listener(self, user_id: int):
@@ -612,22 +596,6 @@ class AyakaBox:
                 listeners.pop(user_id)
             else:
                 listeners[user_id].remove(self.group_id)
-
-
-def pack_messages(bot_id, messages):
-    '''转换为cqhttp node格式'''
-    data = [
-        MessageSegment.node_custom(
-            user_id=bot_id,
-            nickname="Ayaka Bot",
-            content=str(m)
-        )
-        for m in messages
-    ]
-    return data
-
-
-LISTEN = on_message(block=False)
 
 
 @LISTEN.handle()
