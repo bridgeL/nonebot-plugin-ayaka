@@ -253,7 +253,10 @@ class AyakaBox:
         items = [f"[{self.name}]"]
         if self.help:
             items.append(self.help)
+        items.extend(self._helps.get("no_state", []))
         for state, infos in self._helps.items():
+            if state == "no_state":
+                continue
             items.append(f"[{state}]")
             items.extend(infos)
         return "\n".join(items)
@@ -279,6 +282,8 @@ class AyakaBox:
             info += "<任意文字> "
         if func and func.__doc__:
             info += func.__doc__
+        if not states:
+            states = ["no_state"]
         for state in states:
             if state not in self._helps:
                 self._helps[state] = [info]
@@ -321,16 +326,15 @@ class AyakaBox:
 
             state不可为空字符串或*
         '''
-        if state in ["", "*"]:
-            raise Exception("state不可为空字符串或*")
-        self.group.state = state
         self.group.current_box_name = self.name
+        await self.set_state(state)
         await self.send(f"已启动应用[{self.name}]")
 
     async def close(self):
         '''关闭当前应用'''
+        name = self.group.current_box_name
         self.group.current_box_name = ""
-        await self.send(f"已关闭应用[{self.name}]")
+        await self.send(f"已关闭应用[{name}]")
 
     # ---- 兼容性 ----
     def rule(self, states: str | list[str] = []):
@@ -397,6 +401,8 @@ class AyakaBox:
 
             cmds不可为空
 
+            state不可为空字符串
+
         示例代码:
         ```
             from ayaka.box import AyakaBox
@@ -420,8 +426,12 @@ class AyakaBox:
         '''
         if not cmds:
             raise Exception("cmds不可为空")
+
         cmds = ensure_list(cmds)
         states = ensure_list(states)
+        if "" in states:
+            raise Exception("state不可为空字符串")
+
         rule = self.rule(states) & params.pop("rule", None)
 
         def decorator(func):
@@ -448,8 +458,15 @@ class AyakaBox:
         返回:
 
             装饰器
+
+        异常:
+
+            state不可为空字符串
         '''
         states = ensure_list(states)
+        if "" in states:
+            raise Exception("state不可为空字符串")
+
         rule = self.rule(states) & params.pop("rule", None)
         params.setdefault("block", False)
 
@@ -465,7 +482,7 @@ class AyakaBox:
 
         参数:
 
-            state: 注册状态，不可为*
+            state: 注册状态，不可为空字符串或*
 
         返回:
 
@@ -473,12 +490,12 @@ class AyakaBox:
 
         异常:
 
-            state不可以为*
+            state不可为空字符串或*
 
         此注册方法很特殊，其回调在box.state变为指定的state时立刻执行
         '''
-        if state == "*":
-            raise Exception("state不可以为*")
+        if state in ["", "*"]:
+            raise Exception("state不可为空字符串或**")
 
         def decorator(func):
             self.immediates.add(state)
