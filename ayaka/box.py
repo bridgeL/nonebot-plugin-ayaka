@@ -102,10 +102,10 @@ class AyakaBox:
     示例代码1:
     ```
         from ayaka.box import AyakaBox
-        from nonebot import on_message
+        from nonebot import on_command
 
         box = AyakaBox("测试")
-        matcher = on_message(rule=box.rule())
+        matcher = on_command("test", rule=box.rule(states="yes"))
 
         @matcher.handle()
         async def matcher_handle():
@@ -116,9 +116,8 @@ class AyakaBox:
         from ayaka.box import AyakaBox
 
         box = AyakaBox("测试")
-        matcher = box.create_text_matcher()
 
-        @matcher.handle()
+        @box.on_cmd(cmds="test", states="yes")
         async def matcher_handle():
             print(box.group, box.group.group_id)
     ```
@@ -364,7 +363,16 @@ class AyakaBox:
             # 无视box的任何规定，m3总能被命令hh触发
             m3 = on_command(cmd="hh")
 
-            # 请注意三者的区别
+            # 请注意以上三者的区别
+
+            @m1.handle()
+            async def func():
+                # 以下两种发送方式等价
+                await box.send("ok")
+                await m1.send("ok")
+
+                # box还提供了发送群聊合并转发消息的方法
+                await box.send_many(["1","2","3"])
         ```
         '''
         states = ensure_list(states)
@@ -506,11 +514,17 @@ class AyakaBox:
     # ---- 快捷命令 ----
     def set_start_cmds(self, cmds: str | list[str]):
         '''设置启动命令'''
-        self.on_cmd(cmds=cmds)(self.start)
+        @self.on_cmd(cmds=cmds)
+        async def start():
+            '''启动应用'''
+            await self.start()
 
     def set_close_cmds(self, cmds: str | list[str]):
         '''设置关闭命令'''
-        self.on_cmd(cmds=cmds, states="*")(self.close)
+        @self.on_cmd(cmds=cmds, states="*")
+        async def close():
+            '''关闭应用'''
+            await self.close()
 
     # ---- cache ----
     def remove_data(self, key_or_obj: str | T_BaseModel):

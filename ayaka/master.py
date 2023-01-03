@@ -11,10 +11,10 @@ async def show_help():
     if box.arg:
         b = get_box(str(box.arg))
         if b:
-            await HELP.send(b.all_help)
+            await box.send(b.all_help)
     else:
-        names = [b.name for b in box_list]
-        await HELP.send("\n".join(names))
+        infos = [b.all_help for b in box_list]
+        await box.send_many(infos)
 
 
 @STATE.handle()
@@ -24,4 +24,4 @@ async def show_state(event: GroupMessageEvent):
         info = f"正在运行应用[{group.current_box_name}]\n当前状态[{group.state}]"
     else:
         info = "当前没有任何应用在运行"
-    await STATE.send(info)
+    await box.send(info)
