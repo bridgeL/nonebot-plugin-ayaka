@@ -1,5 +1,5 @@
 from math import ceil
-from typing import Type, TypeVar
+from typing import Callable, Type, TypeVar
 from typing_extensions import Self
 from collections import defaultdict
 from nonebot.matcher import current_bot, current_event, current_matcher
@@ -13,6 +13,8 @@ driver = get_driver()
 '''驱动器'''
 on_immediate_cmd = list(driver.config.command_start)[0] + "on_immediate"
 '''用来实现on_immediate效果的特殊命令'''
+T = TypeVar("T")
+'''任意类型'''
 T_BaseModel = TypeVar("T_BaseModel", bound=BaseModel)
 '''BaseModel的子类'''
 group_list: list["AyakaGroup"] = []
@@ -530,7 +532,7 @@ class AyakaBox:
             raise Exception("参数类型错误，必须是字符串或BaseModel对象")
         self.cache.pop(key, None)
 
-    def get_arbitrary_data(self, key: str, default_factory=None):
+    def get_arbitrary_data(self, key: str, default_factory: Callable[[], T] = None):
         '''从当前群组的缓存中加载指定key下的任意对象
 
         参数:
@@ -547,7 +549,8 @@ class AyakaBox:
             if not default_factory:
                 return
             self.cache[key] = default_factory()
-        return self.cache[key]
+        data: T = self.cache[key]
+        return data
 
     def get_data(self, cls: Type[T_BaseModel], key: str = None) -> T_BaseModel:
         '''从当前群组的缓存中加载指定的BaseModel对象
@@ -605,6 +608,10 @@ class AyakaBox:
                 messages=messages[i*div_len: (i+1)*div_len]
             )
             await self.bot.send_group_forward_msg(group_id=self.group_id, messages=msgs)
+
+    async def send_help(self):
+        '''发送自身帮助'''
+        await self.send(self.help)
 
     # ---- 监听私聊 ----
     def add_listener(self, user_id: int):
