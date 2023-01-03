@@ -1,12 +1,17 @@
+import sys
 from math import ceil
-from typing import Callable, Type, TypeVar
-from typing_extensions import Self
+from typing import Callable, TypeVar, TYPE_CHECKING
 from collections import defaultdict
+
+if TYPE_CHECKING:
+    from loguru import Record
+
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command_arg
+from nonebot.log import default_format, logger_id
 
 from .helpers import _command_args, ensure_list, pack_messages
-from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, Message, MessageSegment, Bot, BaseModel
+from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, Message, MessageSegment, Bot, BaseModel, logger
 
 
 driver = get_driver()
@@ -123,7 +128,7 @@ class AyakaBox:
     ```
     '''
 
-    def __new__(cls: type[Self], name: str, *args, **kwargs) -> Self:
+    def __new__(cls, name: str, *args, **kwargs):
         b = get_box(name)
         if b:
             return b
@@ -582,7 +587,7 @@ class AyakaBox:
             self.cache[key] = default_factory()
         return self.cache[key]
 
-    def get_data(self, cls: Type[T_BaseModel], key: str = None) -> T_BaseModel:
+    def get_data(self, cls: type[T_BaseModel], key: str = None) -> T_BaseModel:
         '''从当前群组的缓存中加载指定的BaseModel对象
 
         参数:
@@ -677,3 +682,22 @@ async def listener_handle(bot: Bot, event: PrivateMessageEvent):
         for group_id in listeners[event.user_id]:
             _event.group_id = group_id
             await bot.handle_event(_event)
+
+
+def default_filter(record: "Record"):
+    '''关闭恼人的duplicated warning提示'''
+    log_level = record["extra"].get("nonebot_log_level", "INFO")
+    levelno = logger.level(log_level).no if isinstance(
+        log_level, str) else log_level
+    return record["level"].no >= levelno and not "Duplicated" in record["message"]
+
+
+logger.remove(logger_id)
+logger.add(
+    sys.stdout,
+    level=0,
+    diagnose=False,
+    filter=default_filter,
+    format=default_format,
+)
+logger.opt(colors=True).warning("<y>duplicated prefix warning</y> 已被 <c>ayaka</c> 关闭")

@@ -5,7 +5,7 @@
 不建议其他人用，以后会大改'''
 import os
 import sqlite3
-from typing import Literal, Type
+from typing import Literal
 from typing_extensions import Self
 
 from .lazy import get_driver, Field, BaseModel, logger, json
@@ -69,7 +69,7 @@ def fetchall(query: str):
 table_names = []
 
 
-def create_table(name: str, cls: Type["AyakaDB"]):
+def create_table(name: str, cls: type["AyakaDB"]):
     if not name:
         raise Exception("__table_name__不可为空")
 
@@ -123,7 +123,7 @@ def insert_or_replace_many(name: str, datas: list["AyakaDB"], action: Literal["i
     executemany(query, values)
 
 
-def select_many(name: str, cls: Type["AyakaDB"], extra: str = ""):
+def select_many(name: str, cls: type["AyakaDB"], extra: str = ""):
     create_table(name, cls)
 
     props = cls.props()
