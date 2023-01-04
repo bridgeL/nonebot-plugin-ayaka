@@ -28,6 +28,11 @@ async def do_nothing():
     pass
 
 
+def slow_load_config(cls):
+    '''配置对象将在fastapi启动后才加载，且将该类转换为单例模式'''
+    return run_in_startup(singleton(cls))
+
+
 def singleton(cls):
     '''单例模式的装饰器'''
     instance = None

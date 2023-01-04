@@ -46,7 +46,7 @@ class AyakaConfig(BaseModel):
 
         # 强制更新（更新默认值）
         self.save()
-        logger.opt(colors=True).debug(f"已自动载入配置文件 <g>{name}</g>")
+        logger.opt(colors=True).debug(f"已载入配置文件 <g>{name}</g>")
 
     def __setattr__(self, name, value):
         if getattr(self, name) != value:
