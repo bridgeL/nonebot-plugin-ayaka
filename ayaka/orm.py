@@ -4,11 +4,12 @@
 
 不建议其他人用，以后会大改'''
 import os
+import json
 import sqlite3
 from typing import Literal
 from typing_extensions import Self
 
-from .lazy import get_driver, Field, BaseModel, logger, json
+from .lazy import get_driver, Field, BaseModel, logger
 from .config import data_path
 
 PrimaryKey = {"primary": True}

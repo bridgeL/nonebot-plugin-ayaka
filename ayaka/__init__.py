@@ -22,3 +22,6 @@ from .lazy import *
 
 # ---- master ----
 from . import master
+
+# ---- log ----
+from . import log

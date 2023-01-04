@@ -1,5 +1,6 @@
+import re
 from time import time
-from .lazy import get_driver, Message, MessageSegment, BaseModel, Path, re
+from .lazy import get_driver, Message, MessageSegment, BaseModel, Path
 
 driver = get_driver()
 

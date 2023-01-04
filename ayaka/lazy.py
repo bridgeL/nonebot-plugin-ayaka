@@ -1,6 +1,4 @@
 '''懒人包'''
-import re
-import json
 from loguru import logger
 from pathlib import Path
 from pydantic import Field, BaseModel
