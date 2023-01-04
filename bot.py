@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from ayaka import Timer
 from importlib import import_module
 from pathlib import Path
 import nonebot
 from nonebot.adapters.onebot.v11 import Adapter
+from ayaka import Timer
 
 nonebot.init()
 app = nonebot.get_asgi()

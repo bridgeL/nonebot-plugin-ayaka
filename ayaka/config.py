@@ -73,7 +73,7 @@ ayaka_root_config = RootConfig()
 '''ayaka根配置，目前是吉祥物，仅标识ayaka的版本号'''
 
 ayaka_root_config.version = AYAKA_VERSION
-logger.opt(colors=True).success(f"ayaka当前版本 <y>{AYAKA_VERSION}</y>")
+logger.opt(colors=True).success(f"<y>ayaka</y> 当前版本 <y>{AYAKA_VERSION}</y>")
 
 
 def load_data_from_file(path: Path):

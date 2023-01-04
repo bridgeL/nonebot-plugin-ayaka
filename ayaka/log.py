@@ -23,4 +23,4 @@ logger_id = logger.add(
     format=default_format,
 )
 logger.opt(colors=True).warning(
-    "<y>duplicated prefix warning</y> 已被 <c>ayaka</c> 关闭")
+    "<y>duplicated prefix warning</y> 已被 <y>ayaka</y> 关闭")
