@@ -5,7 +5,7 @@ from collections import defaultdict
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command_arg
 
-from .helpers import _command_args, ensure_list, pack_messages
+from .helpers import _command_args, ensure_list, pack_messages, run_in_startup
 from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, Message, MessageSegment, Bot, BaseModel, logger
 
 
@@ -25,6 +25,40 @@ listeners: dict[int, list[int]] = {}
 '''监听列表，将私聊消息转发给当前正监听它的若干个群聊'''
 LISTEN = on_message(block=False)
 '''处理监听转发的matcher'''
+
+
+class AyakaFunc:
+    def __init__(self, func, cmds, rule, params) -> None:
+        self.func = func
+        self.cmds = cmds
+        self.rule = rule
+        self.params = params
+        func_list.append(self)
+
+    def regist(self):
+        '''注册所有matcher'''
+        if self.cmds:
+            matcher = on_command(
+                cmd=self.cmds[0],
+                aliases=set(self.cmds[1:]),
+                rule=self.rule,
+                **self.params
+            )
+            matcher.handle()(self.func)
+        else:
+            matcher = on_message(rule=self.rule, **self.params)
+            matcher.handle()(self.func)
+
+
+func_list: list[AyakaFunc] = []
+
+
+@run_in_startup
+async def regist_all_matcher():
+    '''加速插件加载'''
+    for func in func_list:
+        func.regist()
+    logger.opt(colors=True).success("所有<c>ayaka</c>衍生插件注册完毕")
 
 
 class AyakaGroup:
@@ -395,7 +429,7 @@ class AyakaBox:
 
         参数:
 
-            cmds: 注册命令，不可为空
+            cmds: 注册命令，为空时视为消息触发
 
             states: 命令状态，*意味着对所有状态生效，为空时意味着无状态命令
 
@@ -408,8 +442,6 @@ class AyakaBox:
             装饰器
 
         异常:
-
-            cmds不可为空
 
             state不可为空字符串
 
@@ -434,9 +466,6 @@ class AyakaBox:
             # on_command("hh")无视box这些规定，只要检测到hh命令就会触发
         ```
         '''
-        if not cmds:
-            raise Exception("cmds不可为空")
-
         cmds = ensure_list(cmds)
         states = ensure_list(states)
         if "" in states:
@@ -448,14 +477,8 @@ class AyakaBox:
             rule = self.rule(states) & params.pop("rule", None)
 
         def decorator(func):
-            matcher = on_command(
-                cmd=cmds[0],
-                aliases=set(cmds[1:]),
-                rule=rule,
-                **params
-            )
-            matcher.handle()(func)
             self._add_help(cmds, states, func)
+            AyakaFunc(func, cmds, rule, params)
             return func
         return decorator
 
@@ -478,23 +501,8 @@ class AyakaBox:
 
             state不可为空字符串
         '''
-        states = ensure_list(states)
-        if "" in states:
-            raise Exception("state不可为空字符串")
-
-        if always:
-            rule = params.pop("rule", None)
-        else:
-            rule = self.rule(states) & params.pop("rule", None)
-
         params.setdefault("block", False)
-
-        def decorator(func):
-            matcher = on_message(rule=rule, **params)
-            matcher.handle()(func)
-            self._add_help([], states, func)
-            return func
-        return decorator
+        return self.on_cmd(cmds=[], states=states, always=always, **params)
 
     def on_immediate(self, state: str):
         '''注册立即处理回调

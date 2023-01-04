@@ -25,4 +25,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.nonebot]
 plugins = []
-plugin_dirs = ["plugins"]
+plugin_dirs = []
