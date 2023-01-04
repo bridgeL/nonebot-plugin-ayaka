@@ -301,7 +301,6 @@ class AyakaBox:
         异常:
 
             state不可为空字符串或*
-        ```
         '''
         if state in ["", "*"]:
             raise Exception("state不可为空字符串或*")
