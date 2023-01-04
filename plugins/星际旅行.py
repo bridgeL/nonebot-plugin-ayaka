@@ -66,20 +66,20 @@ async def handle():
     await box.send("你火星了")
 
 # ---------- 7 ----------
-from ayaka import AyakaConfig
+from ayaka import AyakaConfig, slow_load_config
 
 class Cache2(BaseModel):
     gold:int = 0
 
+@slow_load_config
 class Config(AyakaConfig):
     __config_name__ = box.name
     gold_each_time: int = 1
 
-config = Config()
-
 @box.on_cmd(cmds=["fake_pick"], states=["沙城"])
 async def get_gold():
     '''捡金子'''
+    config = Config()
     cache = box.get_data(Cache2)
     cache.gold += config.gold_each_time
     await box.send(f"fake +{config.gold_each_time} / {cache.gold}")
@@ -90,6 +90,7 @@ from ayaka import Numbers
 @box.on_cmd(cmds=["change"], states=["沙城"])
 async def change_gold_number(nums=Numbers("请输入一个数字")):
     '''修改捡金子配置'''
+    config = Config()
     config.gold_each_time = int(nums[0])
     await box.send(f"修改每次拾取数量为{config.gold_each_time}")
 
@@ -103,6 +104,7 @@ class UserGold(AyakaUserDB):
 @box.on_cmd(cmds=["real_pick"], states=["沙城"])
 async def get_gold():
     '''捡金子'''
+    config = Config()
     gold = UserGold.select_one(
         group_id = box.group_id,
         user_id = box.user_id
