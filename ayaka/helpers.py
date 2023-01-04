@@ -64,15 +64,18 @@ class Timer:
     ```
     '''
 
-    def __init__(self, name) -> None:
+    def __init__(self, name, show: bool = True) -> None:
         self.name = name
+        self.diff = 0
+        self.show = show
 
     def __enter__(self):
         self.time = time()
 
     def __exit__(self, a, b, c):
-        diff = time() - self.time
-        print(f"[{self.name}] 耗时{diff:.2f}s")
+        self.diff = time() - self.time
+        if self.show:
+            print(f"[{self.name}] 耗时{self.diff:.2f}s")
 
 
 class SimpleUserInfo(BaseModel):

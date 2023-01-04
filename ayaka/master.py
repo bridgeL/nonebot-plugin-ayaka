@@ -2,6 +2,7 @@ from .box import AyakaBox, get_box, box_list, get_group
 from .lazy import GroupMessageEvent
 
 box = AyakaBox("盒子管理器")
+'''盒子管理器'''
 
 
 @box.on_cmd(cmds=["盒子帮助", "box help", "box_help", "box-help", "box帮助"], always=True)

@@ -5,7 +5,7 @@ from collections import defaultdict
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command_arg
 
-from .helpers import _command_args, ensure_list, pack_messages, run_in_startup
+from .helpers import _command_args, ensure_list, pack_messages, run_in_startup, Timer
 from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, Message, MessageSegment, Bot, BaseModel, logger
 
 
@@ -21,6 +21,8 @@ group_list: list["AyakaGroup"] = []
 '''群组列表'''
 box_list: list["AyakaBox"] = []
 '''box列表'''
+func_list: list["AyakaFunc"] = []
+'''AyakaFunc列表'''
 listeners: dict[int, list[int]] = {}
 '''监听列表，将私聊消息转发给当前正监听它的若干个群聊'''
 LISTEN = on_message(block=False)
@@ -35,8 +37,8 @@ class AyakaFunc:
         self.params = params
         func_list.append(self)
 
-    def regist(self):
-        '''注册所有matcher'''
+    def create(self):
+        '''生成所有matcher'''
         if self.cmds:
             matcher = on_command(
                 cmd=self.cmds[0],
@@ -50,15 +52,12 @@ class AyakaFunc:
             matcher.handle()(self.func)
 
 
-func_list: list[AyakaFunc] = []
-
-
 @run_in_startup
-async def regist_all_matcher():
+async def create_all_matcher():
     '''加速插件加载'''
-    for func in func_list:
-        func.regist()
-    logger.opt(colors=True).success("所有<c>ayaka</c>衍生插件注册完毕")
+    with Timer("生成全部matchers"):
+        for func in func_list:
+            func.create()
 
 
 class AyakaGroup:
