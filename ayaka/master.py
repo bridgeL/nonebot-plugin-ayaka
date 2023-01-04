@@ -1,15 +1,12 @@
 from .box import AyakaBox, get_box, box_list, get_group
-from .lazy import on_command, GroupMessageEvent
+from .lazy import GroupMessageEvent
 
 box = AyakaBox("盒子管理器")
-HELP = on_command(
-    "盒子帮助", aliases={"box help", "box_help", "box-help", "box帮助"})
-STATE = on_command(
-    "盒子状态", aliases={"box state", "box_state", "box-state", "box状态"})
 
 
-@HELP.handle()
+@box.on_cmd(cmds=["盒子帮助", "box help", "box_help", "box-help", "box帮助"], always=True)
 async def show_help():
+    '''展示盒子帮助'''
     if box.arg:
         b = get_box(str(box.arg))
         if b:
@@ -19,7 +16,7 @@ async def show_help():
         await box.send_many(infos)
 
 
-@STATE.handle()
+@box.on_cmd(cmds=["盒子状态", "box state", "box_state", "box-state", "box状态"], always=True)
 async def show_state(event: GroupMessageEvent):
     group = get_group(event.group_id)
     if group.current_box_name:

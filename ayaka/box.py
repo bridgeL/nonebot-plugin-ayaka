@@ -390,7 +390,7 @@ class AyakaBox:
         return Rule(ayaka_state_checker)
 
     # ---- on_xxx ----
-    def on_cmd(self, cmds: str | list[str], states: str | list[str] = [], **params):
+    def on_cmd(self, cmds: str | list[str], states: str | list[str] = [], always: bool = False, **params):
         '''注册命令处理回调
 
         参数:
@@ -398,6 +398,8 @@ class AyakaBox:
             cmds: 注册命令，不可为空
 
             states: 命令状态，*意味着对所有状态生效，为空时意味着无状态命令
+
+            always: 默认为False，设置为True时，意为总是触发该命令，其与无状态命令不同
 
             params: 其他参数，参考nonebot.on_command
 
@@ -440,7 +442,10 @@ class AyakaBox:
         if "" in states:
             raise Exception("state不可为空字符串")
 
-        rule = self.rule(states) & params.pop("rule", None)
+        if always:
+            rule = params.pop("rule", None)
+        else:
+            rule = self.rule(states) & params.pop("rule", None)
 
         def decorator(func):
             matcher = on_command(
@@ -454,12 +459,14 @@ class AyakaBox:
             return func
         return decorator
 
-    def on_text(self, states: str | list[str] = [], **params):
+    def on_text(self, states: str | list[str] = [], always: bool = False, **params):
         '''注册消息处理回调
 
         参数:
 
             states: 命令状态，*意味着对所有状态生效，为空时意味着无状态命令
+
+            always: 默认为False，设置为True时，意为总是触发该命令，其与无状态命令不同
 
             params: 其他参数，参考nonebot.on_message
 
@@ -475,7 +482,11 @@ class AyakaBox:
         if "" in states:
             raise Exception("state不可为空字符串")
 
-        rule = self.rule(states) & params.pop("rule", None)
+        if always:
+            rule = params.pop("rule", None)
+        else:
+            rule = self.rule(states) & params.pop("rule", None)
+
         params.setdefault("block", False)
 
         def decorator(func):
