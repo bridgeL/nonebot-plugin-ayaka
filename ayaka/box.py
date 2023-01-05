@@ -441,7 +441,46 @@ class AyakaBox:
         return Rule(ayaka_state_checker)
 
     # ---- on_xxx ----
-    def on_cmd(self, cmds: str | list[str], states: str | list[str] = [], always: bool = False, module_name: str = "", **params):
+    def _on(self, cmds: str | list[str] = [], states: str | list[str] = [], always: bool = False, module_name: str = "", priority: int = 5, **params):
+        '''注册命令处理回调（基础）
+
+        参数:
+
+            cmds: 注册命令，为空时视为消息触发
+
+            states: 命令状态，*意味着对所有状态生效，为空时意味着注册群聊闲置状态时的命令
+
+            always: 默认为False，设置为True时，意为总是触发该命令，其与注册群聊闲置状态时的命令不同
+
+            module_name: 生成的matcher的module_name
+
+            priority：生成的matcher的priority
+
+            params: 其他参数，参考nonebot.on_command
+
+        返回:
+
+            装饰器
+
+        异常:
+
+            state不可为空字符串
+        '''
+        cmds = ensure_list(cmds)
+        states = ensure_list(states)
+        rule = params.pop("rule", None)
+        if "" in states:
+            raise Exception("state不可为空字符串")
+        if not always:
+            rule = self.rule(states) & rule
+
+        def decorator(func):
+            self._add_help(cmds, states, func)
+            AyakaFunc(module_name, func, cmds, rule, priority, params)
+            return func
+        return decorator
+
+    def on_cmd(self, cmds: str | list[str], states: str | list[str] = [], always: bool = False, **params):
         '''注册命令处理回调
 
         参数:
@@ -451,8 +490,6 @@ class AyakaBox:
             states: 命令状态，*意味着对所有状态生效，为空时意味着注册群聊闲置状态时的命令
 
             always: 默认为False，设置为True时，意为总是触发该命令，其与注册群聊闲置状态时的命令不同
-            
-            module_name: nonebot所展示的matcher中的module_name，保持默认就好，ayaka会自动处理
 
             params: 其他参数，参考nonebot.on_command
 
@@ -485,24 +522,9 @@ class AyakaBox:
             # on_command("hh")无视box这些规定，只要检测到hh命令就会触发
         ```
         '''
-        cmds = ensure_list(cmds)
-        states = ensure_list(states)
-        if "" in states:
-            raise Exception("state不可为空字符串")
-
-        if always:
-            rule = params.pop("rule", None)
-        else:
-            rule = self.rule(states) & params.pop("rule", None)
-
-        priority = params.pop("priority", self.priority)
         params.setdefault("block", True)
-
-        def decorator(func):
-            self._add_help(cmds, states, func)
-            AyakaFunc(module_name, func, cmds, rule, priority, params)
-            return func
-        return decorator
+        priority = params.pop("priority", self.priority)
+        return self._on(cmds=cmds, states=states, always=always, priority=priority, **params)
 
     def on_text(self, states: str | list[str] = [], always: bool = False, **params):
         '''注册消息处理回调
@@ -524,8 +546,8 @@ class AyakaBox:
             state不可为空字符串
         '''
         params.setdefault("block", False)
-        params.setdefault("priority", self.priority+1)
-        return self.on_cmd(cmds=[], states=states, always=always, **params)
+        priority = params.pop("priority", self.priority+1)
+        return self._on(states=states, always=always, priority=priority, **params)
 
     def on_immediate(self, state: str):
         '''注册立即处理回调
@@ -546,24 +568,20 @@ class AyakaBox:
         '''
         if state in ["", "*"]:
             raise Exception("state不可为空字符串或**")
-
-        def decorator(func):
-            self.immediates.add(state)
-            self.on_cmd(cmds=["on_immediate"], states=[state])(func)
-            return func
-        return decorator
+        self.immediates.add(state)
+        return self._on(cmds="on_immediate", states=state, priority=self.priority, block=True, module_name=self.name)
 
     # ---- 快捷命令 ----
     def set_start_cmds(self, cmds: str | list[str]):
         '''设置启动命令'''
-        @self.on_cmd(cmds=cmds, module_name=self.name)
+        @self._on(cmds=cmds, module_name=self.name)
         async def start():
             '''启动应用'''
             await self.start()
 
     def set_close_cmds(self, cmds: str | list[str]):
         '''设置关闭命令'''
-        @self.on_cmd(cmds=cmds, states="*", module_name=self.name)
+        @self._on(cmds=cmds, states="*", module_name=self.name)
         async def close():
             '''关闭应用'''
             await self.close()
