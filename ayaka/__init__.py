@@ -1,4 +1,4 @@
-'''1.0.1b0
+'''1.0.1b1
 
 https://bridgel.github.io/ayaka_doc/1.0.1/
 '''
