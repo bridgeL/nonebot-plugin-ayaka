@@ -1,3 +1,4 @@
+'''提供一些有益的方法和类'''
 import re
 from time import time
 from importlib import import_module

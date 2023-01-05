@@ -1,3 +1,8 @@
+'''
+ayaka 盒子
+
+ayaka的核心模块
+'''
 from math import ceil
 from typing import Callable, TypeVar
 from collections import defaultdict
@@ -27,6 +32,8 @@ listeners: dict[int, list[int]] = {}
 '''监听列表，将私聊消息转发给当前正监听它的若干个群聊'''
 LISTEN = on_message(block=False)
 '''处理监听转发的matcher'''
+prevent_duplicated_warning = {"value": False}
+'''在ayaka生成matcher期间，屏蔽Duplicated警告'''
 
 
 class AyakaFunc:
@@ -67,10 +74,17 @@ class AyakaFunc:
 async def create_all_matcher():
     '''加速插件加载'''
     t = Timer(show=False)
+    logger.opt(colors=True).warning(
+        "<y>Duplicated prefix rule WARNING</y> 已被 <y>ayaka</y> 临时关闭")
+
+    prevent_duplicated_warning["value"] = True
     with t:
         for func in func_list:
             func.create()
+    prevent_duplicated_warning["value"] = False
+    
     logger.debug(f"生成全部matchers 耗时{t.diff:.2f}s")
+    logger.opt(colors=True).warning("<y>Duplicated prefix rule WARNING</y> 已恢复")
 
 
 class AyakaGroup:

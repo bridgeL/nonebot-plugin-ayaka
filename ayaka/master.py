@@ -1,3 +1,4 @@
+'''盒子管理器'''
 from .box import AyakaBox, get_box, box_list, get_group
 from .lazy import GroupMessageEvent
 
