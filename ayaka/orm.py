@@ -3,12 +3,14 @@
 未来计划1.1.0 替换为sqlmodel
 
 不建议其他人用，以后会大改'''
+import asyncio
 import os
 import json
 import sqlite3
 from typing import Literal
 from typing_extensions import Self
 
+from .helpers import run_in_startup
 from .lazy import get_driver, Field, BaseModel, logger
 from .config import data_path
 
@@ -90,7 +92,7 @@ def create_table(name: str, cls: type["AyakaDB"]):
             args.append(f"{k} text")
         else:
             args.append(f"{k} {v['type']}")
-
+            
     if primarys:
         primarys_str = ",".join(f"\"{k}\"" for k in primarys)
         args.append(f"PRIMARY KEY({primarys_str})")
@@ -124,6 +126,12 @@ def insert_or_replace_many(name: str, datas: list["AyakaDB"], action: Literal["i
     executemany(query, values)
 
 
+def delete(name: str, cls: type["AyakaDB"], extra: str = ""):
+    create_table(name, cls)
+    query = f"delete from \"{name}\" {extra}"
+    execute(query)
+
+
 def select_many(name: str, cls: type["AyakaDB"], extra: str = ""):
     create_table(name, cls)
 
@@ -144,6 +152,17 @@ def select_many(name: str, cls: type["AyakaDB"], extra: str = ""):
 def drop_table(name: str):
     query = f"drop table if exists \"{name}\""
     execute(query)
+
+
+async def loop():
+    while True:
+        commit()
+        await asyncio.sleep(10)
+
+
+@run_in_startup
+async def create_loop():
+    asyncio.create_task(loop())
 
 
 def commit():
@@ -220,7 +239,6 @@ class AyakaDB(BaseModel):
     @classmethod
     def drop_table(cls):
         drop_table(cls.__table_name__)
-        commit()
 
     @classmethod
     def create_table(cls):
@@ -230,22 +248,31 @@ class AyakaDB(BaseModel):
     @classmethod
     def replace(cls, data: Self):
         insert_or_replace(cls.__table_name__, data, "replace")
-        commit()
 
     @classmethod
     def replace_many(cls, datas: list[Self]):
         insert_or_replace_many(cls.__table_name__, datas, "replace")
-        commit()
 
     @classmethod
     def insert(cls, data: Self):
         insert_or_replace(cls.__table_name__, data, "insert")
-        commit()
 
     @classmethod
     def insert_many(cls, datas: list[Self]):
         insert_or_replace_many(cls.__table_name__, datas, "insert")
-        commit()
+
+    @classmethod
+    def delete(cls, **params) -> list[Self]:
+        '''按照params的值删除数据，若params为空，则删除全部'''
+        extra = ""
+        if params:
+            where = " and ".join(
+                f"{k}={wrap(v)}"
+                for k, v in params.items()
+            )
+            extra = f"where {where}"
+
+        return delete(cls.__table_name__, cls, extra)
 
     @classmethod
     def select_many(cls, **params) -> list[Self]:
@@ -288,13 +315,13 @@ class AyakaDB(BaseModel):
 class AyakaGroupDB(AyakaDB):
     '''继承时要书写`__table_name__`
 
-    主键有且仅有 group_id'''
+    主键 group_id'''
     group_id: int = Field(extra=AyakaDB.__primary_key__)
 
 
 class AyakaUserDB(AyakaDB):
     '''继承时要书写`__table_name__`
 
-    主键有且仅有 group_id, user_id'''
+    主键 group_id, user_id'''
     group_id: int = Field(extra=AyakaDB.__primary_key__)
     user_id: int = Field(extra=AyakaDB.__primary_key__)

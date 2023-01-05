@@ -1,6 +1,7 @@
 import re
 from time import time
-from .lazy import get_driver, Message, MessageSegment, BaseModel, Path
+from importlib import import_module
+from .lazy import get_driver, Message, MessageSegment, BaseModel, Path, logger
 
 driver = get_driver()
 
@@ -156,3 +157,15 @@ def pack_messages(user_id: int, user_name: str, messages: list):
         for m in messages
     ]
     return data
+
+
+def load_cwd_plugins(path: Path | str):
+    if isinstance(path, str):
+        path = Path(path)
+    name = ".".join(path.parts)
+    for p in path.iterdir():
+        module_name = name + "." + p.stem
+        try:
+            import_module(module_name)
+        except:
+            logger.exception(f"导入{module_name}失败")

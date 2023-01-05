@@ -13,7 +13,7 @@ except:
 # ---- ayaka box ----
 from .box import AyakaBox
 from .config import AyakaConfig, load_data_from_file
-from .helpers import Timer, get_user, do_nothing, singleton, run_in_startup, slow_load_config
+from .helpers import Timer, get_user, do_nothing, singleton, run_in_startup, slow_load_config, load_cwd_plugins
 from .orm import AyakaDB, AyakaGroupDB, AyakaUserDB
 
 # ---- 懒人包 ----

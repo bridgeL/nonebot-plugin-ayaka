@@ -41,7 +41,7 @@ class AyakaConfig(BaseModel):
 
         except ValidationError as e:
             logger.error(
-                f"导入配置失败，请检查{name}的配置是否正确")
+                f"导入配置失败，请检查{name}的配置是否正确；如果不确定出错的原因，可以尝试更新插件-删除配置-重启bot")
             raise e
 
         # 强制更新（更新默认值）

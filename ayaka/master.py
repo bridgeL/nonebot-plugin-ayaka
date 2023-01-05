@@ -9,12 +9,31 @@ box = AyakaBox("盒子管理器")
 async def show_help():
     '''展示盒子帮助'''
     if box.arg:
-        b = get_box(str(box.arg))
+        name = str(box.arg)
+        if name == "全部":
+            infos = [b.all_help for b in box_list]
+            await box.send_many(infos)
+            return
+
+        b = get_box(name)
         if b:
             await box.send(b.all_help)
-    else:
-        infos = [b.all_help for b in box_list]
-        await box.send_many(infos)
+            return
+
+    if box.group.current_box_name:
+        name = box.group.current_box_name
+        b = get_box(name)
+        if b:
+            await box.send(b.all_help)
+            return
+
+    infos = [f"[{b.name}]" for b in box_list]
+    infos = [
+        "已加载的盒子列表",
+        " ".join(infos),
+        "如果想获得进一步帮助请发送 盒子帮助 <盒子名>，或者发送 盒子帮助 全部"
+    ]
+    await box.send("\n".join(infos))
 
 
 @box.on_cmd(cmds="盒子状态", always=True)
