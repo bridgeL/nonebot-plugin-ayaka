@@ -130,4 +130,5 @@ async def get_gold():
         user_id = box.user_id
     )
     gold.value += config.gold_each_time
+    gold.save()
     await m12.send(f"real +{config.gold_each_time} / {gold.value}")
