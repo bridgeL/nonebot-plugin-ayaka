@@ -64,7 +64,7 @@ class Timer:
     ```
     '''
 
-    def __init__(self, name, show: bool = True) -> None:
+    def __init__(self, name: str = "", show: bool = True) -> None:
         self.name = name
         self.diff = 0
         self.show = show

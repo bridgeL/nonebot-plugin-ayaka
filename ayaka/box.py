@@ -55,9 +55,11 @@ class AyakaFunc:
 @run_in_startup
 async def create_all_matcher():
     '''加速插件加载'''
-    with Timer("生成全部matchers"):
+    t = Timer(show=False)
+    with t:
         for func in func_list:
             func.create()
+    logger.debug(f"生成全部matchers 耗时{t.diff:.2f}s")
 
 
 class AyakaGroup:
