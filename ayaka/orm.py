@@ -188,6 +188,10 @@ class AyakaDB(BaseModel):
     def props(cls) -> dict[str, dict]:
         return cls.schema()["properties"]
 
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+        self.save()
+
     @classmethod
     def _create_by_db_data(cls, data: dict):
         props = cls.props()
