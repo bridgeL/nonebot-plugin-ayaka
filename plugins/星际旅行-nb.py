@@ -18,13 +18,6 @@ async def close():
     await box.close()
 
 # ---------- 2 ----------
-m3 = on_command("hi", rule=box.rule(states=["地球", "月球", "太阳"]))
-@m3.handle()
-async def say_hi():
-    '''打招呼'''
-    await m3.send(f"你好，{box.state}！")
-
-# ---------- 3 ----------
 m4 = on_command("move", rule=box.rule(states="*"))
 @m4.handle()
 async def move():
@@ -32,6 +25,13 @@ async def move():
     arg = str(box.arg)
     await box.set_state(arg)
     await m4.send(f"前往 {arg}")
+    
+# ---------- 3 ----------
+m3 = on_command("hi", rule=box.rule(states=["地球", "月球", "太阳"]))
+@m3.handle()
+async def say_hi():
+    '''打招呼'''
+    await m3.send(f"你好，{box.state}！")
 
 # ---------- 4 ----------
 # 相同命令，不同行为

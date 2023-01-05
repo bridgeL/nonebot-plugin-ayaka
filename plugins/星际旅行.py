@@ -10,18 +10,18 @@ box.set_start_cmds(cmds=["星际旅行", "travel"])
 box.set_close_cmds(cmds=["退出", "exit"])
 
 # ---------- 2 ----------
-@box.on_cmd(cmds="hi", states=["地球", "月球", "太阳"])
-async def say_hi():
-    '''打招呼'''
-    await box.send(f"你好，{box.state}！")
-
-# ---------- 3 ----------
 @box.on_cmd(cmds="move", states="*")
 async def move():
     '''移动'''
     arg = str(box.arg)
     await box.set_state(arg)
     await box.send(f"前往 {arg}")
+    
+# ---------- 3 ----------
+@box.on_cmd(cmds="hi", states=["地球", "月球", "太阳"])
+async def say_hi():
+    '''打招呼'''
+    await box.send(f"你好，{box.state}！")
 
 # ---------- 4 ----------
 # 相同命令，不同行为
