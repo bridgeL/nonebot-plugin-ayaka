@@ -30,10 +30,14 @@ LISTEN = on_message(block=False)
 
 
 class AyakaFunc:
-    def __init__(self, func, cmds, rule, params) -> None:
+    def __init__(self, module_name, func, cmds, rule, priority, params) -> None:
+        if not module_name:
+            module_name = func.__module__
+        self.module_name = module_name
         self.func = func
         self.cmds = cmds
         self.rule = rule
+        self.priority = priority
         self.params = params
         func_list.append(self)
 
@@ -44,11 +48,18 @@ class AyakaFunc:
                 cmd=self.cmds[0],
                 aliases=set(self.cmds[1:]),
                 rule=self.rule,
+                priority=self.priority,
                 **self.params
             )
+            matcher.module_name = self.module_name
             matcher.handle()(self.func)
         else:
-            matcher = on_message(rule=self.rule, **self.params)
+            matcher = on_message(
+                rule=self.rule,
+                priority=self.priority,
+                **self.params
+            )
+            matcher.module_name = self.module_name
             matcher.handle()(self.func)
 
 
@@ -132,6 +143,8 @@ class AyakaBox:
 
         immediates: on_immediate注册状态记录
 
+        priority: 优先级
+
         更多计算属性请查询api文档
 
     示例代码1:
@@ -164,7 +177,7 @@ class AyakaBox:
             return b
         return super().__new__(cls)
 
-    def __init__(self, name: str, allow_same: bool = False) -> None:
+    def __init__(self, name: str, allow_same: bool = False, priority: int = 5) -> None:
         '''初始化box对象
 
         参数:
@@ -174,6 +187,8 @@ class AyakaBox:
             allow_same: 允许重名，默认为False，当出现重名时抛出异常
 
             注意: 若要使用allow_same，则必须保证所有重名box均设置该项为True，否则可能会由于加载顺序的随机性，导致重名异常
+
+            priority: 注册的命令的优先级；注册消息的优先级为priority+1
 
         异常:
 
@@ -186,6 +201,7 @@ class AyakaBox:
 
         self.name = name
         self.immediates = set()
+        self.priority = priority
         self._help = ""
         self._helps: dict[str, list] = {}
         box_list.append(self)
@@ -425,7 +441,7 @@ class AyakaBox:
         return Rule(ayaka_state_checker)
 
     # ---- on_xxx ----
-    def on_cmd(self, cmds: str | list[str], states: str | list[str] = [], always: bool = False, **params):
+    def on_cmd(self, cmds: str | list[str], states: str | list[str] = [], always: bool = False, module_name: str = "", **params):
         '''注册命令处理回调
 
         参数:
@@ -435,6 +451,8 @@ class AyakaBox:
             states: 命令状态，*意味着对所有状态生效，为空时意味着注册群聊闲置状态时的命令
 
             always: 默认为False，设置为True时，意为总是触发该命令，其与注册群聊闲置状态时的命令不同
+            
+            module_name: nonebot所展示的matcher中的module_name，保持默认就好，ayaka会自动处理
 
             params: 其他参数，参考nonebot.on_command
 
@@ -477,9 +495,12 @@ class AyakaBox:
         else:
             rule = self.rule(states) & params.pop("rule", None)
 
+        priority = params.pop("priority", self.priority)
+        params.setdefault("block", True)
+
         def decorator(func):
             self._add_help(cmds, states, func)
-            AyakaFunc(func, cmds, rule, params)
+            AyakaFunc(module_name, func, cmds, rule, priority, params)
             return func
         return decorator
 
@@ -503,6 +524,7 @@ class AyakaBox:
             state不可为空字符串
         '''
         params.setdefault("block", False)
+        params.setdefault("priority", self.priority+1)
         return self.on_cmd(cmds=[], states=states, always=always, **params)
 
     def on_immediate(self, state: str):
@@ -534,14 +556,14 @@ class AyakaBox:
     # ---- 快捷命令 ----
     def set_start_cmds(self, cmds: str | list[str]):
         '''设置启动命令'''
-        @self.on_cmd(cmds=cmds)
+        @self.on_cmd(cmds=cmds, module_name=self.name)
         async def start():
             '''启动应用'''
             await self.start()
 
     def set_close_cmds(self, cmds: str | list[str]):
         '''设置关闭命令'''
-        @self.on_cmd(cmds=cmds, states="*")
+        @self.on_cmd(cmds=cmds, states="*", module_name=self.name)
         async def close():
             '''关闭应用'''
             await self.close()

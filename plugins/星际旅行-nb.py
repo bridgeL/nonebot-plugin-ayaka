@@ -93,14 +93,14 @@ class Config(AyakaConfig):
     __config_name__ = box.name
     gold_each_time: int = 1
 
-m10 = on_command("fake_pick", rule=box.rule(states="沙城"))
+m10 = on_command("pick", rule=box.rule(states="沙城"))
 @m10.handle()
 async def get_gold():
     '''捡金子'''
     config = Config()
     cache = box.get_data(Cache2)
     cache.gold += config.gold_each_time
-    await m10.send(f"fake +{config.gold_each_time} / {cache.gold}")
+    await m10.send(f"+{config.gold_each_time} / {cache.gold}")
 
 # ---------- 8 ----------
 from ayaka import Numbers
