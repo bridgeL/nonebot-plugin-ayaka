@@ -112,22 +112,3 @@ async def change_gold_number(nums=Numbers("请输入一个数字")):
     config = Config()
     config.gold_each_time = int(nums[0])
     await m11.send(f"修改每次拾取数量为{config.gold_each_time}")
-
-# ---------- 9 ----------
-from ayaka import AyakaBox, AyakaUserDB
-
-class UserGold(AyakaUserDB):
-    __table_name__ = "user_gold"
-    value:int = 0
-
-m12 = on_command("real_pick", rule=box.rule(states="沙城"))
-@m12.handle()
-async def get_gold():
-    '''捡金子'''
-    config = Config()
-    gold = UserGold.select_one(
-        group_id = box.group_id,
-        user_id = box.user_id
-    )
-    gold.value += config.gold_each_time
-    await m12.send(f"real +{config.gold_each_time} / {gold.value}")

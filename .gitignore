@@ -15,6 +15,7 @@ __pycache__
 /test.log
 /db
 /backup
+/api
 
 /ayaka_data
 /ayaka_test.log
