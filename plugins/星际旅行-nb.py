@@ -2,11 +2,11 @@
 from ayaka import AyakaBox
 from nonebot import on_command
 
-box = AyakaBox("星际旅行")
+box = AyakaBox("星际旅行-nb")
 box.help = "xing ji lv xing"
 
 # 启动应用
-m1 = on_command("星际旅行", aliases={"travel"}, rule=box.rule())
+m1 = on_command("星际旅行-nb", aliases={"travel-nb"}, rule=box.rule())
 @m1.handle()
 async def start():
     await box.start()
@@ -53,7 +53,7 @@ from ayaka import BaseModel
 class Cache(BaseModel):
     ticket:int = 0
 
-m7 = on_command(["buy", "买票"], rule=box.rule(states="售票处"))
+m7 = on_command("buy", aliases={"买票"}, rule=box.rule(states="售票处"))
 @m7.handle()
 async def buy_ticket():
     '''买门票'''
@@ -61,7 +61,7 @@ async def buy_ticket():
     cache.ticket += 1
     await m7.send("耀斑表演门票+1")
 
-m8 = on_command(["watch", "看表演"], rule=box.rule(states="*"))
+m8 = on_command("watch", aliases={"看表演"}, rule=box.rule(states="*"))
 @m8.handle()
 async def watch():
     '''看表演'''
