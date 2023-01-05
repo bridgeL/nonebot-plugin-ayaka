@@ -9,8 +9,6 @@ __pycache__
 !/plugins/星际旅行-nb.py
 /script/0.ini
 
-/error.log
-
 *.db
 /test.log
 /db
@@ -20,4 +18,5 @@ __pycache__
 /ayaka_data
 /ayaka_test
 /ayaka_test.log
+/error.log
 
