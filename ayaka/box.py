@@ -374,7 +374,7 @@ class AyakaBox:
 
         参数:
 
-            states: 命令状态，为空时意味着无状态命令
+            states: 命令状态，为空时意味着注册群聊闲置状态时的命令
 
         返回:
 
@@ -430,9 +430,9 @@ class AyakaBox:
 
             cmds: 注册命令，为空时视为消息触发
 
-            states: 命令状态，*意味着对所有状态生效，为空时意味着无状态命令
+            states: 命令状态，*意味着对所有状态生效，为空时意味着注册群聊闲置状态时的命令
 
-            always: 默认为False，设置为True时，意为总是触发该命令，其与无状态命令不同
+            always: 默认为False，设置为True时，意为总是触发该命令，其与注册群聊闲置状态时的命令不同
 
             params: 其他参数，参考nonebot.on_command
 
@@ -486,9 +486,9 @@ class AyakaBox:
 
         参数:
 
-            states: 命令状态，*意味着对所有状态生效，为空时意味着无状态命令
+            states: 命令状态，*意味着对所有状态生效，为空时意味着注册群聊闲置状态时的命令
 
-            always: 默认为False，设置为True时，意为总是触发该命令，其与无状态命令不同
+            always: 默认为False，设置为True时，意为总是触发该命令，其与注册群聊闲置状态时的命令不同
 
             params: 其他参数，参考nonebot.on_message
 

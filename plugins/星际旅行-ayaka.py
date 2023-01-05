@@ -10,13 +10,13 @@ box.set_start_cmds(cmds=["星际旅行", "travel"])
 box.set_close_cmds(cmds=["退出", "exit"])
 
 # ---------- 2 ----------
-@box.on_cmd(cmds=["hi"], states=["地球", "月球", "太阳"])
+@box.on_cmd(cmds="hi", states=["地球", "月球", "太阳"])
 async def say_hi():
     '''打招呼'''
     await box.send(f"你好，{box.state}！")
 
 # ---------- 3 ----------
-@box.on_cmd(cmds=["move"], states=["*"])
+@box.on_cmd(cmds="move", states="*")
 async def move():
     '''移动'''
     arg = str(box.arg)
@@ -25,12 +25,12 @@ async def move():
 
 # ---------- 4 ----------
 # 相同命令，不同行为
-@box.on_cmd(cmds=["drink"], states=["地球", "月球"])
+@box.on_cmd(cmds="drink", states=["地球", "月球"])
 async def drink():
     '''喝水'''
     await box.send("喝水")
 
-@box.on_cmd(cmds=["drink"], states=["太阳"])
+@box.on_cmd(cmds="drink", states="太阳")
 async def drink():
     '''喝太阳风'''
     await box.send("喝太阳风")
@@ -41,14 +41,14 @@ from ayaka import BaseModel
 class Cache(BaseModel):
     ticket:int = 0
 
-@box.on_cmd(cmds=["buy", "买票"], states=["售票处"])
+@box.on_cmd(cmds=["buy", "买票"], states="售票处")
 async def buy_ticket():
     '''买门票'''
     cache = box.get_data(Cache)
     cache.ticket += 1
     await box.send("耀斑表演门票+1")
 
-@box.on_cmd(cmds=["watch", "看表演"], states=["*"])
+@box.on_cmd(cmds=["watch", "看表演"], states="*")
 async def watch():
     '''看表演'''
     cache = box.get_data(Cache)
@@ -60,7 +60,7 @@ async def watch():
         await box.send("10分甚至9分的好看")
 
 # ---------- 6 ----------
-@box.on_text(states=["火星"])
+@box.on_text(states="火星")
 async def handle():
     '''令人震惊的事实'''
     await box.send("你火星了")
@@ -76,7 +76,7 @@ class Config(AyakaConfig):
     __config_name__ = box.name
     gold_each_time: int = 1
 
-@box.on_cmd(cmds=["fake_pick"], states=["沙城"])
+@box.on_cmd(cmds="fake_pick", states="沙城")
 async def get_gold():
     '''捡金子'''
     config = Config()
@@ -87,7 +87,7 @@ async def get_gold():
 # ---------- 8 ----------
 from ayaka import Numbers
 
-@box.on_cmd(cmds=["change"], states=["沙城"])
+@box.on_cmd(cmds="change", states="沙城")
 async def change_gold_number(nums=Numbers("请输入一个数字")):
     '''修改捡金子配置'''
     config = Config()
@@ -101,7 +101,7 @@ class UserGold(AyakaUserDB):
     __table_name__ = "user_gold"
     value:int = 0
 
-@box.on_cmd(cmds=["real_pick"], states=["沙城"])
+@box.on_cmd(cmds="real_pick", states="沙城")
 async def get_gold():
     '''捡金子'''
     config = Config()
