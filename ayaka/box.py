@@ -618,12 +618,11 @@ class AyakaBox:
             from ayaka.box import AyakaBox
 
             box = AyakaBox("测试")
-            matcher = box.create_text_matcher()
 
             class Data(BaseModel):
                 cnt: int = 0
 
-            @matcher.handle()
+            @box.on_text()
             async def matcher_handle():
                 data = box.load_data_from_cache(Data)
                 print(box.cache)
@@ -675,12 +674,11 @@ class AyakaBox:
             from ayaka.box import AyakaBox
 
             box = AyakaBox("测试")
-            matcher = box.create_text_matcher()
 
             class Data(BaseModel):
                 cnt: int = 0
 
-            @matcher.handle()
+            @box.on_text()
             async def matcher_handle():
                 data = box.load_data_from_cache(Data)
                 data.cnt += 1
