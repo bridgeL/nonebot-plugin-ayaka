@@ -5,13 +5,13 @@ from nonebot import on_command
 box = AyakaBox("星际旅行-nb")
 box.help = "xing ji lv xing"
 
-# 启动应用
+# 启动盒子
 m1 = on_command("星际旅行-nb", aliases={"travel-nb"}, rule=box.rule())
 @m1.handle()
 async def start():
     await box.start()
     
-# 关闭应用
+# 关闭盒子
 m2 = on_command("退出", aliases={"exit"}, rule=box.rule(states="*"))
 @m2.handle()
 async def close():

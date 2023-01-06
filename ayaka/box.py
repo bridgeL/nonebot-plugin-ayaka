@@ -5,13 +5,11 @@ ayaka的核心模块
 '''
 from math import ceil
 from typing import Callable, TypeVar
-from collections import defaultdict
-
 from nonebot.matcher import current_bot, current_event, current_matcher
 from nonebot.params import _command_arg
 
 from .helpers import _command_args, ensure_list, pack_messages, run_in_startup, Timer
-from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, Message, MessageSegment, Bot, BaseModel, logger
+from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, MessageEvent, Message, MessageSegment, Bot, BaseModel, logger
 
 
 driver = get_driver()
@@ -26,8 +24,8 @@ group_list: list["AyakaGroup"] = []
 '''群组列表'''
 box_list: list["AyakaBox"] = []
 '''box列表'''
-func_list: list["AyakaFunc"] = []
-'''AyakaFunc列表'''
+func_list: list["AyakaDelayMatcher"] = []
+'''AyakaDelayMatcher列表'''
 listeners: dict[int, list[int]] = {}
 '''监听列表，将私聊消息转发给当前正监听它的若干个群聊'''
 LISTEN = on_message(block=False)
@@ -36,7 +34,7 @@ prevent_duplicated_warning = {"value": False}
 '''在ayaka生成matcher期间，屏蔽Duplicated警告'''
 
 
-class AyakaFunc:
+class AyakaDelayMatcher:
     def __init__(self, module_name, func, cmds, rule, priority, params) -> None:
         if not module_name:
             module_name = func.__module__
@@ -82,7 +80,7 @@ async def create_all_matcher():
         for func in func_list:
             func.create()
     prevent_duplicated_warning["value"] = False
-    
+
     logger.debug(f"生成全部matchers 耗时{t.diff:.2f}s")
     logger.opt(colors=True).info("<y>Duplicated prefix rule WARNING</y> 已恢复")
 
@@ -92,19 +90,13 @@ class AyakaGroup:
 
     属性:
 
-        state: group当前所处状态，初始值为idle
-
-        current_box_name: group当前正在运行的box的名字
-
-        cache: group当前缓存的数据，不会随事件结束而清除
+        current_box: group当前正在运行的box
 
         group_id: 群组qq号
     '''
 
     def __init__(self, group_id: int) -> None:
-        self.state = ""
-        self.current_box_name = ""
-        self.cache = defaultdict(dict)
+        self.current_box: "AyakaBox" | None = None
         self.group_id = group_id
 
 
@@ -133,19 +125,6 @@ def get_box(name: str):
     for box in box_list:
         if box.name == name:
             return box
-
-
-def cached(func):
-    '''在matcher.state中缓存内容
-
-    注意：如果和property装饰器配合使用，cached必须位于property装饰器下方'''
-    def _func(*args, **kwargs):
-        data = current_matcher.get().state
-        key = f"ayaka_{func.__name__}"
-        if key not in data:
-            data[key] = func(*args, **kwargs)
-        return data[key]
-    return _func
 
 
 class AyakaBox:
@@ -202,7 +181,7 @@ class AyakaBox:
 
             注意: 若要使用allow_same，则必须保证所有重名box均设置该项为True，否则可能会由于加载顺序的随机性，导致重名异常
 
-            priority: 注册的命令的优先级；注册消息的优先级为priority+1
+            priority: 注册命令的优先级；注册消息的优先级为priority+1
 
         异常:
 
@@ -218,6 +197,8 @@ class AyakaBox:
         self.priority = priority
         self._help = ""
         self._helps: dict[str, list] = {}
+        self._state_dict: dict[int, str] = {}
+        self._cache_dict: dict[int, dict] = {}
         box_list.append(self)
         logger.opt(colors=True).debug(f"已生成盒子 <c>{name}</c>")
 
@@ -241,7 +222,14 @@ class AyakaBox:
 
     @property
     def event(self):
-        '''当前事件'''
+        '''当前消息事件'''
+        event = current_event.get()
+        assert isinstance(event, MessageEvent)
+        return event
+
+    @property
+    def group_event(self):
+        '''当前群聊消息事件'''
         event = current_event.get()
         assert isinstance(event, GroupMessageEvent)
         return event
@@ -262,20 +250,26 @@ class AyakaBox:
         return self.event.message
 
     @property
-    @cached
     def group(self):
         '''当前群组'''
-        return get_group(self.event.group_id)
+        return get_group(self.group_event.group_id)
 
     @property
     def state(self):
-        '''当前群组状态'''
-        return self.group.state
+        '''当前盒子状态'''
+        self._state_dict.setdefault(self.group_id, "idle")
+        return self._state_dict[self.group_id]
+
+    @state.setter
+    def state(self, k: str):
+        '''设置盒子状态'''
+        self._state_dict[self.group_id] = k
 
     @property
     def cache(self):
-        '''当前群组缓存：当前正在处理的群组的缓存数据空间中，分配给该box.name的独立字典'''
-        return self.group.cache[self.name]
+        '''当前数据缓存'''
+        self._cache_dict.setdefault(self.group_id, {})
+        return self._cache_dict[self.group_id]
 
     @property
     def bot_id(self):
@@ -285,7 +279,7 @@ class AyakaBox:
     @property
     def group_id(self):
         '''当前group id'''
-        return self.event.group_id
+        return self.group_event.group_id
 
     @property
     def user_id(self):
@@ -293,7 +287,6 @@ class AyakaBox:
         return self.event.user_id
 
     @property
-    @cached
     def user_name(self):
         '''当前群消息的发送者群名片或qq昵称'''
         return self.event.sender.card or self.event.sender.nickname
@@ -307,7 +300,6 @@ class AyakaBox:
         return arg
 
     @property
-    @cached
     def args(self):
         '''去除了命令之后的消息，再根据分割符进行分割'''
         return _command_args(self.arg)
@@ -369,18 +361,18 @@ class AyakaBox:
         '''
         if state in ["", "*"]:
             raise Exception("state不可为空字符串或*")
-        self.group.state = state
+        self.state = state
 
         if state in self.immediates:
             event = GroupMessageEvent(
-                **self.event.dict(exclude={"message", "raw_message"}),
+                **self.group_event.dict(exclude={"message", "raw_message"}),
                 message=Message(on_immediate_cmd),
                 raw_message=on_immediate_cmd
             )
             await self.bot.handle_event(event)
 
     async def start(self, state: str = "idle"):
-        '''启动当前应用，启动后应用状态默认为idle
+        '''启动当前盒子，启动后盒子状态默认为idle
 
         参数: 
 
@@ -390,15 +382,15 @@ class AyakaBox:
 
             state不可为空字符串或*
         '''
-        self.group.current_box_name = self.name
+        self.group.current_box = self
         await self.set_state(state)
-        await self.send(f"已启动应用[{self.name}]")
+        await self.send(f"已启动盒子[{self.name}]")
 
     async def close(self):
-        '''关闭当前应用'''
-        name = self.group.current_box_name
-        self.group.current_box_name = ""
-        await self.send(f"已关闭应用[{name}]")
+        '''关闭当前盒子'''
+        name = self.group.current_box.name
+        self.group.current_box = None
+        await self.send(f"已关闭盒子[{name}]")
 
     # ---- 兼容性 ----
     def rule(self, states: str | list[str] = []):
@@ -418,11 +410,11 @@ class AyakaBox:
             from nonebot import on_command
 
             box = AyakaBox("测试")
-            # 仅在群组运行当前应用，且状态为test1或test2时
+            # 仅在群组运行当前盒子，且状态为test1或test2时
             # m1才能被命令hh触发
             m1 = on_command(cmd="hh", rule=box.rule(states=["test1", "test2"]))
 
-            # 仅在群组运行当前应用时。m2才能被命令hh触发
+            # 仅在群组运行当前盒子时。m2才能被命令hh触发
             m2 = on_command(cmd="hh", rule=box.rule())
 
             # 无视box的任何规定，m3总能被命令hh触发
@@ -443,14 +435,22 @@ class AyakaBox:
         states = ensure_list(states)
 
         def ayaka_state_checker(event: GroupMessageEvent):
-            group = get_group(event.group_id)
+            group_id = event.group_id
+            group = get_group(group_id)
+            # 群聊闲置状态时响应
             if not states:
-                return not group.current_box_name
-            if group.current_box_name != self.name:
+                return not group.current_box
+            # 如果群聊被独占，则屏蔽其他盒子
+            if group.current_box != self:
                 return False
+            # 必定响应*
             if "*" in states:
                 return True
-            return group.state in states
+            # 当前盒子状态是否符合要求
+            if group_id not in self._state_dict:
+                return False
+            # 当前盒子状态是否符合要求
+            return self._state_dict[group_id] in states
 
         return Rule(ayaka_state_checker)
 
@@ -490,7 +490,7 @@ class AyakaBox:
 
         def decorator(func):
             self._add_help(cmds, states, func)
-            AyakaFunc(module_name, func, cmds, rule, priority, params)
+            AyakaDelayMatcher(module_name, func, cmds, rule, priority, params)
             return func
         return decorator
 
@@ -521,13 +521,13 @@ class AyakaBox:
 
             box = AyakaBox("测试")
 
-            # 仅在群组正在运行当前应用，且状态为test1或test2时
+            # 仅在群组正在运行当前盒子，且状态为test1或test2时
             # matcher_handle_1才会被命令hh触发
             @box.on_cmd(cmds="hh", states=["test1", "test2"])
             async def matcher_handle_1():
                 pass
 
-            # 仅在群组没有运行任何应用时，matcher_handle_2才会被命令hh触发
+            # 仅在群组没有运行任何盒子时，matcher_handle_2才会被命令hh触发
             @box.on_cmd(cmds="hh")
             async def matcher_handle_2():
                 pass
@@ -590,14 +590,14 @@ class AyakaBox:
         '''设置启动命令'''
         @self._on(cmds=cmds, module_name=self.name)
         async def start():
-            '''启动应用'''
+            '''启动盒子'''
             await self.start()
 
     def set_close_cmds(self, cmds: str | list[str]):
         '''设置关闭命令'''
         @self._on(cmds=cmds, states="*", module_name=self.name)
         async def close():
-            '''关闭应用'''
+            '''关闭盒子'''
             await self.close()
 
     # ---- cache ----

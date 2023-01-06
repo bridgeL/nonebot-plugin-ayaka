@@ -4,9 +4,9 @@ from ayaka import AyakaBox
 box = AyakaBox("星际旅行")
 box.help = "xing ji lv xing"
 
-# 启动应用
+# 启动盒子
 box.set_start_cmds(cmds=["星际旅行", "travel"])
-# 关闭应用
+# 关闭盒子
 box.set_close_cmds(cmds=["退出", "exit"])
 
 # ---------- 2 ----------
