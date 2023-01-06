@@ -74,7 +74,7 @@ class AyakaFunc:
 async def create_all_matcher():
     '''加速插件加载'''
     t = Timer(show=False)
-    logger.opt(colors=True).warning(
+    logger.opt(colors=True).info(
         "<y>Duplicated prefix rule WARNING</y> 已被 <y>ayaka</y> 临时关闭")
 
     prevent_duplicated_warning["value"] = True
@@ -84,7 +84,7 @@ async def create_all_matcher():
     prevent_duplicated_warning["value"] = False
     
     logger.debug(f"生成全部matchers 耗时{t.diff:.2f}s")
-    logger.opt(colors=True).warning("<y>Duplicated prefix rule WARNING</y> 已恢复")
+    logger.opt(colors=True).info("<y>Duplicated prefix rule WARNING</y> 已恢复")
 
 
 class AyakaGroup:

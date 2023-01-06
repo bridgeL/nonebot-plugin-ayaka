@@ -165,8 +165,12 @@ def load_cwd_plugins(path: Path | str):
         path = Path(path)
     name = ".".join(path.parts)
     for p in path.iterdir():
+        if p.stem.startswith("_"):
+            continue
         module_name = name + "." + p.stem
         try:
             import_module(module_name)
         except:
             logger.exception(f"导入{module_name}失败")
+        else:
+            logger.opt(colors=True).success(f"成功导入 <y>{p.stem}</y>")
