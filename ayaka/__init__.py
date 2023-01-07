@@ -1,4 +1,4 @@
-'''当前版本 1.0.2b0
+'''当前版本 1.0.2
 
 https://bridgel.github.io/ayaka_doc/1.0.2/
 '''
