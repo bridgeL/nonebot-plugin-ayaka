@@ -2,7 +2,7 @@
 
 https://bridgel.github.io/ayaka_doc/1.0.2/
 '''
-from .init import DONT_USE_ME
+from .init import DONT_USE_ME as __DONT_USE_ME
         
 # ---- ayaka box ----
 from .box import AyakaBox
