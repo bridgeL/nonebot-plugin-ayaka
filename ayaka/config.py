@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from .helpers import ensure_dir_exists
 from .lazy import logger, BaseModel, Path
 
-AYAKA_VERSION = "1.0.2"
+AYAKA_VERSION = "1.0.3b0"
 
 data_path = Path("data", "ayaka")
 ensure_dir_exists(data_path)

@@ -1,6 +1,6 @@
-'''当前版本 1.0.2
+'''当前版本 1.0.3b0
 
-https://bridgel.github.io/ayaka_doc/1.0.2/
+https://bridgel.github.io/ayaka_doc/1.0.3/
 '''
 from .init import DONT_USE_ME as __DONT_USE_ME
         

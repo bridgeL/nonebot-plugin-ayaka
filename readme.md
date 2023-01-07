@@ -1,6 +1,6 @@
 <div align="center">
 
-# Ayaka - 为群聊插件开发提供状态机支持 - 1.0.2
+# Ayaka - 为群聊插件开发提供状态机支持 - 1.0.3b0
 
 基于[nonebot2](https://github.com/nonebot/nonebot2)和[OnebotV11协议](https://github.com/botuniverse/onebot-11)，为群聊插件开发提供状态机支持
 
