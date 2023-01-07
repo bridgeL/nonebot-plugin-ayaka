@@ -1,0 +1,194 @@
+after d 1
+
+#测试背包、签到 √
+g 100 1 bag
+g 100 2 bag
+g 100 2 checkin
+g 100 2 checkin
+g 100 1 背包 [CQ:at,qq=2]
+g 100 2 背包 1
+g 100 2 背包 @测试1号
+
+# 测试24点 √
+g 100 1 24点
+g 100 1 help
+g 100 1 (12+2)-3/4
+g 100 1 答案
+g 100 1 next
+g 100 1 exit
+
+# 测试48点 √
+g 100 1 48点
+g 100 1 help
+g 100 1 题目
+g 100 1 (12+2)-3/4
+g 100 1 答案
+g 100 1 next
+g 100 1 退出
+
+# 测试成语查询 √
+g 100 1 查询成语 安步当车
+g 100 1 查询成语 安车
+
+# 测试成语接龙 √
+g 100 1 接龙
+g 200 1 接龙
+g 100 1 list
+g 200 1 unuse 原神
+g 200 1 list
+g 100 1 list
+g 100 1 接龙
+g 100 1 心海
+g 100 1 稻妻
+g 100 1 心海
+g 100 1 稻妻
+g 100 1 心海
+g 100 1 稻妻
+g 100 1 心海
+g 100 1 稻妻
+g 100 1 心海
+g 100 1 稻妻
+g 100 1 安步当车
+g 100 1 尾大不掉
+g 100 1 安步当车
+g 100 1 尾大不掉
+g 100 1 安步当车
+g 100 1 尾大不掉
+g 100 1 安步当车
+g 100 1 尾大不掉
+g 100 1 安步当车
+g 100 1 尾大不掉
+g 100 1 data
+g 100 1 exit
+
+
+
+# 测试抢30 √
+g 100 1 抢30
+g 100 1 强制退出
+g 200 1 强制退出
+g 100 1 抢30
+g 100 2 加入
+g 100 1 start
+g 100 1 exit
+
+g 200 1 抢30
+g 200 2 加入
+g 200 1 start
+
+after dn 3
+g 100 1 5
+g 100 1 5
+g 100 2 6
+g 100 1 8
+g 100 1 6
+g 100 2 0
+g 100 1 0
+g 100 1 0
+g 100 2 0
+g 100 2 0
+g 100 1 1
+g 100 1 1
+g 100 2 0
+g 100 2 0
+g 100 1 1
+g 100 1 1
+g 100 2 0
+g 100 2 0
+g 100 1 1
+g 100 1 1
+g 100 2 0
+g 100 2 0
+g 100 1 1
+g 100 1 1
+g 100 2 0
+g 100 2 0
+after dn 0.1
+g 100 1 exit
+g 100 1 强制退出
+
+# 测试印加 √
+g 100 1 incan
+g 100 1 help
+g 100 2 join
+g 100 1 start
+p 1 go
+p 2 go
+p 1 back
+p 2 go
+p 2 go
+p 2 go
+p 2 go
+p 2 go
+p 2 go
+p 1 go
+p 1 back
+p 2 back
+p 1 back
+p 2 back
+p 1 back
+p 2 back
+p 1 back
+p 2 back
+p 1 back
+p 2 back
+p 1 back
+p 2 back
+p 1 back
+p 2 back
+
+# 测试mana √
+g 100 1 mana
+g 100 1 mana
+g 100 1 bag
+g 100 1 mana 10
+g 100 1 bag
+g 100 1 mana -10
+g 100 1 bag
+g 100 1 exit
+
+# 测试加一秒 √
+g 100 1 加一秒
+g 100 1 help
+g 100 1 +1
+g 100 1 我的
+g 100 2 +1
+g 100 2 +1
+g 100 1 +1
+g 100 3 +1
+d 6
+g 100 1 +1
+g 100 1 全部
+g 100 2 +1
+g 100 2 +1
+g 100 1 +1
+g 100 3 +1
+d 6
+g 100 2 boss
+g 100 1 +1
+g 100 2 +1
+g 100 3 +1
+d 6
+g 100 1 exit
+
+# 测试谁是卧底 √
+g 100 1 谁是卧底
+g 100 2 join
+g 100 3 join
+g 100 4 join
+g 100 4 leave
+g 100 4 start
+g 100 2 start
+g 100 4 join
+g 100 2 start
+
+g 100 1 vote [CQ:at,qq=2]
+g 100 3 vote @测试2号
+g 100 4 vote 2
+
+g 100 2 vote 测试1号
+g 100 1 vote 1
+g 100 3 vote 1
+g 100 4 vote 1
+
+g 100 4 exit

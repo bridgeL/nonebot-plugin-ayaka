@@ -45,3 +45,11 @@ async def show_state():
     else:
         info = "当前没有任何盒子在运行"
     await box.send(info)
+
+
+@box.on_cmd(cmds="强制退出", always=True)
+async def show_state():
+    '''强制关闭当前盒子'''
+    b = box.group.current_box
+    if b:
+        await b.close()

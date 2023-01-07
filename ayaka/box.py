@@ -93,7 +93,7 @@ class AyakaGroup:
     '''
 
     def __init__(self, group_id: int) -> None:
-        self.current_box: "AyakaBox" | None = None
+        self.current_box: AyakaBox | None = None
         self.group_id = group_id
 
 
