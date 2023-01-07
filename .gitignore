@@ -1,23 +1,13 @@
 __pycache__
 /dist
 /data
-/sample
-
-# 保留示例
-/plugins/*
-!/plugins/星际旅行.py
-!/plugins/星际旅行-nb.py
-/script/0.ini
-
-*.db
-/test.log
-/db
-/backup
-/api
-
-/ayaka_data
 /ayaka_test
 /ayaka_games
-/ayaka_test.log
 /error.log
+/record.log
+/plugins/*
+/script
 
+# 保留示例
+!/plugins/星际旅行.py
+!/plugins/星际旅行-nb.py

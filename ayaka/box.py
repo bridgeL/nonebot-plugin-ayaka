@@ -65,14 +65,14 @@ class AyakaDelayMatcher:
 @run_in_startup
 async def create_all_matcher():
     '''加速插件加载'''
-    logger.opt(colors=True).info(
+    logger.opt(colors=True).warning(
         "<y>ayaka</y> 正在创建matcher，可能会收到Duplicated prefix rule警告，而这是正常的")
 
     t = Timer(show=False)
     with t:
         for func in func_list:
             func.create()
-    logger.opt(colors=True).info(
+    logger.opt(colors=True).success(
         f"<y>ayaka</y> 已成功创建全部matchers，耗时{t.diff:.2f}s")
 
 
