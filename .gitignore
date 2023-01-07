@@ -6,6 +6,7 @@ __pycache__
 /error.log
 /record.log
 /plugins/*
+/script
 
 # 保留示例
 !/plugins/星际旅行.py
