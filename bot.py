@@ -10,9 +10,9 @@ driver.register_adapter(Adapter)
 
 from ayaka.patch import money_patch_PluginManager_load_plugin
 money_patch_PluginManager_load_plugin()
-import ayaka_games
+nonebot.load_plugin("ayaka_games")
 nonebot.load_from_toml("pyproject.toml")
-nonebot.load_plugin("ayaka_test")
+# nonebot.load_plugin("ayaka_test")
 
 if __name__ == "__main__":
     nonebot.run(app="__mp_main__:app")

@@ -8,8 +8,7 @@ except:
     logger.warning("ayaka意外地提前加载，其本应在nonebot2完成初始化之后才加载")
     nonebot.init()
 
-# ---- 其他初始化工作 ----
+# ---- 盒子管理器 ----
 from . import master
-from . import log
 
 DONT_USE_ME = ""

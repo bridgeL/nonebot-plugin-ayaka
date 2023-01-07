@@ -31,8 +31,6 @@ listeners: dict[int, list[int]] = {}
 '''监听列表，将私聊消息转发给当前正监听它的若干个群聊'''
 LISTEN = on_message(block=False)
 '''处理监听转发的matcher'''
-prevent_duplicated_warning = {"value": False}
-'''在ayaka生成matcher期间，屏蔽Duplicated警告'''
 
 
 class AyakaDelayMatcher:
@@ -73,15 +71,13 @@ class AyakaDelayMatcher:
 async def create_all_matcher():
     '''加速插件加载'''
     logger.opt(colors=True).info(
-        "<y>Duplicated prefix rule WARNING</y> 已被 <y>ayaka</y> 临时关闭")
+        "<y>ayaka</y> 正在创建matcher，可能会收到Duplicated prefix rule警告，而这是正常的")
 
-    prevent_duplicated_warning["value"] = True
-    with Timer("ayaka:生成全部matchers"):
+    t = Timer(show=False)
+    with t:
         for func in func_list:
             func.create()
-    prevent_duplicated_warning["value"] = False
-
-    logger.opt(colors=True).info("<y>Duplicated prefix rule WARNING</y> 已恢复")
+    logger.opt(colors=True).info(f"<y>ayaka</y> 已成功创建全部matchers，耗时{t.diff:.2f}s")
 
 
 class AyakaGroup:
