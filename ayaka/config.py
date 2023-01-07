@@ -74,30 +74,3 @@ ayaka_root_config = RootConfig()
 
 ayaka_root_config.version = AYAKA_VERSION
 logger.opt(colors=True).success(f"<y>ayaka</y> 当前版本 <y>{AYAKA_VERSION}</y>")
-
-
-def load_data_from_file(path: Path):
-    '''从指定文件加载数据
-
-    参数:
-
-        path: 文件路径。文件类型，必须是.json文件或.txt文件
-
-    返回:
-
-        json反序列化后的结果(对应.json文件) 或 字符串数组(对应.txt文件)
-
-    异常:
-
-        错误的文件类型
-    '''
-    if path.suffix not in [".json", ".txt"]:
-        raise Exception("错误的文件类型")
-
-    if path.suffix == ".json":
-        with path.open("r", encoding="utf8") as f:
-            return json.load(f)
-    else:
-        with path.open("r", encoding="utf8") as f:
-            # 排除空行
-            return [line[:-1] for line in f if line[:-1]]

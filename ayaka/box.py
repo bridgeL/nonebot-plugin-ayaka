@@ -77,7 +77,8 @@ async def create_all_matcher():
     with t:
         for func in func_list:
             func.create()
-    logger.opt(colors=True).info(f"<y>ayaka</y> 已成功创建全部matchers，耗时{t.diff:.2f}s")
+    logger.opt(colors=True).info(
+        f"<y>ayaka</y> 已成功创建全部matchers，耗时{t.diff:.2f}s")
 
 
 class AyakaGroup:
@@ -205,7 +206,7 @@ class AyakaBox:
         self.name = name
         self.immediates = set()
         self.priority = priority
-        self._help = ""
+        self._intro = ""
         self._helps: dict[str, list] = {}
         self._state_dict: dict[int, str] = {}
         self._cache_dict: dict[int, dict] = {}
@@ -213,16 +214,6 @@ class AyakaBox:
         logger.opt(colors=True).debug(f"已生成盒子 <c>{name}</c>")
 
     # ---- 便捷属性 ----
-    @property
-    def help(self):
-        '''box的帮助'''
-        return self._help
-
-    @help.setter
-    def help(self, value):
-        '''设置box的帮助'''
-        self._help = str(value).strip()
-
     @property
     def bot(self):
         '''当前bot'''
@@ -327,11 +318,11 @@ class AyakaBox:
         return _command_args(self.arg)
 
     @property
-    def all_help(self):
-        '''全部帮助'''
+    def help(self):
+        '''box的帮助'''
         items = [f"[{self.name}]"]
-        if self.help:
-            items.append(self.help)
+        if self._intro:
+            items.append(self._intro)
         items.extend(self._helps.get("no_state", []))
         for state, infos in self._helps.items():
             if state == "no_state":
@@ -339,6 +330,11 @@ class AyakaBox:
             items.append(f"[{state}]")
             items.extend(infos)
         return "\n".join(items)
+
+    @help.setter
+    def help(self, value):
+        '''设置box的帮助'''
+        self._intro = str(value).strip()
 
     # ---- 添加帮助 ----
     def _add_help(self, cmds: list[str], states: list[str], func=None):
@@ -614,6 +610,7 @@ class AyakaBox:
         async def start():
             '''启动盒子'''
             await self.start()
+            await self.send_help()
 
     def set_close_cmds(self, cmds: str | list[str]):
         '''设置关闭命令'''

@@ -1,4 +1,5 @@
 '''提供一些有益的方法和类'''
+import json
 import re
 from time import time
 from .lazy import get_driver, Message, MessageSegment, BaseModel, Path, logger
@@ -158,3 +159,36 @@ def pack_messages(user_id: int, user_name: str, messages: list):
     ]
     return data
 
+
+def safe_open_file(path: str | Path, mode: str = "a+"):
+    if isinstance(path, str):
+        path = Path(path)
+    if not path.parent.exists():
+        path.parent.mkdir(parents=True)
+    return path.open(mode, encoding="utf8")
+
+
+def load_data_from_file(path: str | Path):
+    '''从指定文件加载数据
+
+    参数:
+
+        path: 文件路径
+
+        若文件类型为json，按照json格式读取
+
+        若文件类型为其他，则按行读取，并排除空行
+
+    返回:
+
+        json反序列化后的结果(对应.json文件) 或 字符串数组(对应.txt文件)
+    '''
+    if isinstance(path, str):
+        path = Path(path)
+
+    with safe_open_file(path, "r") as f:
+        if path.suffix == ".json":
+            return json.load(f)
+        else:
+            # 排除空行
+            return [line[:-1] for line in f if line[:-1]]

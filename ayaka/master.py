@@ -11,18 +11,18 @@ async def show_help():
     if box.arg:
         name = str(box.arg)
         if name == "全部":
-            infos = [b.all_help for b in box_list]
+            infos = [b.help for b in box_list]
             await box.send_many(infos)
             return
 
         b = get_box(name)
         if b:
-            await box.send(b.all_help)
+            await box.send(b.help)
             return
 
     b = box.group.current_box
     if b:
-        await box.send(b.all_help)
+        await box.send(b.help)
         return
 
     infos = [f"- [{b.name}]" for b in box_list]
