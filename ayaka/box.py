@@ -5,8 +5,9 @@ ayaka的核心模块
 '''
 from math import ceil
 from typing import Callable, TypeVar
-from nonebot.matcher import current_bot, current_event, current_matcher
-from nonebot.params import _command_arg
+from nonebot.rule import CommandRule
+from nonebot.matcher import current_bot, current_event, current_matcher, Matcher
+from nonebot.params import _command_arg, _raw_command
 
 from .helpers import _command_args, ensure_list, pack_messages, run_in_startup, Timer
 from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, MessageEvent, Message, MessageSegment, Bot, BaseModel, logger
@@ -71,17 +72,15 @@ class AyakaDelayMatcher:
 @run_in_startup
 async def create_all_matcher():
     '''加速插件加载'''
-    t = Timer(show=False)
     logger.opt(colors=True).info(
         "<y>Duplicated prefix rule WARNING</y> 已被 <y>ayaka</y> 临时关闭")
 
     prevent_duplicated_warning["value"] = True
-    with t:
+    with Timer("ayaka:生成全部matchers"):
         for func in func_list:
             func.create()
     prevent_duplicated_warning["value"] = False
 
-    logger.debug(f"生成全部matchers 耗时{t.diff:.2f}s")
     logger.opt(colors=True).info("<y>Duplicated prefix rule WARNING</y> 已恢复")
 
 
@@ -125,6 +124,21 @@ def get_box(name: str):
     for box in box_list:
         if box.name == name:
             return box
+
+
+def cached(func):
+    '''在matcher.state中缓存内容
+
+    注意：如果和property装饰器配合使用，cached必须位于property装饰器下方'''
+    def _func(*args, **kwargs):
+        data = current_matcher.get().state
+        data.setdefault("ayaka", {})
+        data = data["ayaka"]
+        key = func.__name__
+        if key not in data:
+            data[key] = func(*args, **kwargs)
+        return data[key]
+    return _func
 
 
 class AyakaBox:
@@ -250,6 +264,7 @@ class AyakaBox:
         return self.event.message
 
     @property
+    @cached
     def group(self):
         '''当前群组'''
         return get_group(self.group_event.group_id)
@@ -292,14 +307,25 @@ class AyakaBox:
         return self.event.sender.card or self.event.sender.nickname
 
     @property
-    def arg(self):
-        '''去除了命令之后的消息'''
-        arg = _command_arg(self.matcher_state)
-        if arg is None:
-            arg = self.event.message
-        return arg
+    @cached
+    def cmd(self):
+        '''当前命令'''
+        if check_cmd_matcher(self.matcher):
+            return str(_raw_command(self.matcher_state))
+        else:
+            return ""
 
     @property
+    @cached
+    def arg(self):
+        '''去除了命令之后的消息'''
+        if self.cmd:
+            return _command_arg(self.matcher_state)
+        else:
+            return self.message
+
+    @property
+    @cached
     def args(self):
         '''去除了命令之后的消息，再根据分割符进行分割'''
         return _command_args(self.arg)
@@ -749,3 +775,11 @@ async def listener_handle(bot: Bot, event: PrivateMessageEvent):
         for group_id in listeners[event.user_id]:
             _event.group_id = group_id
             await bot.handle_event(_event)
+
+
+def check_cmd_matcher(matcher: Matcher):
+    '''探测一个matcher是否是on_command注册的'''
+    for c in matcher.rule.checkers:
+        if isinstance(c.call, CommandRule):
+            return True
+    return False

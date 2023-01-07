@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 import nonebot
 from nonebot.adapters.onebot.v11 import Adapter
-from ayaka import load_cwd_plugins, Timer
 
 nonebot.init()
 app = nonebot.get_asgi()
 driver = nonebot.get_driver()
 driver.register_adapter(Adapter)
 
+from ayaka import Timer
 with Timer("加载全部插件"):
-    load_cwd_plugins("plugins")
+    nonebot.load_plugins("plugins")
+
+import ayaka_games
 nonebot.load_from_toml("pyproject.toml")
 nonebot.load_plugin("ayaka_test")
 
