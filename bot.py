@@ -11,12 +11,14 @@ driver = nonebot.get_driver()
 import ayaka.patch as hack
 # 统计加载时间
 hack.hack_load_plugin()
+hack.recorder.show_data = False
 # 注册适配器
 driver.register_adapter(hack.WatcherAdapter)
 
 # ---- 加载插件 ----
 nonebot.load_plugin("ayaka_games")
 nonebot.load_from_toml("pyproject.toml")
+nonebot.load_plugin("ayaka_test")
 
 if __name__ == "__main__":
     nonebot.run(app="__mp_main__:app")

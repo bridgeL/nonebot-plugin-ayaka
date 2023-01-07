@@ -29,13 +29,15 @@ class Recorder:
         date = now.strftime("%Y-%m-%d")
         time = now.strftime("%H-%M-%S")
         self.base = f"data/sample/{date}/{time}"
+        self.show_data = True
 
     def record_send(self, data: dict):
         '''记录nb发送数据'''
         if "echo" not in data:
             return
 
-        print("send", data)
+        if self.show_data:
+            print(data)
 
         echo = data["echo"]
         self.data[echo] = data
@@ -45,13 +47,14 @@ class Recorder:
         if "echo" not in data:
             return
 
-        print("recv", data)
+        if self.show_data:
+            print(data)
 
         echo = data["echo"]
         _data = self.data.pop(echo, None)
         if _data:
             data = [_data, data]
-            with safe_open_file(f"{self.base}/{echo}.json") as f:
+            with safe_open_file(f"{self.base}/{echo}.json")[1] as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
 
 
