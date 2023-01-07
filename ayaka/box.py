@@ -5,12 +5,13 @@ ayaka的核心模块
 '''
 from math import ceil
 from typing import Callable, TypeVar
+from starlette._utils import is_async_callable
 from nonebot.rule import CommandRule
-from nonebot.matcher import current_bot, current_event, current_matcher, Matcher
+from nonebot.matcher import Matcher, current_bot, current_event, current_matcher
 from nonebot.params import _command_arg, _raw_command
 
-from .helpers import _command_args, ensure_list, pack_messages, run_in_startup, Timer
-from .lazy import get_driver, on_command, on_message, Rule, GroupMessageEvent, PrivateMessageEvent, MessageEvent, Message, MessageSegment, Bot, BaseModel, logger
+from .helpers import Timer, _command_args, ensure_list, pack_messages, run_in_startup
+from .lazy import Rule, GroupMessageEvent, PrivateMessageEvent, MessageEvent, Message, MessageSegment, Bot, BaseModel, get_driver, on_command, on_message, logger
 
 
 driver = get_driver()
@@ -127,14 +128,27 @@ def cached(func):
     '''在matcher.state中缓存内容
 
     注意：如果和property装饰器配合使用，cached必须位于property装饰器下方'''
-    def _func(*args, **kwargs):
-        data = current_matcher.get().state
-        data.setdefault("ayaka", {})
-        data = data["ayaka"]
-        key = func.__name__
-        if key not in data:
-            data[key] = func(*args, **kwargs)
-        return data[key]
+    if is_async_callable(func):
+        async def _func(*args, **kwargs):
+            matcher_state = current_matcher.get().state
+            matcher_state.setdefault("ayaka", {})
+            data = matcher_state["ayaka"]
+
+            key = func.__name__
+            if key not in data:
+                data[key] = await func(*args, **kwargs)
+            return data[key]
+    else:
+        def _func(*args, **kwargs):
+            matcher_state = current_matcher.get().state
+            matcher_state.setdefault("ayaka", {})
+            data = matcher_state["ayaka"]
+
+            key = func.__name__
+            if key not in data:
+                data[key] = func(*args, **kwargs)
+            return data[key]
+
     return _func
 
 
