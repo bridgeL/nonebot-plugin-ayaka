@@ -35,14 +35,12 @@ LISTEN = on_message(block=False)
 
 
 class AyakaDelayMatcher:
-    def __init__(self, module_name, func, cmds, rule, priority, params) -> None:
+    def __init__(self, module_name, func, cmds, params) -> None:
         if not module_name:
             module_name = func.__module__
         self.module_name = module_name
         self.func = func
         self.cmds = cmds
-        self.rule = rule
-        self.priority = priority
         self.params = params
         func_list.append(self)
 
@@ -52,16 +50,12 @@ class AyakaDelayMatcher:
             matcher = on_command(
                 cmd=self.cmds[0],
                 aliases=set(self.cmds[1:]),
-                rule=self.rule,
-                priority=self.priority,
                 **self.params
             )
             matcher.module_name = self.module_name
             matcher.handle()(self.func)
         else:
             matcher = on_message(
-                rule=self.rule,
-                priority=self.priority,
                 **self.params
             )
             matcher.module_name = self.module_name
@@ -487,7 +481,7 @@ class AyakaBox:
         return Rule(ayaka_state_checker)
 
     # ---- on_xxx ----
-    def _on(self, cmds: str | list[str] = [], states: str | list[str] = [], always: bool = False, module_name: str = "", priority: int = 5, **params):
+    def _on(self, cmds: str | list[str] = [], states: str | list[str] = [], always: bool = False, module_name: str = "", **params):
         '''注册命令处理回调（基础）
 
         参数:
@@ -499,8 +493,6 @@ class AyakaBox:
             always: 默认为False，设置为True时，意为总是触发该命令，其与注册群聊闲置状态时的命令不同
 
             module_name: 生成的matcher的module_name
-
-            priority：生成的matcher的priority
 
             params: 其他参数，参考nonebot.on_command
 
@@ -514,15 +506,14 @@ class AyakaBox:
         '''
         cmds = ensure_list(cmds)
         states = ensure_list(states)
-        rule = params.pop("rule", None)
         if "" in states:
             raise Exception("state不可为空字符串")
         if not always:
-            rule = self.rule(states) & rule
+            params["rule"] = self.rule(states) & params.get("rule", None)
 
         def decorator(func):
             self._add_help(cmds, states, func)
-            AyakaDelayMatcher(module_name, func, cmds, rule, priority, params)
+            AyakaDelayMatcher(module_name, func, cmds, params)
             return func
         return decorator
 
@@ -569,8 +560,8 @@ class AyakaBox:
         ```
         '''
         params.setdefault("block", True)
-        priority = params.pop("priority", self.priority)
-        return self._on(cmds=cmds, states=states, always=always, priority=priority, **params)
+        params.setdefault("priority", self.priority)
+        return self._on(cmds=cmds, states=states, always=always, **params)
 
     def on_text(self, states: str | list[str] = [], always: bool = False, **params):
         '''注册消息处理回调
@@ -592,8 +583,8 @@ class AyakaBox:
             state不可为空字符串
         '''
         params.setdefault("block", False)
-        priority = params.pop("priority", self.priority+1)
-        return self._on(states=states, always=always, priority=priority, **params)
+        params.setdefault("priority", self.priority + 1)
+        return self._on(states=states, always=always, **params)
 
     def on_immediate(self, state: str):
         '''注册立即处理回调
@@ -615,7 +606,13 @@ class AyakaBox:
         if state in ["", "*"]:
             raise Exception("state不可为空字符串或**")
         self.immediates.add(state)
-        return self._on(cmds="on_immediate", states=state, priority=self.priority, block=True, module_name=self.name)
+        return self._on(
+            cmds="on_immediate",
+            states=state,
+            module_name=self.name,
+            priority=self.priority,
+            block=True
+        )
 
     # ---- 快捷命令 ----
     def set_start_cmds(self, cmds: str | list[str]):
