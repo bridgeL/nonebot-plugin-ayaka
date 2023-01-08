@@ -7,13 +7,14 @@ nonebot.init()
 app = nonebot.get_asgi()
 driver = nonebot.get_driver()
 
+# 注册适配器
+from nonebot.adapters.onebot.v11 import Adapter
+driver.register_adapter(Adapter)
+
 # ---- 搞事 ----
 import ayaka.patch as hack
 # 统计加载时间
 hack.hack_load_plugin()
-hack.recorder.show_data = False
-# 注册适配器
-driver.register_adapter(hack.WatcherAdapter)
 
 # ---- 加载插件 ----
 nonebot.load_plugin("ayaka_games")
