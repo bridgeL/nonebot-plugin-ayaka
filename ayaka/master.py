@@ -26,6 +26,8 @@ async def show_help():
         if b:
             await box.send(b.help)
             return
+        else:
+            await box.send("没有找到对应盒子")
 
     b = box.group.current_box
     if b:
