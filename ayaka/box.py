@@ -5,13 +5,13 @@ ayaka的核心模块
 '''
 from math import ceil
 from typing import Callable, TypeVar
-from starlette._utils import is_async_callable
 from nonebot.rule import CommandRule
 from nonebot.matcher import Matcher, current_bot, current_event, current_matcher
 from nonebot.params import _command_arg, _raw_command
 
-from .helpers import Timer, _command_args, ensure_list, pack_messages, run_in_startup
+from .helpers import Timer, _command_args, ensure_list, pack_messages, run_in_startup, is_async_callable, slow_load_config
 from .lazy import Rule, GroupMessageEvent, PrivateMessageEvent, MessageEvent, Message, MessageSegment, Bot, BaseModel, get_driver, on_command, on_message, logger
+from .config import AyakaConfig
 
 
 driver = get_driver()
@@ -146,6 +146,20 @@ def cached(func):
     return _func
 
 
+@slow_load_config
+class Config(AyakaConfig):
+    __config_name__ = "盒子屏蔽列表"
+    box_dict: dict[str, list[int]] = {}
+
+
+@run_in_startup
+async def load_invalid_list():
+    '''加载所有盒子的屏蔽配置'''
+    config = Config()
+    for b in box_list:
+        b._invalid_list = config.box_dict.get(b.name, [])
+
+
 class AyakaBox:
     '''盒子，通过盒子使用ayaka的大部分特性
 
@@ -218,6 +232,7 @@ class AyakaBox:
         self._helps: dict[str, list] = {}
         self._state_dict: dict[int, str] = {}
         self._cache_dict: dict[int, dict] = {}
+        self._invalid_list: list[int] = []
         box_list.append(self)
         logger.opt(colors=True).debug(f"已生成盒子 <c>{name}</c>")
 
@@ -226,21 +241,24 @@ class AyakaBox:
     def bot(self):
         '''当前bot'''
         bot = current_bot.get()
-        assert isinstance(bot, Bot)
+        if not isinstance(bot, Bot):
+            raise Exception("只有使用onebot协议的bot，才可访问该属性")
         return bot
 
     @property
     def event(self):
         '''当前消息事件'''
         event = current_event.get()
-        assert isinstance(event, MessageEvent)
+        if not isinstance(event, MessageEvent):
+            raise Exception("只有收到消息事件时，才可访问该属性")
         return event
 
     @property
     def group_event(self):
         '''当前群聊消息事件'''
         event = current_event.get()
-        assert isinstance(event, GroupMessageEvent)
+        if not isinstance(event, GroupMessageEvent):
+            raise Exception("只有收到群聊消息事件时，才可访问该属性")
         return event
 
     @property
@@ -259,10 +277,29 @@ class AyakaBox:
         return self.event.message
 
     @property
+    def valid(self):
+        '''当前盒子是否可用'''
+        return self.group_id not in self._invalid_list
+
+    @valid.setter
+    def valid(self, value: bool):
+        '''设置当前盒子是否可用'''
+        if value and not self.valid:
+            self._invalid_list.remove(self.group_id)
+            config = Config()
+            config.box_dict[self.name] = self._invalid_list
+            config.save()
+        elif not value and self.valid:
+            self._invalid_list.append(self.group_id)
+            config = Config()
+            config.box_dict[self.name] = self._invalid_list
+            config.save()
+
+    @property
     @cached
     def group(self):
         '''当前群组'''
-        return get_group(self.group_event.group_id)
+        return get_group(self.group_id)
 
     @property
     def state(self):
@@ -271,9 +308,9 @@ class AyakaBox:
         return self._state_dict[self.group_id]
 
     @state.setter
-    def state(self, k: str):
+    def state(self, value: str):
         '''设置盒子状态'''
-        self._state_dict[self.group_id] = k
+        self._state_dict[self.group_id] = value
 
     @property
     def cache(self):
@@ -340,9 +377,9 @@ class AyakaBox:
         return "\n".join(items)
 
     @help.setter
-    def help(self, value):
+    def help(self, value: str):
         '''设置box的帮助'''
-        self._intro = str(value).strip()
+        self._intro = value.strip()
 
     # ---- 添加帮助 ----
     def _add_help(self, cmds: list[str], states: list[str], func=None):
@@ -398,7 +435,7 @@ class AyakaBox:
             await self.bot.handle_event(event)
 
     async def start(self, state: str = "idle"):
-        '''启动当前盒子，启动后盒子状态默认为idle
+        '''启动盒子，启动后盒子状态默认为idle
 
         参数: 
 
@@ -413,18 +450,20 @@ class AyakaBox:
         await self.send(f"已启动盒子[{self.name}]")
 
     async def close(self):
-        '''关闭当前盒子'''
-        name = self.group.current_box.name
-        self.group.current_box = None
-        await self.send(f"已关闭盒子[{name}]")
+        '''关闭盒子'''
+        if self.group.current_box == self:
+            self.group.current_box = None
+            await self.send(f"已关闭盒子[{self.name}]")
 
     # ---- 兼容性 ----
-    def rule(self, states: str | list[str] = []):
+    def rule(self, states: str | list[str] = [], always: bool = False):
         '''返回一个检查state的Rule对象
 
         参数:
 
             states: 命令状态，为空时意味着注册群聊闲置状态时的命令
+            
+            always: 默认为False，设置为True时，意为总是触发该命令，其与注册群聊闲置状态时的命令不同
 
         返回:
 
@@ -463,6 +502,11 @@ class AyakaBox:
         def ayaka_state_checker(event: GroupMessageEvent):
             group_id = event.group_id
             group = get_group(group_id)
+            # 盒子是否被屏蔽
+            if group_id in self._invalid_list:
+                return False
+            if always:
+                return True
             # 群聊闲置状态时响应
             if not states:
                 return not group.current_box
@@ -508,8 +552,10 @@ class AyakaBox:
         states = ensure_list(states)
         if "" in states:
             raise Exception("state不可为空字符串")
-        if not always:
-            params["rule"] = self.rule(states) & params.get("rule", None)
+
+        rule = params.get("rule", None)
+        rule = self.rule(states=states, always=always) & rule
+        params["rule"] = rule
 
         def decorator(func):
             self._add_help(cmds, states, func)

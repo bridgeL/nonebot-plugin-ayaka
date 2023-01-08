@@ -3,11 +3,31 @@ import json
 import datetime
 from nonebot.drivers.fastapi import FastAPIWebSocket
 from nonebot.adapters.onebot.v11.adapter import Adapter
-from .helpers import Timer, safe_open_file
+from .helpers import Timer, safe_open_file, logger
+
+
+def hack_on_shutdown():
+    '''money patch nonebot.internal.driver.Driver.on_shutdown
+
+    查看都是谁shutdown那么慢'''
+    from nonebot import get_driver
+    driver = get_driver()
+    origin_func = driver.on_shutdown
+
+    def _func(func):
+        async def __func():
+            print(f"[{func.__module__} {func.__name__}]")
+            t = Timer(show=False)
+            with t:
+                await func()
+            print(f"耗时{t.diff:.2f}s")
+        return origin_func(__func)
+
+    driver.on_shutdown = _func
 
 
 def hack_load_plugin():
-    '''nonebot.plugin.manager PluginManager.load_plugin方法
+    '''money patch nonebot.plugin.manager PluginManager.load_plugin
 
     令nb导入插件时，统计导入时长'''
     from nonebot.plugin.manager import PluginManager
@@ -61,6 +81,11 @@ class Recorder:
 recorder = Recorder()
 
 
+def dont_show_record():
+    '''设置监督内容不回显'''
+    recorder.show_data = False
+
+
 class WatcherWebSocket(FastAPIWebSocket):
     '''受监督的FastAPI ws'''
 
@@ -77,6 +102,10 @@ class WatcherWebSocket(FastAPIWebSocket):
 
 class WatcherAdapter(Adapter):
     '''受监督的Onebot适配器'''
+    def __init__(self, driver, **kwargs):
+        logger.warning("正在使用受监督的Onebot适配器，将产生大量data/sample/xx.json日志文件")
+        super().__init__(driver, **kwargs)
+    
     async def _handle_ws(self, websocket: FastAPIWebSocket) -> None:
         ws = WatcherWebSocket(
             request=websocket.request,

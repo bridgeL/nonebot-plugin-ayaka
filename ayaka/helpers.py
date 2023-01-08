@@ -1,4 +1,7 @@
 '''提供一些有益的方法和类'''
+import asyncio
+import typing
+import functools
 import json
 import re
 from time import time
@@ -162,17 +165,17 @@ def pack_messages(user_id: int, user_name: str, messages: list):
 
 def safe_open_file(path: str | Path, mode: str = "a+"):
     '''安全打开文件，如果文件父目录不存在，则自动新建
-    
+
     参数：
 
         path：文件地址，str或Path类型
-        
+
         mode：文件打开模式
-        
+
     返回：
-    
+
         path: 文件地址，Path类型
-        
+
         f：打开后的文件IO
     '''
     if isinstance(path, str):
@@ -206,3 +209,13 @@ def load_data_from_file(path: str | Path):
         else:
             # 排除空行
             return [line[:-1] for line in f if line[:-1]]
+
+
+def is_async_callable(obj: typing.Any) -> bool:
+    '''from starlette._utils import is_async_callable'''
+    while isinstance(obj, functools.partial):
+        obj = obj.func
+
+    return asyncio.iscoroutinefunction(obj) or (
+        callable(obj) and asyncio.iscoroutinefunction(obj.__call__)
+    )
