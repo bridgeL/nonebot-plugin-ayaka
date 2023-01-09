@@ -30,7 +30,7 @@ async def show_help():
         else:
             await box.send("没有找到对应盒子")
 
-    b = box.group.current_box
+    b = box.current_box
     if b:
         await box.send(b.help)
         return
@@ -54,7 +54,7 @@ async def show_help():
 @box.on_cmd(cmds="盒子状态", always=True)
 async def show_state():
     '''展示盒子状态'''
-    b = box.group.current_box
+    b = box.current_box
     if b:
         info = f"正在运行盒子[{b.name}]\n当前状态[{b.state}]"
     else:
@@ -65,7 +65,7 @@ async def show_state():
 @box.on_cmd(cmds="强制退出", always=True)
 async def force_exit():
     '''强制关闭当前盒子'''
-    b = box.group.current_box
+    b = box.current_box
     if b:
         await b.close()
 
