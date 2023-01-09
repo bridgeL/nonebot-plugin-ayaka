@@ -305,11 +305,6 @@ class AyakaBox:
         self._state_dict.setdefault(self.group_id, "idle")
         return self._state_dict[self.group_id]
 
-    @state.setter
-    def state(self, value: str):
-        '''设置盒子状态'''
-        self._state_dict[self.group_id] = value
-
     @property
     def cache(self):
         '''当前数据缓存'''
@@ -425,6 +420,9 @@ class AyakaBox:
         self.state = state
 
         if state in self.immediates:
+            # 使用如此迂回方法的原因是，
+            # 希望通过on_immediate注册的方法，
+            # 同样可以正常使用nonebot的依赖注入特性
             event = GroupMessageEvent(
                 **self.group_event.dict(exclude={"message", "raw_message"}),
                 message=Message(on_immediate_cmd),
