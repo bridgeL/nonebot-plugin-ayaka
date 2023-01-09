@@ -302,7 +302,7 @@ class AyakaBox:
     @state.setter
     def state(self, value: str):
         '''设置盒子状态'''
-        self.set_state(value)
+        self._state_dict[self.group_id] = value
 
     @property
     def cache(self):
@@ -431,7 +431,7 @@ class AyakaBox:
         '''
         if not self.current_box:
             self.current_box = self
-            await self.set_state(state)
+            self.state = state
             await self.send(f"已启动盒子[{self.name}]")
 
     async def close(self):
