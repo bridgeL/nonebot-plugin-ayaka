@@ -206,7 +206,7 @@ def load_data_from_file(path: str | Path):
             return json.load(f)
         else:
             # 排除空行
-            return [line[:-1] for line in f if line[:-1]]
+            return [line.strip() for line in f if line.strip()]
 
 
 def is_async_callable(obj) -> bool:
@@ -231,6 +231,8 @@ async def download_url(url: str) -> bytes:
 
 async def resource_download(url: str, path: str | Path = ""):
     '''异步下载资源到指定位置
+    
+    下载资源时，若给定的文件地址的父目录不存在，则会自动新建，无需担心找不到目录的异常
 
     参数：
 
@@ -241,7 +243,7 @@ async def resource_download(url: str, path: str | Path = ""):
     返回：
 
         下载得到的字节数据
-        
+
     异常：
 
         下载异常
@@ -283,6 +285,8 @@ class ResInfo(BaseModel):
 
 async def resource_download_by_res_info(res_info: ResInfo, base_dir: str | Path):
     '''根据res_info，异步下载资源到指定位置，只下载哈希值发生变化的资源项
+    
+    下载资源时，若给定的文件地址的父目录不存在，则会自动新建，无需担心找不到目录的异常
 
     参数：
 
