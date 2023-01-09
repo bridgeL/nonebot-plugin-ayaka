@@ -241,17 +241,17 @@ async def resource_download(url: str, path: str | Path = ""):
     返回：
 
         下载得到的字节数据
+        
+    异常：
+
+        下载异常
     '''
     if path:
         path = ensure_dir_exists(path)
         logger.debug(f"下载文件 {path} ...")
 
     logger.info(f"拉取数据 {url} ...")
-    try:
-        data = await download_url(url)
-    except:
-        logger.exception(f"拉取数据失败 {url}")
-        return
+    data = await download_url(url)
 
     # 保存
     if path:
