@@ -251,6 +251,7 @@ async def resource_download(url: str, path: str | Path = ""):
         data = await download_url(url)
     except:
         logger.exception(f"拉取数据失败 {url}")
+        return
 
     # 保存
     if path:
@@ -286,7 +287,7 @@ async def resource_download_by_res_info(res_info: ResInfo, base_dir: str | Path)
     参数：
 
         res_info：资源信息
-        
+
         base_dir：本地文件地址
 
     返回：

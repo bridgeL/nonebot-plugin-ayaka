@@ -297,8 +297,7 @@ class AyakaBox:
     @property
     def state(self):
         '''盒子状态'''
-        self._state_dict.setdefault(self.group_id, "idle")
-        return self._state_dict[self.group_id]
+        return self._state_dict.get(self.group_id, "idle")
 
     @state.setter
     def state(self, value: str):
@@ -362,13 +361,13 @@ class AyakaBox:
         if self._intro:
             items.append(self._intro)
         items.extend(self._helps.get("群聊闲置状态", []))
-        
+
         for state, infos in self._helps.items():
             if state == "群聊闲置状态":
                 continue
             items.append(f"[{state}]")
             items.extend(infos)
-    
+
         return "\n".join(items)
 
     @help.setter
@@ -486,26 +485,31 @@ class AyakaBox:
         states = ensure_list(states)
 
         def ayaka_state_checker(event: GroupMessageEvent):
-            group_id = event.group_id
             # 盒子是否被屏蔽
+            group_id = event.group_id
             if group_id in self._invalid_list:
                 return False
+
+            # 盒子是否不受ayaka状态约束
             if always:
                 return True
+
             # 群聊闲置状态时响应
+            current_box = group_dict.get(group_id)
             if not states:
-                return not self.current_box
+                return not current_box
+
             # 如果群聊被独占，则屏蔽其他盒子
-            if self.current_box != self:
+            if current_box != self:
                 return False
+
             # 必定响应*
             if "*" in states:
                 return True
+
             # 当前盒子状态是否符合要求
-            if group_id not in self._state_dict:
-                return False
-            # 当前盒子状态是否符合要求
-            return self._state_dict[group_id] in states
+            box_state = self._state_dict.get(group_id, "idle")
+            return box_state in states
 
         return Rule(ayaka_state_checker)
 
