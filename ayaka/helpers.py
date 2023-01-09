@@ -1,10 +1,12 @@
 '''提供一些有益的方法和类'''
 import asyncio
-import typing
 import functools
+import hashlib
 import json
 import re
 from time import time
+
+import httpx
 from .lazy import get_driver, Message, MessageSegment, BaseModel, Path, logger
 
 driver = get_driver()
@@ -20,10 +22,27 @@ def ensure_list(data: str | list | tuple | set):
 
 
 def ensure_dir_exists(path: str | Path):
-    '''确保输入的目录路径存在'''
+    '''确保目录存在
+
+    参数：
+
+        path：文件路径或目录路径
+
+            若为文件路径，该函数将确保该文件父目录存在
+
+            若为目录路径，该函数将确保该目录存在
+
+    返回：
+
+        Path对象
+    '''
     if not isinstance(path, Path):
         path = Path(path)
-    if not path.exists():
+    # 文件
+    if path.suffix:
+        ensure_dir_exists(path.parent)
+    # 目录
+    elif not path.exists():
         path.mkdir(parents=True)
     return path
 
@@ -163,28 +182,6 @@ def pack_messages(user_id: int, user_name: str, messages: list):
     return data
 
 
-def safe_open_file(path: str | Path, mode: str = "a+"):
-    '''安全打开文件，如果文件父目录不存在，则自动新建
-
-    参数：
-
-        path：文件地址，str或Path类型
-
-        mode：文件打开模式
-
-    返回：
-
-        path: 文件地址，Path类型
-
-        f：打开后的文件IO
-    '''
-    if isinstance(path, str):
-        path = Path(path)
-    if not path.parent.exists():
-        path.parent.mkdir(parents=True)
-    return path, path.open(mode, encoding="utf8")
-
-
 def load_data_from_file(path: str | Path):
     '''从指定文件加载数据
 
@@ -200,10 +197,11 @@ def load_data_from_file(path: str | Path):
 
         json反序列化后的结果(对应.json文件) 或 字符串数组(对应.txt文件)
     '''
-    if isinstance(path, str):
-        path = Path(path)
+    path = ensure_dir_exists(path)
+    if not path.exists():
+        raise Exception(f"文件不存在 {path}")
 
-    with safe_open_file(path, "r")[1] as f:
+    with path.open("r", encoding="utf8") as f:
         if path.suffix == ".json":
             return json.load(f)
         else:
@@ -211,11 +209,99 @@ def load_data_from_file(path: str | Path):
             return [line[:-1] for line in f if line[:-1]]
 
 
-def is_async_callable(obj: typing.Any) -> bool:
-    '''from starlette._utils import is_async_callable'''
+def is_async_callable(obj) -> bool:
+    '''抄自 starlette._utils.is_async_callable
+
+    判断对象是否可异步调用'''
     while isinstance(obj, functools.partial):
         obj = obj.func
 
     return asyncio.iscoroutinefunction(obj) or (
         callable(obj) and asyncio.iscoroutinefunction(obj.__call__)
     )
+
+
+async def download_url(url: str) -> bytes:
+    '''返回指定链接下载的字节流数据'''
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, timeout=20)
+        resp.raise_for_status()
+        return resp.content
+
+
+async def resource_download(url: str, path: str | Path = ""):
+    '''异步下载资源到指定位置
+
+    参数：
+
+        url：资源网址
+
+        path：本地下载位置
+
+    返回：
+
+        下载得到的字节数据
+    '''
+    if path:
+        path = ensure_dir_exists(path)
+        logger.debug(f"下载文件 {path} ...")
+
+    logger.exception(f"拉取数据 {url} ...")
+    try:
+        data = await download_url(url)
+    except:
+        logger.exception(f"拉取数据失败 {url}")
+
+    # 保存
+    if path:
+        path.write_bytes(data)
+
+    return data
+
+
+def get_file_hash(path: str | Path):
+    path = ensure_dir_exists(path)
+    return hashlib.md5(path.read_bytes()).hexdigest()
+
+
+class ResItem(BaseModel):
+    '''资源项'''
+    path: str
+    '''下载地址的相对地址尾'''
+    hash: str
+    '''资源的哈希值'''
+
+
+class ResInfo(BaseModel):
+    '''资源信息'''
+    base: str
+    '''下载地址的绝对地址头'''
+    items: list[ResItem]
+    '''资源项'''
+
+
+async def resource_download_by_res_info(res_info: ResInfo, base_dir: str | Path):
+    '''根据res_info，异步下载资源到指定位置，只下载哈希值发生变化的资源项
+
+    参数：
+
+        res_info：资源信息
+        
+        base_dir：本地文件地址
+
+    返回：
+
+        是否存在更新
+    '''
+    if isinstance(base_dir, str):
+        base_dir = Path(base_dir)
+
+    has_updated = False
+    for item in res_info.items:
+        url = res_info.base + "/" + item.path
+        path = base_dir / item.path
+        if not path.exists() or get_file_hash(path) != item.hash:
+            await resource_download(url, path)
+            has_updated = True
+
+    return has_updated

@@ -3,7 +3,7 @@ import json
 import datetime
 from nonebot.drivers.fastapi import FastAPIWebSocket
 from nonebot.adapters.onebot.v11.adapter import Adapter
-from .helpers import Timer, safe_open_file, logger
+from .helpers import Timer, ensure_dir_exists, logger
 
 
 def hack_on_shutdown():
@@ -72,10 +72,13 @@ class Recorder:
 
         echo = data["echo"]
         _data = self.data.pop(echo, None)
-        if _data:
-            data = [_data, data]
-            with safe_open_file(f"{self.base}/{echo}.json")[1] as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
+        if not _data:
+            return
+
+        data = [_data, data]
+        path = ensure_dir_exists(f"{self.base}/{echo}.json")
+        with path.open("a+", encoding="utf8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
 
 
 recorder = Recorder()
@@ -102,10 +105,11 @@ class WatcherWebSocket(FastAPIWebSocket):
 
 class WatcherAdapter(Adapter):
     '''受监督的Onebot适配器'''
+
     def __init__(self, driver, **kwargs):
         logger.warning("正在使用受监督的Onebot适配器，将产生大量data/sample/xx.json日志文件")
         super().__init__(driver, **kwargs)
-    
+
     async def _handle_ws(self, websocket: FastAPIWebSocket) -> None:
         ws = WatcherWebSocket(
             request=websocket.request,

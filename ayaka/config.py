@@ -6,7 +6,8 @@ from pydantic import ValidationError
 from .helpers import ensure_dir_exists
 from .lazy import logger, BaseModel, Path
 
-AYAKA_VERSION = "1.0.3b0"
+AYAKA_VERSION = "1.0.3b1"
+logger.opt(colors=True).success(f"<y>ayaka</y> 当前版本 <y>{AYAKA_VERSION}</y>")
 
 data_path = Path("data", "ayaka")
 ensure_dir_exists(data_path)
@@ -20,6 +21,7 @@ class AyakaConfig(BaseModel):
     在修改不可变成员属性时，`AyakaConfig`会自动写入到本地文件，但修改可变成员属性时，需要手动执行save函数
     '''
     __config_name__ = ""
+    '''配置文件的名称'''
 
     def __init__(self):
         name = self.__config_name__
@@ -65,12 +67,17 @@ class AyakaConfig(BaseModel):
 
 class RootConfig(AyakaConfig):
     '''根配置'''
+
     __config_name__ = "root"
+
     version: str = AYAKA_VERSION
+    '''版本号'''
+
+    block_box_dict: dict[str, list[int]] = {}
+    '''各个盒子被各群聊的屏蔽设置'''
 
 
 ayaka_root_config = RootConfig()
-'''ayaka根配置，目前是吉祥物，仅标识ayaka的版本号'''
+'''ayaka根配置'''
 
 ayaka_root_config.version = AYAKA_VERSION
-logger.opt(colors=True).success(f"<y>ayaka</y> 当前版本 <y>{AYAKA_VERSION}</y>")

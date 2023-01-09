@@ -5,13 +5,14 @@ ayaka的核心模块
 '''
 from math import ceil
 from typing import Callable, TypeVar
+from typing_extensions import Self
 from nonebot.rule import CommandRule
 from nonebot.matcher import Matcher, current_bot, current_event, current_matcher
 from nonebot.params import _command_arg, _raw_command
 
-from .helpers import Timer, _command_args, ensure_list, pack_messages, run_in_startup, is_async_callable, slow_load_config
+from .helpers import Timer, _command_args, ensure_list, pack_messages, run_in_startup, is_async_callable
 from .lazy import Rule, GroupMessageEvent, PrivateMessageEvent, MessageEvent, Message, MessageSegment, Bot, BaseModel, get_driver, on_command, on_message, logger
-from .config import AyakaConfig
+from .config import ayaka_root_config
 
 
 driver = get_driver()
@@ -22,30 +23,27 @@ T = TypeVar("T")
 '''任意类型'''
 T_BaseModel = TypeVar("T_BaseModel", bound=BaseModel)
 '''BaseModel的子类'''
-group_list: list["AyakaGroup"] = []
-'''群组列表'''
+group_dict: dict[int, "AyakaBox"] = {}
+'''群组字典'''
 box_list: list["AyakaBox"] = []
 '''box列表'''
-func_list: list["AyakaDelayMatcher"] = []
-'''AyakaDelayMatcher列表'''
 listeners: dict[int, list[int]] = {}
 '''监听列表，将私聊消息转发给当前正监听它的若干个群聊'''
 LISTEN = on_message(block=False)
 '''处理监听转发的matcher'''
 
 
-class AyakaDelayMatcher:
-    def __init__(self, module_name, func, cmds, params) -> None:
-        if not module_name:
-            module_name = func.__module__
+class AyakaMatcherCreaterUnit:
+    '''matcher 创建器单元'''
+
+    def __init__(self, module_name: str, func: Callable, cmds: list[str], params: dict) -> None:
         self.module_name = module_name
         self.func = func
         self.cmds = cmds
         self.params = params
-        func_list.append(self)
 
     def create(self):
-        '''生成所有matcher'''
+        '''创建matcher'''
         if self.cmds:
             matcher = on_command(
                 cmd=self.cmds[0],
@@ -62,43 +60,44 @@ class AyakaDelayMatcher:
             matcher.handle()(self.func)
 
 
-@run_in_startup
-async def create_all_matcher():
-    '''加速插件加载'''
-    logger.opt(colors=True).warning(
-        "<y>ayaka</y> 正在创建matcher，可能会收到Duplicated prefix rule警告，而这是正常的")
+class AyakaMatcherCreater:
+    '''matcher 创建器'''
 
-    t = Timer(show=False)
-    with t:
-        for func in func_list:
-            func.create()
-    logger.opt(colors=True).success(
-        f"<y>ayaka</y> 已成功创建全部matchers，耗时{t.diff:.2f}s")
+    def __init__(self) -> None:
+        self.has_created = False
+        self.units: list[AyakaMatcherCreaterUnit] = []
+
+    def warning_hint(self):
+        info = "在 <y>ayaka</y> 创建matcher期间，可能会收到Duplicated prefix rule警告，而这是正常的"
+        logger.opt(colors=True).warning(info)
+
+    def create_hint(self):
+        info = "<y>ayaka</y> 正在创建matcher ..."
+        logger.opt(colors=True).warning(info)
+
+    def add(self, module_name: str, func: Callable, cmds: list[str], params: dict):
+        if not module_name:
+            module_name = func.__module__
+
+        unit = AyakaMatcherCreaterUnit(module_name, func, cmds, params)
+        self.units.append(unit)
+
+        if self.has_created:
+            self.create_hint()
+            unit.create()
+
+    async def create_all(self):
+        self.warning_hint()
+        self.create_hint()
+        t = Timer(show=False)
+        with t:
+            for unit in self.units:
+                unit.create()
+        self.has_created = True
 
 
-class AyakaGroup:
-    '''群组
-
-    属性:
-
-        current_box: group当前正在运行的box
-
-        group_id: 群组qq号
-    '''
-
-    def __init__(self, group_id: int) -> None:
-        self.current_box: AyakaBox | None = None
-        self.group_id = group_id
-
-
-def get_group(group_id: int):
-    '''获得群组对象，若不存在则自动新增'''
-    for group in group_list:
-        if group.group_id == group_id:
-            return group
-    group = AyakaGroup(group_id)
-    group_list.append(group)
-    return group
+matcher_creator = AyakaMatcherCreater()
+run_in_startup(matcher_creator.create_all)
 
 
 def get_box(name: str):
@@ -146,18 +145,11 @@ def cached(func):
     return _func
 
 
-@slow_load_config
-class Config(AyakaConfig):
-    __config_name__ = "盒子屏蔽列表"
-    box_dict: dict[str, list[int]] = {}
-
-
 @run_in_startup
 async def load_invalid_list():
     '''加载所有盒子的屏蔽配置'''
-    config = Config()
     for b in box_list:
-        b._invalid_list = config.box_dict.get(b.name, [])
+        b._invalid_list = ayaka_root_config.block_box_dict.get(b.name, [])
 
 
 class AyakaBox:
@@ -183,7 +175,7 @@ class AyakaBox:
 
         @matcher.handle()
         async def matcher_handle():
-            print(box.group, box.group.group_id)
+            print(box.state, box.group_id)
     ```
     示例代码2:
     ```
@@ -193,7 +185,7 @@ class AyakaBox:
 
         @box.on_cmd(cmds="test", states="yes")
         async def matcher_handle():
-            print(box.group, box.group.group_id)
+            print(box.state, box.group_id)
     ```
     '''
 
@@ -284,22 +276,28 @@ class AyakaBox:
     @valid.setter
     def valid(self, value: bool):
         '''设置当前盒子是否可用'''
+        change_flag = False
         if value and not self.valid:
             self._invalid_list.remove(self.group_id)
-            config = Config()
-            config.box_dict[self.name] = self._invalid_list
-            config.save()
+            change_flag = True
+
         elif not value and self.valid:
             self._invalid_list.append(self.group_id)
-            config = Config()
-            config.box_dict[self.name] = self._invalid_list
-            config.save()
+            change_flag = True
+
+        if change_flag:
+            ayaka_root_config.block_box_dict[self.name] = self._invalid_list
+            ayaka_root_config.save()
 
     @property
-    @cached
-    def group(self):
-        '''当前群组'''
-        return get_group(self.group_id)
+    def current_box(self):
+        '''当前运行盒子'''
+        return group_dict.get(self.group_id)
+
+    @current_box.setter
+    def current_box(self, value: "Self"):
+        '''设置当前运行盒子'''
+        group_dict[self.group_id] = value
 
     @property
     def state(self):
@@ -445,14 +443,15 @@ class AyakaBox:
 
             state不可为空字符串或*
         '''
-        self.group.current_box = self
-        await self.set_state(state)
-        await self.send(f"已启动盒子[{self.name}]")
+        if not self.current_box:
+            self.current_box = self
+            await self.set_state(state)
+            await self.send(f"已启动盒子[{self.name}]")
 
     async def close(self):
         '''关闭盒子'''
-        if self.group.current_box == self:
-            self.group.current_box = None
+        if self.current_box == self:
+            self.current_box = None
             await self.send(f"已关闭盒子[{self.name}]")
 
     # ---- 兼容性 ----
@@ -462,7 +461,7 @@ class AyakaBox:
         参数:
 
             states: 命令状态，为空时意味着注册群聊闲置状态时的命令
-            
+
             always: 默认为False，设置为True时，意为总是触发该命令，其与注册群聊闲置状态时的命令不同
 
         返回:
@@ -501,7 +500,6 @@ class AyakaBox:
 
         def ayaka_state_checker(event: GroupMessageEvent):
             group_id = event.group_id
-            group = get_group(group_id)
             # 盒子是否被屏蔽
             if group_id in self._invalid_list:
                 return False
@@ -509,9 +507,9 @@ class AyakaBox:
                 return True
             # 群聊闲置状态时响应
             if not states:
-                return not group.current_box
+                return not self.current_box
             # 如果群聊被独占，则屏蔽其他盒子
-            if group.current_box != self:
+            if self.current_box != self:
                 return False
             # 必定响应*
             if "*" in states:
@@ -559,7 +557,7 @@ class AyakaBox:
 
         def decorator(func):
             self._add_help(cmds, states, func)
-            AyakaDelayMatcher(module_name, func, cmds, params)
+            matcher_creator.add(module_name, func, cmds, params)
             return func
         return decorator
 
@@ -828,7 +826,9 @@ async def listener_handle(bot: Bot, event: PrivateMessageEvent):
 
 
 def check_cmd_matcher(matcher: Matcher):
-    '''探测一个matcher是否是on_command注册的'''
+    '''探测一个matcher是否由on_command创建的
+
+    这不是个好方法，但是我也没办法'''
     for c in matcher.rule.checkers:
         if isinstance(c.call, CommandRule):
             return True
