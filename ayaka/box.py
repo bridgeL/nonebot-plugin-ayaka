@@ -17,8 +17,6 @@ from .config import ayaka_root_config
 
 driver = get_driver()
 '''驱动器'''
-on_immediate_cmd = list(driver.config.command_start)[0] + "on_immediate"
-'''用来实现on_immediate效果的特殊命令'''
 T = TypeVar("T")
 '''任意类型'''
 T_BaseModel = TypeVar("T_BaseModel", bound=BaseModel)
@@ -159,8 +157,6 @@ class AyakaBox:
 
         name: box的名字，应与插件名字一致
 
-        immediates: on_immediate注册状态记录
-
         priority: 优先级
 
         更多计算属性请查询api文档
@@ -218,7 +214,6 @@ class AyakaBox:
             return
 
         self.name = name
-        self.immediates = set()
         self.priority = priority
         self._intro = ""
         self._helps: dict[str, list] = {}
@@ -301,9 +296,14 @@ class AyakaBox:
 
     @property
     def state(self):
-        '''当前盒子状态'''
+        '''盒子状态'''
         self._state_dict.setdefault(self.group_id, "idle")
         return self._state_dict[self.group_id]
+
+    @state.setter
+    def state(self, value: str):
+        '''设置盒子状态'''
+        self.set_state(value)
 
     @property
     def cache(self):
@@ -361,12 +361,14 @@ class AyakaBox:
         items = [f"[{self.name}]"]
         if self._intro:
             items.append(self._intro)
-        items.extend(self._helps.get("no_state", []))
+        items.extend(self._helps.get("群聊闲置状态", []))
+        
         for state, infos in self._helps.items():
-            if state == "no_state":
+            if state == "群聊闲置状态":
                 continue
             items.append(f"[{state}]")
             items.extend(infos)
+    
         return "\n".join(items)
 
     @help.setter
@@ -386,8 +388,6 @@ class AyakaBox:
 
             func: 回调
         '''
-        if "on_immediate" in cmds:
-            return
         info = "- "
         if cmds:
             info += "/".join(cmds) + " "
@@ -396,7 +396,7 @@ class AyakaBox:
         if func and func.__doc__:
             info += func.__doc__
         if not states:
-            states = ["no_state"]
+            states = ["群聊闲置状态"]
         for state in states:
             if state not in self._helps:
                 self._helps[state] = [info]
@@ -404,7 +404,7 @@ class AyakaBox:
                 self._helps[state].append(info)
 
     # ---- 设置状态 ----
-    async def set_state(self, state: str):
+    def set_state(self, state: str):
         '''修改当前群组状态
 
         参数: 
@@ -418,17 +418,6 @@ class AyakaBox:
         if state in ["", "*"]:
             raise Exception("state不可为空字符串或*")
         self.state = state
-
-        if state in self.immediates:
-            # 使用如此迂回方法的原因是，
-            # 希望通过on_immediate注册的方法，
-            # 同样可以正常使用nonebot的依赖注入特性
-            event = GroupMessageEvent(
-                **self.group_event.dict(exclude={"message", "raw_message"}),
-                message=Message(on_immediate_cmd),
-                raw_message=on_immediate_cmd
-            )
-            await self.bot.handle_event(event)
 
     async def start(self, state: str = "idle"):
         '''启动盒子，启动后盒子状态默认为idle
@@ -627,34 +616,6 @@ class AyakaBox:
         params.setdefault("block", False)
         params.setdefault("priority", self.priority + 1)
         return self._on(states=states, always=always, **params)
-
-    def on_immediate(self, state: str):
-        '''注册立即处理回调
-
-        参数:
-
-            state: 注册状态，不可为空字符串或*
-
-        返回:
-
-            装饰器
-
-        异常:
-
-            state不可为空字符串或*
-
-        此注册方法很特殊，其回调在box.state变为指定的state时立刻执行
-        '''
-        if state in ["", "*"]:
-            raise Exception("state不可为空字符串或**")
-        self.immediates.add(state)
-        return self._on(
-            cmds="on_immediate",
-            states=state,
-            module_name=self.name,
-            priority=self.priority,
-            block=True
-        )
 
     # ---- 快捷命令 ----
     def set_start_cmds(self, cmds: str | list[str]):
