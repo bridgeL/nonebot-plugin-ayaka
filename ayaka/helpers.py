@@ -246,7 +246,7 @@ async def resource_download(url: str, path: str | Path = ""):
         path = ensure_dir_exists(path)
         logger.debug(f"下载文件 {path} ...")
 
-    logger.exception(f"拉取数据 {url} ...")
+    logger.info(f"拉取数据 {url} ...")
     try:
         data = await download_url(url)
     except:

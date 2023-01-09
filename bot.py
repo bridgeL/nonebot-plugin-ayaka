@@ -17,7 +17,7 @@ driver.register_adapter(Adapter)
 
 # ---- 加载插件 ----
 # nonebot.load_plugin("test")
-# nonebot.load_plugin("ayaka_games")
+nonebot.load_plugin("ayaka_games")
 # nonebot.load_from_toml("pyproject.toml")
 nonebot.load_plugin("ayaka_test")
 

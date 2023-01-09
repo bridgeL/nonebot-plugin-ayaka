@@ -13,9 +13,8 @@ box.set_close_cmds(cmds=["退出", "exit"])
 @box.on_cmd(cmds="move", states="*")
 async def move():
     '''移动'''
-    arg = str(box.arg)
-    await box.set_state(arg)
-    await box.send(f"前往 {arg}")
+    box.state = str(box.arg)
+    await box.send(f"前往 {box.state}")
     
 # ---------- 3 ----------
 @box.on_cmd(cmds="hi", states=["地球", "月球", "太阳"])

@@ -7,7 +7,7 @@ __pycache__
 /record.log
 /plugins/*
 /script
-/ps
+*.ps1
 
 # 保留示例
 !/plugins/星际旅行.py

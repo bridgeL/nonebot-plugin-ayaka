@@ -22,9 +22,8 @@ m3 = on_command("move", rule=box.rule(states="*"))
 @m3.handle()
 async def move():
     '''移动'''
-    arg = str(box.arg)
-    await box.set_state(arg)
-    await m3.send(f"前往 {arg}")
+    box.state = str(box.arg)
+    await m3.send(f"前往 {box.state}")
     
 # ---------- 3 ----------
 m4 = on_command("hi", rule=box.rule(states=["地球", "月球", "太阳"]))
