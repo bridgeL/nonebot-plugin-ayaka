@@ -250,9 +250,9 @@ async def resource_download(url: str, path: str | Path = ""):
     '''
     if path:
         path = ensure_dir_exists(path)
-        logger.debug(f"下载文件 {path} ...")
+        logger.opt(colors=True).info(f"下载文件 <c>{path}</c> ...")
 
-    logger.info(f"拉取数据 {url} ...")
+    logger.opt(colors=True).info(f"拉取数据 <c>{url}</c>  ...")
     data = await download_url(url)
 
     # 保存

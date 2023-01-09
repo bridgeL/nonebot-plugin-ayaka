@@ -54,7 +54,8 @@ class AyakaConfig(BaseModel):
         if getattr(self, name) != value:
             super().__setattr__(name, value)
             self.save()
-            logger.opt(colors=True).debug(f"已自动写入配置更改 <c>{name}</c>")
+            logger.opt(colors=True).debug(
+                f"已自动写入配置更改 {self.__config_name__}.<c>{name}</c>")
 
     def save(self):
         '''修改可变成员变量后，需要使用该方法才能保存其值到文件'''
