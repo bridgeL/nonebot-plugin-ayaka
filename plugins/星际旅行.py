@@ -65,20 +65,20 @@ async def handle():
     await box.send("你火星了")
 
 # ---------- 7 ----------
-from ayaka import AyakaConfig, slow_load_config
+from ayaka import AyakaConfig
 
 class Cache2(BaseModel):
     gold:int = 0
 
-@slow_load_config
 class Config(AyakaConfig):
     __config_name__ = box.name
     gold_each_time: int = 1
 
+config = Config()
+
 @box.on_cmd(cmds="pick", states="沙城")
 async def get_gold():
     '''捡金子'''
-    config = Config()
     cache = box.get_data(Cache2)
     cache.gold += config.gold_each_time
     await box.send(f"+{config.gold_each_time} / {cache.gold}")
