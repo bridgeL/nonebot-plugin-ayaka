@@ -89,7 +89,7 @@ async def block_box():
 
 
 @box.on_cmd(cmds="取消屏蔽盒子", always=True)
-async def block_box():
+async def unblock_box():
     '''<盒子名> 取消屏蔽盒子'''
     if not box.arg:
         await box.send("请使用 取消屏蔽盒子 <盒子名>")
