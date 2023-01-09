@@ -231,7 +231,7 @@ async def download_url(url: str) -> bytes:
 
 async def resource_download(url: str, path: str | Path = ""):
     '''异步下载资源到指定位置
-    
+
     下载资源时，若给定的文件地址的父目录不存在，则会自动新建，无需担心找不到目录的异常
 
     参数：
@@ -262,9 +262,24 @@ async def resource_download(url: str, path: str | Path = ""):
     return data
 
 
-def get_file_hash(path: str | Path):
+def get_file_hash(path: str | Path, force_LF: bool = True):
+    '''获取文件的hash值
+
+    参数：
+
+        path：文件地址
+
+        force_LF：强制替换文件中的换行符为\\n
+
+    返回：
+
+        16进制哈希值
+    '''
     path = ensure_dir_exists(path)
-    return hashlib.md5(path.read_bytes()).hexdigest()
+    data = path.read_bytes()
+    if force_LF:
+        data = data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return hashlib.md5(data).hexdigest()
 
 
 class ResItem(BaseModel):
@@ -285,7 +300,7 @@ class ResInfo(BaseModel):
 
 async def resource_download_by_res_info(res_info: ResInfo, base_dir: str | Path):
     '''根据res_info，异步下载资源到指定位置，只下载哈希值发生变化的资源项
-    
+
     下载资源时，若给定的文件地址的父目录不存在，则会自动新建，无需担心找不到目录的异常
 
     参数：
